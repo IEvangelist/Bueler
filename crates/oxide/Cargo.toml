@@ -9,6 +9,8 @@ license.workspace = true
 oxide-core = { path = "../oxide-core" }
 oxide-macros = { path = "../oxide-macros" }
 oxide-dom = { path = "../oxide-dom" }
+oxide-telemetry = { path = "../oxide-telemetry" }
+oxide-resiliency = { path = "../oxide-resiliency" }
 wasm-bindgen = "0.2"
 
 [dependencies.web-sys]

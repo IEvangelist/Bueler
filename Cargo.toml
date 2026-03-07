@@ -4,6 +4,8 @@ members = [
     "crates/oxide-core",
     "crates/oxide-macros",
     "crates/oxide-dom",
+    "crates/oxide-telemetry",
+    "crates/oxide-resiliency",
     "crates/oxide",
     "examples/counter",
     "examples/showcase",

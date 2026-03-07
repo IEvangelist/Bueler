@@ -1,5 +1,6 @@
 /// Re-exports from `oxide-core` — reactive primitives.
 pub use oxide_core::{batch, create_effect, memo, provide_context, signal, untrack, use_context, Signal};
+pub use oxide_core::{set_hook, clear_hook, HookEvent};
 
 /// Re-exports from `oxide-macros` — the `view!` macro.
 pub use oxide_macros::view;
@@ -7,6 +8,16 @@ pub use oxide_macros::view;
 /// DOM renderer utilities.
 pub mod dom {
     pub use oxide_dom::*;
+}
+
+/// OpenTelemetry-compatible tracing.
+pub mod telemetry {
+    pub use oxide_telemetry::*;
+}
+
+/// Resiliency patterns — error boundaries, retry, circuit breaker, timeout.
+pub mod resiliency {
+    pub use oxide_resiliency::*;
 }
 
 /// The Component trait — implement this for struct-based components.

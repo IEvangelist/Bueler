@@ -1,6 +1,8 @@
 use std::any::Any;
 use std::cell::RefCell;
 
+use crate::hooks::{fire, HookEvent};
+
 struct ReactiveNode {
     value: Box<dyn Any>,
     subscribers: Vec<usize>,
@@ -34,7 +36,7 @@ thread_local! {
 // ---------------------------------------------------------------------------
 
 pub(crate) fn create_signal_rt<T: 'static>(value: T) -> usize {
-    RUNTIME.with(|rt| {
+    let id = RUNTIME.with(|rt| {
         let mut inner = rt.borrow_mut();
         let id = inner.signals.len();
         inner.signals.push(ReactiveNode {
@@ -42,11 +44,13 @@ pub(crate) fn create_signal_rt<T: 'static>(value: T) -> usize {
             subscribers: Vec::new(),
         });
         id
-    })
+    });
+    fire(HookEvent::SignalCreate { id });
+    id
 }
 
 pub(crate) fn read_signal_rt<T: 'static + Clone>(id: usize) -> T {
-    RUNTIME.with(|rt| {
+    let val = RUNTIME.with(|rt| {
         {
             let mut inner = rt.borrow_mut();
             if let Some(effect_id) = inner.tracking {
@@ -60,10 +64,13 @@ pub(crate) fn read_signal_rt<T: 'static + Clone>(id: usize) -> T {
         }
         let inner = rt.borrow();
         inner.signals[id].value.downcast_ref::<T>().unwrap().clone()
-    })
+    });
+    fire(HookEvent::SignalRead { id });
+    val
 }
 
 pub(crate) fn write_signal_rt<T: 'static>(id: usize, value: T) {
+    fire(HookEvent::SignalWrite { id });
     RUNTIME.with(|rt| {
         let (subscribers, batching) = {
             let mut inner = rt.borrow_mut();
@@ -139,6 +146,9 @@ pub fn create_effect(f: impl FnMut() + 'static) {
 /// **Key invariant**: the `RefCell` borrow is *dropped* before calling user
 /// code so that signal reads/writes inside the closure don't panic.
 fn run_effect(rt: &RefCell<RuntimeInner>, effect_id: usize) {
+    fire(HookEvent::EffectRun { id: effect_id });
+    let start = now();
+
     let prev_tracking = {
         let mut inner = rt.borrow_mut();
         let prev = inner.tracking;
@@ -175,6 +185,20 @@ fn run_effect(rt: &RefCell<RuntimeInner>, effect_id: usize) {
         inner.effects[effect_id].f = Some(f);
         inner.tracking = prev_tracking;
     }
+
+    fire(HookEvent::EffectComplete { id: effect_id, duration_ms: now() - start });
+}
+
+/// High-resolution timestamp (ms). Falls back to 0.0 outside the browser.
+fn now() -> f64 {
+    #[cfg(target_arch = "wasm32")]
+    {
+        js_sys::Date::now()
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        0.0
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -202,6 +226,7 @@ pub fn untrack<T>(f: impl FnOnce() -> T) -> T {
 
 /// Batch multiple signal updates — effects are deferred until the batch ends.
 pub fn batch(f: impl FnOnce()) {
+    fire(HookEvent::BatchStart);
     RUNTIME.with(|rt| {
         {
             rt.borrow_mut().batching = true;
@@ -212,9 +237,11 @@ pub fn batch(f: impl FnOnce()) {
             inner.batching = false;
             std::mem::take(&mut inner.pending_effects)
         };
+        let count = pending.len();
         for effect_id in pending {
             run_effect(rt, effect_id);
         }
+        fire(HookEvent::BatchEnd { effect_count: count });
     });
 }
 

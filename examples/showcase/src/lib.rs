@@ -1,6 +1,8 @@
 use oxide::prelude::*;
 use oxide::dom::*;
 use oxide::{Signal, memo};
+use oxide::telemetry;
+use oxide::resiliency;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
@@ -27,6 +29,8 @@ pub fn main() {
         ("demo-modal-live",       demo_modal),
         ("demo-dnd-live",         demo_dnd),
         ("demo-clipboard-live",   demo_clipboard),
+        ("demo-telemetry-live",   demo_telemetry),
+        ("demo-resiliency-live",  demo_resiliency),
     ];
     for &(id, builder) in demos {
         if let Some(container) = query_selector(&format!("#{}", id)) {
@@ -867,4 +871,219 @@ fn demo_clipboard() -> web_sys::Element {
             </div>
         </div>
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 17. Telemetry
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn demo_telemetry() -> web_sys::Element {
+    telemetry::init(telemetry::Config::default());
+
+    let count = signal(0i32);
+    let span_text = signal(String::from("(waiting for spans…)"));
+    let stats_text = signal(String::from("—"));
+
+    // Refresh display every 500ms
+    let st = span_text;
+    let stx = stats_text;
+    set_interval(move || {
+        let spans = telemetry::get_spans();
+        let last10: Vec<String> = spans.iter().rev().take(10).map(|s| {
+            let attrs: String = s.attributes.iter()
+                .map(|(k, v)| format!("{}={}", k, v))
+                .collect::<Vec<_>>()
+                .join(" ");
+            format!("[{}] {:.2}ms {}", s.name, s.duration_ms, attrs)
+        }).collect();
+        st.set(if last10.is_empty() {
+            "(no spans yet)".into()
+        } else {
+            last10.join("\n")
+        });
+
+        let stats = telemetry::get_stats();
+        stx.set(format!(
+            "signals: {} · reads: {} · writes: {} · effects: {} · effect_time: {:.1}ms",
+            stats.signals_created, stats.signal_reads, stats.signal_writes,
+            stats.effects_run, stats.total_effect_time_ms
+        ));
+    }, 500);
+
+    let content = el("div", "col", &[]);
+
+    // Increment button
+    let btn = view! {
+        <button class="btn-primary" on:click={move |_: Event| { count.update(|c| *c += 1); }}>
+            "Increment"
+        </button>
+    };
+    append_node(&content, &btn);
+
+    let counter_display = view! { <div class="mono">"Count: " {count}</div> };
+    append_node(&content, &counter_display);
+
+    // Stats line
+    let stats_el = el("div", "mono", &[]);
+    let stats_ref = stats_el.clone();
+    create_effect(move || {
+        stats_ref.set_inner_html(&stats_text.get());
+    });
+    append_node(&content, &stats_el);
+
+    // Span log panel
+    let panel = create_element("pre");
+    set_style(&panel, "background", "rgba(0,0,0,0.4)");
+    set_style(&panel, "padding", "0.5rem");
+    set_style(&panel, "border-radius", "6px");
+    set_style(&panel, "font-family", "monospace");
+    set_style(&panel, "font-size", "0.7rem");
+    set_style(&panel, "max-height", "150px");
+    set_style(&panel, "overflow-y", "auto");
+    set_style(&panel, "white-space", "pre-wrap");
+    set_style(&panel, "color", "#a5f3fc");
+    let panel_ref = panel.clone();
+    create_effect(move || {
+        panel_ref.set_inner_html(&span_text.get());
+    });
+    append_node(&content, &panel);
+
+    // Clear button
+    let clear_btn = view! {
+        <button on:click={move |_: Event| { telemetry::clear_spans(); }}>
+            "Clear Spans"
+        </button>
+    };
+    append_node(&content, &clear_btn);
+
+    content
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 18. Resiliency
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn demo_resiliency() -> web_sys::Element {
+    use std::rc::Rc;
+    let content = el("div", "col", &[]);
+
+    // ── Error Boundary section ──
+    let eb_label = text_el("strong", "Error Boundary");
+    append_node(&content, &eb_label);
+
+    let error_area = el("div", "", &[]);
+    let error_area_ref = error_area.clone();
+    let trigger_btn = view! {
+        <button on:click={move |_: Event| {
+            clear_children(&error_area_ref);
+            let card = resiliency::default_error_boundary(|| {
+                panic!("Simulated component crash!")
+            });
+            error_area_ref.append_child(&card).ok();
+        }}>"Trigger Error"</button>
+    };
+    append_node(&content, &trigger_btn);
+    append_node(&content, &error_area);
+
+    // ── Circuit Breaker section ──
+    let cb_label = text_el("strong", "Circuit Breaker");
+    set_style(&cb_label, "margin-top", "0.75rem");
+    append_node(&content, &cb_label);
+
+    let breaker = Rc::new(resiliency::CircuitBreaker::new(resiliency::CircuitBreakerConfig {
+        failure_threshold: 3,
+        reset_timeout_ms: 5000,
+    }));
+
+    let cb_state = breaker.state;
+    let cb_fail = breaker.failure_count;
+    let cb_succ = breaker.success_count;
+
+    let state_text = memo(move || {
+        format!(
+            "State: {} · Failures: {} · Successes: {}",
+            cb_state.get(), cb_fail.get(), cb_succ.get()
+        )
+    });
+
+    let info_el = view! { <div class="mono">{state_text}</div> };
+    append_node(&content, &info_el);
+
+    let btn_row = el("div", "row", &[]);
+
+    // "Call (will fail)" button
+    let b1 = breaker.clone();
+    let fail_btn = view! {
+        <button on:click={move |_: Event| {
+            let b = b1.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let _ = b.call(|| async {
+                    Err::<(), &str>("simulated failure")
+                }).await;
+            });
+        }}>"Call (fail)"</button>
+    };
+    append_node(&btn_row, &fail_btn);
+
+    // "Call (will succeed)" button
+    let b2 = breaker.clone();
+    let succ_btn = view! {
+        <button on:click={move |_: Event| {
+            let b = b2.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let _ = b.call(|| async { Ok::<&str, &str>("ok") }).await;
+            });
+        }}>"Call (ok)"</button>
+    };
+    append_node(&btn_row, &succ_btn);
+
+    // "Reset" button
+    let b3 = breaker.clone();
+    let reset_btn = view! {
+        <button on:click={move |_: Event| {
+            b3.reset();
+        }}>"Reset"</button>
+    };
+    append_node(&btn_row, &reset_btn);
+    append_node(&content, &btn_row);
+
+    // ── Retry section ──
+    let retry_label = text_el("strong", "Retry (Exponential Backoff)");
+    set_style(&retry_label, "margin-top", "0.75rem");
+    append_node(&content, &retry_label);
+
+    let retry_status = signal("Press button to start".to_string());
+    let retry_el = el("div", "mono", &[]);
+    let retry_el_ref = retry_el.clone();
+    create_effect(move || {
+        retry_el_ref.set_inner_html(&retry_status.get());
+    });
+    append_node(&content, &retry_el);
+
+    let attempt_count = signal(0u32);
+    let max_attempts: u32 = 4;
+    let retry_btn = view! {
+        <button on:click={move |_: Event| {
+            retry_status.set("Retrying…".into());
+            attempt_count.set(0);
+            let rs = retry_status;
+            let ac = attempt_count;
+            let ma = max_attempts;
+            wasm_bindgen_futures::spawn_local(async move {
+                let config = resiliency::RetryConfig::exponential(ma, 300);
+                let result = resiliency::retry(config, || {
+                    ac.update(|c| *c += 1);
+                    rs.set(format!("Attempt {}…", ac.get()));
+                    async { Err::<(), &str>("simulated network error") }
+                }).await;
+                match result {
+                    Ok(_) => rs.set("Success!".into()),
+                    Err(e) => rs.set(format!("Failed after {} attempts: {}", ac.get(), e)),
+                }
+            });
+        }}>"Retry Fetch"</button>
+    };
+    append_node(&content, &retry_btn);
+
+    content
 }
