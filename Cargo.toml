@@ -7,9 +7,14 @@ members = [
     "crates/oxide-telemetry",
     "crates/oxide-resiliency",
     "crates/oxide",
+    "crates/oxide-cli",
     "examples/counter",
     "examples/showcase",
 ]
+
+# CLI targets the host platform, not WASM — build it explicitly:
+#   cargo build -p oxide-cli
+#   cargo install --path crates/oxide-cli
 
 [workspace.package]
 version = "0.1.0"

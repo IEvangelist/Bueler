@@ -1,0 +1,15 @@
+[package]
+name = "oxide-cli"
+description = "CLI for the Oxide web framework — create, develop, build, and debug WASM apps"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "oxide"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+notify = "7"
+tiny_http = "0.12"
