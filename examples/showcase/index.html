@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oxide — Feature Showcase</title>
+    <style>
+        /* ── Reset & Base ─────────────────────────────── */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0a0a; --bg2: #141414; --bg3: #1e1e1e;
+            --fg: #e0e0e0; --fg2: #888; --fg3: #555;
+            --accent: #f97316; --accent2: #ef4444;
+            --green: #22c55e; --blue: #3b82f6; --purple: #a855f7;
+            --radius: 10px; --gap: 1rem;
+            --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            --mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--fg);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code, pre { font-family: var(--mono); }
+
+        /* ── Layout ───────────────────────────────────── */
+        .shell { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 240px; flex-shrink: 0;
+            background: var(--bg2);
+            border-right: 1px solid var(--fg3);
+            padding: 1.5rem 0;
+            position: sticky; top: 0; height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-title {
+            padding: 0 1.2rem 1rem;
+            font-size: 1.3rem; font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .sidebar-title span { font-size: 0.7rem; color: var(--fg2); -webkit-text-fill-color: var(--fg2); display: block; }
+        .nav-group { padding: 0.5rem 0; }
+        .nav-group-label { padding: 0.3rem 1.2rem; font-size: 0.7rem; text-transform: uppercase; color: var(--fg3); letter-spacing: 0.05em; }
+        .nav-link {
+            display: block; padding: 0.4rem 1.2rem;
+            color: var(--fg2); font-size: 0.85rem;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .nav-link:hover { color: var(--fg); background: var(--bg3); text-decoration: none; }
+        .nav-link.active { color: var(--accent); border-left-color: var(--accent); background: var(--bg3); }
+
+        .main { flex: 1; padding: 2rem 3rem; max-width: 900px; }
+
+        /* ── Demo Sections ────────────────────────────── */
+        .section { margin-bottom: 3rem; scroll-margin-top: 1rem; }
+        .section h2 {
+            font-size: 1.5rem; margin-bottom: 0.3rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .section h2 .icon { font-size: 1.2rem; }
+        .section .desc { color: var(--fg2); margin-bottom: 1rem; font-size: 0.9rem; }
+        .section .apis {
+            display: inline-flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem;
+        }
+        .tag {
+            font-size: 0.65rem; padding: 0.15rem 0.5rem;
+            border-radius: 999px; background: var(--bg3);
+            color: var(--fg2); border: 1px solid var(--fg3);
+        }
+        .tag.signal { border-color: var(--accent); color: var(--accent); }
+        .tag.dom { border-color: var(--blue); color: var(--blue); }
+        .tag.api { border-color: var(--green); color: var(--green); }
+        .tag.timer { border-color: var(--purple); color: var(--purple); }
+
+        .card {
+            background: var(--bg2); border: 1px solid var(--fg3);
+            border-radius: var(--radius); padding: 1.5rem;
+        }
+
+        /* ── Shared Component Styles ──────────────────── */
+        button, .btn {
+            padding: 0.45rem 1rem; font-size: 0.85rem;
+            border: 1px solid var(--fg3); border-radius: 6px;
+            background: var(--bg3); color: var(--fg);
+            cursor: pointer; transition: all 0.15s;
+            font-family: var(--font);
+        }
+        button:hover, .btn:hover { border-color: var(--accent); color: var(--accent); }
+        button:active { transform: scale(0.97); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none; color: white; font-weight: 600;
+        }
+        .btn-primary:hover { opacity: 0.9; color: white; }
+        .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.75rem; }
+        .btn-danger { border-color: var(--accent2); color: var(--accent2); }
+        .btn-danger:hover { background: var(--accent2); color: white; }
+
+        input[type="text"], input[type="number"], input[type="url"],
+        textarea, select {
+            background: var(--bg); border: 1px solid var(--fg3);
+            border-radius: 6px; padding: 0.45rem 0.7rem;
+            color: var(--fg); font-family: var(--font); font-size: 0.85rem;
+            outline: none; transition: border-color 0.15s;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+        textarea { resize: vertical; }
+
+        .row { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+        .col { display: flex; flex-direction: column; gap: 0.5rem; }
+        .big-num { font-size: 3rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
+        .mono { font-family: var(--mono); }
+
+        /* ── Counter ──────────────────────────────────── */
+        .counter-btns button { min-width: 60px; font-size: 1.2rem; }
+
+        /* ── Temperature ──────────────────────────────── */
+        .temp-row { display: flex; align-items: center; gap: 1rem; }
+        .temp-row label { font-size: 0.8rem; color: var(--fg2); min-width: 70px; }
+        .temp-row input { width: 120px; }
+
+        /* ── Todo ─────────────────────────────────────── */
+        .todo-input-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .todo-input-row input { flex: 1; }
+        .todo-list { list-style: none; }
+        .todo-item {
+            display: flex; align-items: center; gap: 0.7rem;
+            padding: 0.5rem 0; border-bottom: 1px solid var(--bg3);
+        }
+        .todo-item.done span { text-decoration: line-through; color: var(--fg3); }
+        .todo-item span { flex: 1; }
+        .todo-filters { display: flex; gap: 0.3rem; margin-bottom: 0.7rem; }
+        .todo-filters button.active { border-color: var(--accent); color: var(--accent); }
+        .todo-count { font-size: 0.8rem; color: var(--fg2); margin-top: 0.5rem; }
+
+        /* ── Stopwatch ────────────────────────────────── */
+        .stopwatch-time { font-size: 3.5rem; font-family: var(--mono); text-align: center; font-variant-numeric: tabular-nums; }
+        .stopwatch-btns { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
+
+        /* ── Forms ────────────────────────────────────── */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-field label { display: block; font-size: 0.75rem; color: var(--fg2); margin-bottom: 0.3rem; }
+        .form-field input, .form-field select, .form-field textarea { width: 100%; }
+        .form-output { margin-top: 1rem; padding: 0.7rem; background: var(--bg); border-radius: 6px; font-size: 0.8rem; }
+        .form-output code { color: var(--accent); }
+        input[type="range"] { width: 100%; accent-color: var(--accent); }
+        input[type="color"] { width: 50px; height: 32px; border: 1px solid var(--fg3); border-radius: 6px; cursor: pointer; }
+        input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; }
+
+        /* ── Fetch ────────────────────────────────────── */
+        .fetch-result { max-height: 250px; overflow-y: auto; font-size: 0.8rem; font-family: var(--mono); background: var(--bg); padding: 0.7rem; border-radius: 6px; white-space: pre-wrap; word-break: break-all; }
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--fg3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Mouse ────────────────────────────────────── */
+        .mouse-area {
+            position: relative; height: 200px;
+            background: var(--bg); border-radius: 6px; overflow: hidden;
+            border: 1px solid var(--fg3); cursor: crosshair;
+        }
+        .mouse-dot {
+            position: absolute; width: 12px; height: 12px;
+            background: var(--accent); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none;
+            box-shadow: 0 0 12px var(--accent);
+        }
+        .mouse-coords { text-align: center; margin-top: 0.5rem; font-family: var(--mono); font-size: 0.9rem; color: var(--fg2); }
+
+        /* ── Keyboard ─────────────────────────────────── */
+        .key-display {
+            min-height: 80px; display: flex; align-items: center; justify-content: center;
+            background: var(--bg); border-radius: 6px; border: 1px solid var(--fg3);
+        }
+        .key-cap {
+            padding: 0.8rem 1.5rem; border: 2px solid var(--accent);
+            border-radius: 8px; font-size: 1.5rem; font-family: var(--mono);
+            background: var(--bg2); min-width: 60px; text-align: center;
+            box-shadow: 0 3px 0 var(--fg3);
+        }
+        .key-info { margin-top: 0.5rem; font-size: 0.8rem; color: var(--fg2); text-align: center; }
+
+        /* ── Canvas ───────────────────────────────────── */
+        .canvas-wrap canvas {
+            width: 100%; border-radius: 6px;
+            border: 1px solid var(--fg3); cursor: crosshair;
+            background: #111;
+        }
+        .canvas-tools { display: flex; gap: 0.5rem; margin-bottom: 0.7rem; align-items: center; }
+        .canvas-tools label { font-size: 0.8rem; color: var(--fg2); }
+
+        /* ── Theme ────────────────────────────────────── */
+        .theme-preview {
+            padding: 1rem; border-radius: 6px; transition: all 0.3s;
+        }
+        .theme-preview.light { background: #f5f5f5; color: #1a1a1a; }
+        .theme-preview.dark { background: var(--bg); color: var(--fg); }
+
+        /* ── Notes ────────────────────────────────────── */
+        .notes-area { width: 100%; min-height: 150px; }
+        .notes-status { font-size: 0.75rem; color: var(--fg3); margin-top: 0.3rem; }
+
+        /* ── Animation ────────────────────────────────── */
+        .anim-stage {
+            position: relative; height: 200px;
+            background: var(--bg); border-radius: 6px; overflow: hidden;
+            border: 1px solid var(--fg3);
+        }
+        .anim-ball {
+            position: absolute; width: 30px; height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        /* ── SVG Chart ────────────────────────────────── */
+        .chart-wrap svg { width: 100%; height: 200px; }
+        .chart-bar { transition: height 0.3s, y 0.3s; }
+        .chart-label { font-size: 11px; fill: var(--fg2); font-family: var(--font); }
+        .chart-value { font-size: 10px; fill: var(--fg); font-family: var(--mono); }
+        .chart-btns { display: flex; gap: 0.5rem; margin-top: 0.7rem; }
+
+        /* ── Modal ────────────────────────────────────── */
+        .overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; backdrop-filter: blur(4px);
+        }
+        .modal {
+            background: var(--bg2); border: 1px solid var(--fg3);
+            border-radius: var(--radius); padding: 2rem;
+            max-width: 400px; width: 90%;
+        }
+        .modal h3 { margin-bottom: 0.5rem; }
+        .modal p { color: var(--fg2); font-size: 0.9rem; margin-bottom: 1rem; }
+        .hidden { display: none !important; }
+
+        /* ── Drag & Drop ──────────────────────────────── */
+        .dnd-container { display: flex; gap: 1rem; }
+        .dnd-pool, .dnd-drop {
+            flex: 1; min-height: 120px; padding: 0.7rem;
+            border: 2px dashed var(--fg3); border-radius: 6px;
+            background: var(--bg);
+        }
+        .dnd-drop.over { border-color: var(--accent); background: rgba(249,115,22,0.05); }
+        .dnd-chip {
+            display: inline-block; padding: 0.3rem 0.8rem; margin: 0.2rem;
+            background: var(--bg3); border: 1px solid var(--fg3);
+            border-radius: 6px; font-size: 0.8rem; cursor: grab;
+        }
+        .dnd-chip:active { cursor: grabbing; }
+        .dnd-label { font-size: 0.7rem; color: var(--fg3); margin-bottom: 0.4rem; }
+
+        /* ── Clipboard ────────────────────────────────── */
+        .clip-text { background: var(--bg); padding: 0.5rem 0.7rem; border-radius: 6px; font-family: var(--mono); font-size: 0.85rem; border: 1px solid var(--fg3); }
+        .clip-toast { color: var(--green); font-size: 0.8rem; margin-left: 0.5rem; opacity: 0; transition: opacity 0.3s; }
+        .clip-toast.show { opacity: 1; }
+
+        /* ── Responsive ───────────────────────────────── */
+        @media (max-width: 768px) {
+            .shell { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--fg3); padding: 1rem 0; }
+            .nav-group { display: flex; flex-wrap: wrap; padding: 0 1rem; }
+            .nav-group-label { display: none; }
+            .nav-link { padding: 0.3rem 0.7rem; font-size: 0.75rem; border-left: none; border-bottom: 2px solid transparent; }
+            .nav-link.active { border-left: none; border-bottom-color: var(--accent); }
+            .main { padding: 1.5rem; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script type="module">
+        import init from './pkg/oxide_showcase.js';
+        init();
+    </script>
+</body>
+</html>

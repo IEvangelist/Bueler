@@ -1,5 +1,5 @@
 /// Re-exports from `oxide-core` — reactive primitives.
-pub use oxide_core::{batch, create_effect, signal, untrack, Signal};
+pub use oxide_core::{batch, create_effect, memo, signal, untrack, Signal};
 
 /// Re-exports from `oxide-macros` — the `view!` macro.
 pub use oxide_macros::view;
@@ -11,7 +11,7 @@ pub mod dom {
 
 /// Convenient glob import: `use oxide::prelude::*;`
 pub mod prelude {
-    pub use oxide_core::{batch, create_effect, signal, untrack, Signal};
+    pub use oxide_core::{batch, create_effect, memo, signal, untrack, Signal};
     pub use oxide_dom::mount;
     pub use oxide_macros::view;
 }

@@ -47,6 +47,10 @@ enum Attr {
         event: String,
         handler: TokenStream2,
     },
+    Dynamic {
+        name: String,
+        value: TokenStream2,
+    },
 }
 
 // ---------------------------------------------------------------------------
@@ -198,18 +202,16 @@ impl ViewParser {
                     }
                     Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Brace => {
                         let stream = self.parse_braced_expr();
-                        // `onclick={handler}` shorthand — strip "on" prefix
                         if let Some(event) = attr_name.strip_prefix("on") {
                             attrs.push(Attr::Event {
                                 event: event.to_string(),
                                 handler: stream,
                             });
                         } else {
-                            panic!(
-                                "oxide view!: dynamic attributes not yet supported (attr: {}). \
-                                 Use on:event={{handler}} for events.",
-                                attr_name
-                            );
+                            attrs.push(Attr::Dynamic {
+                                name: attr_name,
+                                value: stream,
+                            });
                         }
                     }
                     _ => panic!("oxide view!: expected attribute value after '='"),
@@ -292,6 +294,21 @@ fn generate(node: &ViewNode, counter: &mut usize) -> TokenStream2 {
                     Attr::Event { event, handler } => {
                         stmts.push(quote! {
                             ::oxide::dom::add_event_listener(&#el, #event, #handler);
+                        });
+                    }
+                    Attr::Dynamic { name, value } => {
+                        let el_dyn = format_ident!("__dyn_{}", *counter);
+                        *counter += 1;
+                        stmts.push(quote! {
+                            {
+                                let #el_dyn = #el.clone();
+                                ::oxide::create_effect(move || {
+                                    ::oxide::dom::set_attribute(
+                                        &#el_dyn, #name,
+                                        &::std::format!("{}", #value)
+                                    );
+                                });
+                            }
                         });
                     }
                 }

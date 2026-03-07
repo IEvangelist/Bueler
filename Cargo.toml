@@ -6,6 +6,7 @@ members = [
     "crates/oxide-dom",
     "crates/oxide",
     "examples/counter",
+    "examples/showcase",
 ]
 
 [workspace.package]

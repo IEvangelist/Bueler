@@ -38,14 +38,17 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Build counter example
-        run: cd examples/counter && wasm-pack build --target web --release
+      - name: Run tests
+        run: cargo test -p oxide-core
+
+      - name: Build showcase
+        run: cd examples/showcase && wasm-pack build --target web --release
 
       - name: Assemble site
         run: |
           mkdir -p _site
-          cp examples/counter/index.html _site/
-          cp -r examples/counter/pkg _site/pkg
+          cp examples/showcase/index.html _site/
+          cp -r examples/showcase/pkg _site/pkg
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
