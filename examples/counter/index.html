@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oxide — Counter</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #0f0f0f;
+            color: #e0e0e0;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            border: 1px solid #333;
+            border-radius: 12px;
+            background: #1a1a1a;
+        }
+        h1 {
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #f97316, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .count {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
+        button {
+            padding: 0.6rem 1.6rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f97316, #ef4444);
+            color: white;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+        }
+        button:active { transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script type="module">
+        import init from './pkg/counter_example.js';
+        init();
+    </script>
+</body>
+</html>

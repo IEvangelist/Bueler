@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/oxide-core",
+    "crates/oxide-macros",
+    "crates/oxide-dom",
+    "crates/oxide",
+    "examples/counter",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/IEvangelist/Oxide"

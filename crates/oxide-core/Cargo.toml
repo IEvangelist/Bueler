@@ -1,0 +1,6 @@
+[package]
+name = "oxide-core"
+description = "Reactive runtime and signal system for the Oxide framework"
+version.workspace = true
+edition.workspace = true
+license.workspace = true

@@ -1,0 +1,30 @@
+[package]
+name = "oxide-dom"
+description = "DOM renderer for the Oxide framework"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "console",
+    "Document",
+    "Element",
+    "HtmlElement",
+    "HtmlButtonElement",
+    "Node",
+    "Text",
+    "Window",
+    "Event",
+    "MouseEvent",
+    "InputEvent",
+    "HtmlInputElement",
+    "EventTarget",
+    "KeyboardEvent",
+]
