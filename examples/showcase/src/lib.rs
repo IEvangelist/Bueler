@@ -291,76 +291,95 @@ fn page_demos() -> web_sys::Element {
 
 fn page_catalog() -> web_sys::Element {
     let page = el("div", "pg-page", &[]);
-    let h2 = text_el("h2", "Component Library");
-    append_node(&page, &h2);
+    append_node(&page, &text_el("h2", "Component Library"));
     let desc = el("p", "pg-desc", &[]);
-    append_text(&desc, "Pre-built Oxide components with interactive playgrounds. Click any card to explore.");
+    append_text(&desc, "48 pre-built components with interactive playgrounds. Click any card to explore.");
     append_node(&page, &desc);
 
-    let grid = el("div", "catalog-grid", &[]);
-
-    let items: &[(&str, &str, &str, &str)] = &[
-        ("\u{1f518}", "Button",    "Versatile button with variants, sizes, and loading states.", "/components/button"),
-        ("\u{270f}\u{fe0f}",  "TextInput", "Text input with label, validation, and signal binding.",   "/components/input"),
-        ("\u{1f4c4}", "TextArea",  "Multi-line text input with label and signal binding.",       "/components/textarea"),
-        ("\u{1f53d}", "Select",    "Dropdown select with label and signal binding.",             "/components/select"),
-        ("\u{2611}\u{fe0f}",  "Checkbox",  "Checkbox with label and boolean signal binding.",          "/components/checkbox"),
-        ("\u{1f4c7}", "Card",      "Container card with title, body, and optional footer.",      "/components/card"),
-        ("\u{1f514}", "Alert",     "Notification alert with severity levels.",                   "/components/alert"),
-        ("\u{1fa9f}", "Modal",     "Overlay modal dialog controlled by signals.",                "/components/modal"),
-        ("\u{1f504}", "Spinner",   "Rotating loading indicator with optional text.",             "/components/spinner"),
-        ("\u{1f4ca}", "Progress",  "Animated progress bar driven by a signal.",                  "/components/progress"),
-        ("\u{1f4c1}", "Tabs",      "Tabbed interface with ARIA-compliant panels.",               "/components/tabs"),
-        ("\u{1f3f7}\u{fe0f}",  "Badge",     "Colored label badge with severity variants.",              "/components/badge"),
-        ("\u{2796}", "Divider",   "Simple horizontal divider element.",                         "/components/divider"),
-        ("\u{1f4a0}", "Skeleton",  "Shimmer-animated loading placeholder.",                      "/components/skeleton"),
-        // New components
-        ("\u{1f464}", "Avatar",         "User avatar with initials or image.",                 "/components/avatar"),
-        ("\u{1f4c8}", "Stat",           "Large stat display with value and label.",            "/components/stat"),
-        ("\u{1f3f7}\u{fe0f}", "Tag",    "Removable tag with severity variants.",               "/components/tag"),
-        ("\u{1f504}", "Toggle",         "On/off switch with label.",                           "/components/toggle"),
-        ("\u{1f518}", "Radio",          "Radio group with named options.",                     "/components/radio"),
-        ("\u{1f39a}\u{fe0f}", "Slider", "Range slider input with min/max/step.",               "/components/slider"),
-        ("\u{1f50d}", "Search",         "Search input field with placeholder.",                "/components/search"),
-        ("\u{1f512}", "Password",       "Password input with label.",                          "/components/password"),
-        ("\u{1f522}", "Number",         "Number input with step control.",                     "/components/number"),
-        ("\u{1f4d6}", "Accordion",      "Collapsible accordion sections.",                     "/components/accordion"),
-        ("\u{1f4cd}", "Breadcrumb",     "Breadcrumb navigation trail.",                        "/components/breadcrumb"),
-        ("\u{1f4c4}", "Pagination",     "Pagination with page numbers.",                       "/components/pagination"),
-        ("\u{2b07}\u{fe0f}", "Dropdown","Click dropdown menu.",                                "/components/dropdown"),
-        ("\u{1f514}", "Toast",          "Auto-dismiss notification toast.",                    "/components/toast"),
-        ("\u{1f5c2}\u{fe0f}", "Drawer", "Side panel overlay drawer.",                          "/components/drawer"),
-        ("\u{1f4c5}", "Timeline",       "Vertical timeline of events.",                        "/components/timeline"),
-        ("\u{1f4cb}", "Table",          "Data table with headers and rows.",                   "/components/table"),
-        ("\u{1f4ac}", "Tooltip",        "Hover tooltip on any element.",                       "/components/tooltip"),
-        ("\u{2b50}", "Rating",          "Interactive star rating.",                             "/components/rating"),
-        ("\u{1f4cb}", "CopyButton",     "Copy text to clipboard.",                             "/components/copy-button"),
-        ("\u{1f4ed}", "EmptyState",     "No-data empty state placeholder.",                    "/components/empty-state"),
-        ("\u{23f3}", "LoadingOverlay",  "Full-screen loading overlay.",                        "/components/loading-overlay"),
-        ("\u{1f4d0}", "Layout",         "Layout utilities: hstack, vstack, grid, etc.",        "/components/layout"),
-        ("\u{2328}\u{fe0f}", "Kbd",     "Keyboard shortcut display.",                          "/components/kbd"),
-        ("\u{1f4dd}", "CodeBlock",      "Syntax-highlighted code block.",                      "/components/code-block"),
-        ("\u{1f4c2}", "FileUpload",     "File upload drop zone.",                              "/components/file-upload"),
-        ("\u{1f4cb}", "FormGroup",      "Form group wrapper with label/error.",                "/components/form-group"),
+    let categories: &[(&str, &[(&str, &str, &str, &str)])] = &[
+        ("Forms", &[
+            ("\u{1f518}", "Button", "Versatile button with variants and states", "/components/button"),
+            ("\u{270f}\u{fe0f}", "TextInput", "Text input with label and validation", "/components/input"),
+            ("\u{1f4c4}", "TextArea", "Multi-line text input", "/components/textarea"),
+            ("\u{1f53d}", "Select", "Dropdown select", "/components/select"),
+            ("\u{2611}\u{fe0f}", "Checkbox", "Checkbox with label", "/components/checkbox"),
+            ("\u{1f504}", "Toggle", "On/off switch", "/components/toggle"),
+            ("\u{1f518}", "Radio", "Radio button group", "/components/radio"),
+            ("\u{1f39a}\u{fe0f}", "Slider", "Range slider input", "/components/slider"),
+            ("\u{1f50d}", "Search", "Search input field", "/components/search"),
+            ("\u{1f512}", "Password", "Password with show/hide", "/components/password"),
+            ("\u{1f522}", "Number", "Number input with +/-", "/components/number"),
+            ("\u{1f4c2}", "FileUpload", "File upload drop zone", "/components/file-upload"),
+            ("\u{1f4cb}", "FormGroup", "Form group wrapper", "/components/form-group"),
+        ]),
+        ("Layout", &[
+            ("\u{1f4d0}", "Layout", "hstack, vstack, grid, center, spacer", "/components/layout"),
+            ("\u{1f4c7}", "Card", "Container with header/body/footer", "/components/card"),
+            ("\u{2796}", "Divider", "Horizontal separator", "/components/divider"),
+            ("\u{1f4c1}", "Tabs", "Tabbed interface", "/components/tabs"),
+            ("\u{1f4d6}", "Accordion", "Collapsible sections", "/components/accordion"),
+        ]),
+        ("Data Display", &[
+            ("\u{1f464}", "Avatar", "User avatar with initials/image", "/components/avatar"),
+            ("\u{1f4c8}", "Stat", "Large stat with label", "/components/stat"),
+            ("\u{1f3f7}\u{fe0f}", "Tag", "Removable tag", "/components/tag"),
+            ("\u{1f3f7}\u{fe0f}", "Badge", "Colored label badge", "/components/badge"),
+            ("\u{1f4cb}", "Table", "Data table with headers", "/components/table"),
+            ("\u{1f4c5}", "Timeline", "Vertical timeline", "/components/timeline"),
+            ("\u{1f4dd}", "CodeBlock", "Styled code display", "/components/code-block"),
+            ("\u{2328}\u{fe0f}", "Kbd", "Keyboard shortcut display", "/components/kbd"),
+            ("\u{1f4ac}", "Tooltip", "Hover tooltip", "/components/tooltip"),
+            ("\u{1f4a0}", "Skeleton", "Loading placeholder", "/components/skeleton"),
+        ]),
+        ("Feedback", &[
+            ("\u{1f514}", "Alert", "Notification with severity", "/components/alert"),
+            ("\u{1f514}", "Toast", "Auto-dismiss notification", "/components/toast"),
+            ("\u{1fa9f}", "Modal", "Overlay dialog", "/components/modal"),
+            ("\u{1f5c2}\u{fe0f}", "Drawer", "Side panel overlay", "/components/drawer"),
+            ("\u{1f504}", "Spinner", "Loading indicator", "/components/spinner"),
+            ("\u{1f4ca}", "Progress", "Progress bar", "/components/progress"),
+            ("\u{1f4ed}", "EmptyState", "No data placeholder", "/components/empty-state"),
+            ("\u{23f3}", "LoadingOverlay", "Full-screen loading", "/components/loading-overlay"),
+            ("\u{1f514}", "ConfirmDialog", "Confirmation dialog", ""),
+        ]),
+        ("Navigation", &[
+            ("\u{1f4cd}", "Breadcrumb", "Navigation trail", "/components/breadcrumb"),
+            ("\u{1f4c4}", "Pagination", "Page navigation", "/components/pagination"),
+            ("\u{2b07}\u{fe0f}", "Dropdown", "Click dropdown menu", "/components/dropdown"),
+            ("\u{2b50}", "Rating", "Interactive star rating", "/components/rating"),
+            ("\u{1f4cb}", "CopyButton", "Copy to clipboard", "/components/copy-button"),
+            ("\u{2b06}\u{fe0f}", "ScrollToTop", "Scroll to top button", ""),
+        ]),
     ];
 
-    for &(icon, name, desc_text, path) in items {
-        let card = el("div", "catalog-card", &[]);
-        let ic = el("div", "cc-icon", &[]);
-        append_text(&ic, icon);
-        append_node(&card, &ic);
-        let nm = el("div", "cc-name", &[]);
-        append_text(&nm, name);
-        append_node(&card, &nm);
-        let ds = el("div", "cc-desc", &[]);
-        append_text(&ds, desc_text);
-        append_node(&card, &ds);
-        let p = path.to_string();
-        add_event_listener(&card, "click", move |_| { navigate(&p); });
-        append_node(&grid, &card);
+    for &(category, items) in categories {
+        let cat_heading = create_element("h3");
+        set_attribute(&cat_heading, "class", "catalog-category");
+        append_text(&cat_heading, category);
+        append_node(&page, &cat_heading);
+
+        let grid = el("div", "catalog-grid", &[]);
+        for &(icon, name, desc_text, path) in items {
+            let card = el("div", "catalog-card", &[]);
+            let ic = el("div", "cc-icon", &[]);
+            append_text(&ic, icon);
+            append_node(&card, &ic);
+            let nm = el("div", "cc-name", &[]);
+            append_text(&nm, name);
+            append_node(&card, &nm);
+            let ds = el("div", "cc-desc", &[]);
+            append_text(&ds, desc_text);
+            append_node(&card, &ds);
+            if !path.is_empty() {
+                let p = path.to_string();
+                add_event_listener(&card, "click", move |_| { navigate(&p); });
+                set_attribute(&card, "style", "cursor:pointer");
+            }
+            append_node(&grid, &card);
+        }
+        append_node(&page, &grid);
     }
 
-    append_node(&page, &grid);
     page
 }
 
