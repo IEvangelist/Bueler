@@ -65,6 +65,7 @@ pub fn main() {
             route("/composition",         page_composition),
             route("/tutorials/login",     tutorial_login),
             route("/tutorials/dashboard", tutorial_dashboard),
+            route("/docs",                page_docs),
         ]);
 
         build_app_shell(router)
@@ -140,7 +141,7 @@ fn build_app_shell(router: Router) -> web_sys::Element {
         ("Home", "/"),
         ("Playground", "/playground"),
         ("Components", "/components"),
-        ("Forms", "/forms"),
+        ("Docs", "/docs"),
         ("Tutorials", "/tutorials/login"),
     ];
     let mut nav_links: Vec<(web_sys::Element, String)> = Vec::new();
@@ -175,12 +176,6 @@ fn build_app_shell(router: Router) -> web_sys::Element {
             }
         }
     });
-
-    // Docs link
-    let docs_link = create_element("a");
-    set_attribute(&docs_link, "href", "docs.html");
-    append_text(&docs_link, "Docs");
-    append_node(&nav, &docs_link);
 
     // GitHub link
     let gh_link = create_element("a");
@@ -698,8 +693,9 @@ fn page_landing() -> web_sys::Element {
     add_event_listener(&pg_link, "click", |e: Event| { e.prevent_default(); navigate("/playground"); });
     append_node(&fl_div, &pg_link);
     let docs_a = create_element("a");
-    set_attribute(&docs_a, "href", "docs.html");
+    set_attribute(&docs_a, "href", "#/docs");
     append_text(&docs_a, "Docs");
+    add_event_listener(&docs_a, "click", |e: Event| { e.prevent_default(); navigate("/docs"); });
     append_node(&fl_div, &docs_a);
     let gh_a = create_element("a");
     set_attribute(&gh_a, "href", "https://github.com/IEvangelist/Oxide");
@@ -3419,6 +3415,392 @@ fn demo_canvas() -> web_sys::Element {
     append_node(&content, &wrap);
 
     content
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Docs — comprehensive API reference rendered as a SPA route
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn page_docs() -> web_sys::Element {
+    let page = el("div", "pg-page", &[]);
+
+    // Title
+    append_node(&page, &text_el("h2", "API Reference"));
+    let desc = el("p", "pg-desc", &[]);
+    append_text(&desc, "Comprehensive reference for every API in the Oxide framework.");
+    append_node(&page, &desc);
+
+    // ── Table of contents ────────────────────────────────────────────────
+    let toc = el("div", "doc-section", &[]);
+    append_node(&toc, &text_el("h3", "Contents"));
+    let toc_list = create_element("ul");
+    let sections = [
+        ("sec-quickstart",   "Quick Start"),
+        ("sec-cli",          "CLI"),
+        ("sec-reactivity",   "Core Reactivity"),
+        ("sec-view",         "View Macro"),
+        ("sec-hooks",        "Reactive Hooks"),
+        ("sec-dom",          "DOM Utilities"),
+        ("sec-head",         "Head Management"),
+        ("sec-routing",      "Routing"),
+        ("sec-otel",         "OpenTelemetry"),
+        ("sec-resiliency",   "Resiliency"),
+        ("sec-components",   "Components"),
+        ("sec-debugging",    "Debugging"),
+    ];
+    for (id, label) in &sections {
+        let li = create_element("li");
+        let a = create_element("a");
+        set_attribute(&a, "href", &format!("#{}", id));
+        append_text(&a, label);
+        append_node(&li, &a);
+        append_node(&toc_list, &li);
+    }
+    append_node(&toc, &toc_list);
+    append_node(&page, &toc);
+    append_node(&page, &components::divider());
+
+    // ── Quick Start ──────────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "Quick Start");
+    set_attribute(&h, "id", "sec-quickstart");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Install the Oxide CLI globally with cargo:"));
+    append_node(&sec, &components::code_block("cargo install oxide-cli"));
+    append_node(&sec, &text_el("p", "Create a new project:"));
+    append_node(&sec, &components::code_block("oxide new my-app\ncd my-app"));
+    append_node(&sec, &text_el("p", "Start the dev server with hot-reload:"));
+    append_node(&sec, &components::code_block("oxide dev"));
+    append_node(&sec, &text_el("p", "Build for production:"));
+    append_node(&sec, &components::code_block("oxide build --release"));
+    append_node(&sec, &text_el("p", "Serve the optimised output locally:"));
+    append_node(&sec, &components::code_block("oxide serve"));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── CLI ──────────────────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "CLI");
+    set_attribute(&h, "id", "sec-cli");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "The oxide CLI provides project scaffolding, dev server, build, and preview commands."));
+    append_node(&sec, &components::code_block(
+        "oxide new <name>   # Scaffold a new Oxide project\n\
+         oxide dev          # Start dev server with hot-reload\n\
+         oxide build        # Compile WASM + bundle assets\n\
+         oxide serve        # Preview the production build locally"
+    ));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── Core Reactivity ──────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "Core Reactivity");
+    set_attribute(&h, "id", "sec-reactivity");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Signals are the foundation of Oxide\u{2019}s reactivity system."));
+    append_node(&sec, &components::code_block(
+        "// Create a signal with an initial value\n\
+         let count = signal(0);\n\
+         \n\
+         // Read / write / update\n\
+         let value = count.get();\n\
+         count.set(5);\n\
+         count.update(|n| *n += 1);"
+    ));
+    append_node(&sec, &text_el("p", "Effects re-run whenever their tracked signals change:"));
+    append_node(&sec, &components::code_block(
+        "create_effect(move || {\n\
+         \x20   log!(\"{}\", count.get());\n\
+         });"
+    ));
+    append_node(&sec, &text_el("p", "Memos are derived computations that cache their result:"));
+    append_node(&sec, &components::code_block(
+        "let doubled = memo(move || count.get() * 2);"
+    ));
+    append_node(&sec, &text_el("p", "Batch multiple signal writes into a single update, or untrack reads:"));
+    append_node(&sec, &components::code_block(
+        "batch(|| {\n\
+         \x20   count.set(1);\n\
+         \x20   name.set(\"Oxide\".into());\n\
+         });\n\
+         \n\
+         let snapshot = untrack(|| count.get());"
+    ));
+    append_node(&sec, &text_el("p", "Lifecycle hooks and context:"));
+    append_node(&sec, &components::code_block(
+        "on_mount(|| log!(\"mounted\"));\n\
+         on_cleanup(|| log!(\"disposed\"));\n\
+         \n\
+         // Dependency injection\n\
+         provide_context(my_service);\n\
+         let svc = use_context::<MyService>();"
+    ));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── View Macro ───────────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "View Macro");
+    set_attribute(&h, "id", "sec-view");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "The view! macro provides declarative HTML-like syntax:"));
+    append_node(&sec, &components::code_block(
+        "view! {\n\
+         \x20   <div class=\"card\">\n\
+         \x20       <h1>{title}</h1>\n\
+         \x20       <p>{move || description.get()}</p>\n\
+         \x20   </div>\n\
+         }"
+    ));
+    append_node(&sec, &text_el("p", "Dynamic attributes, events, and two-way binding:"));
+    append_node(&sec, &components::code_block(
+        "view! {\n\
+         \x20   <input\n\
+         \x20       class:active={move || is_active.get()}\n\
+         \x20       bind:value={name}\n\
+         \x20       on:input={move |e| handle(e)}\n\
+         \x20   />\n\
+         \x20   <input type=\"checkbox\" bind:checked={agreed} />\n\
+         }"
+    ));
+    append_node(&sec, &text_el("p", "Control flow — conditionals and loops:"));
+    append_node(&sec, &components::code_block(
+        "view! {\n\
+         \x20   {move || if show.get() {\n\
+         \x20       view! { <p>\"Visible\"</p> }\n\
+         \x20   } else {\n\
+         \x20       view! { <p>\"Hidden\"</p> }\n\
+         \x20   }}\n\
+         \x20   <ul>\n\
+         \x20       {move || items.get().iter().map(|i|\n\
+         \x20           view! { <li>{i}</li> }\n\
+         \x20       ).collect::<Vec<_>>()}\n\
+         \x20   </ul>\n\
+         }"
+    ));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── Reactive Hooks ───────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "Reactive Hooks");
+    set_attribute(&h, "id", "sec-hooks");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Ready-made hooks for common browser APIs:"));
+    append_node(&sec, &components::code_block(
+        "let stored = use_local_storage(\"key\", \"default\");\n\
+         use_interval(move || tick(), 1000);\n\
+         let debounced = use_debounce(move || search(), 300);\n\
+         let throttled = use_throttle(move || scroll(), 100);"
+    ));
+    append_node(&sec, &text_el("p", "Window, pointer, and media hooks:"));
+    append_node(&sec, &components::code_block(
+        "let (w, h) = use_window_size();\n\
+         let (sx, sy) = use_scroll();\n\
+         let (mx, my) = use_mouse();\n\
+         let is_dark  = use_preferred_dark();\n\
+         let online   = use_online();\n\
+         let mobile   = use_media_query(\"(max-width: 768px)\");"
+    ));
+    append_node(&sec, &text_el("p", "Focus and click-outside:"));
+    append_node(&sec, &components::code_block(
+        "use_click_outside(&menu_ref, move || close_menu());\n\
+         use_focus(&input_ref);"
+    ));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── DOM Utilities ────────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "DOM Utilities");
+    set_attribute(&h, "id", "sec-dom");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Low-level helpers for imperative DOM manipulation:"));
+    append_node(&sec, &components::code_block(
+        "let el = create_element(\"div\");\n\
+         set_attribute(&el, \"class\", \"card\");\n\
+         set_property(&el, \"textContent\", \"hello\");\n\
+         set_style(&el, \"color\", \"red\");\n\
+         toggle_class(&el, \"active\", true);"
+    ));
+    append_node(&sec, &text_el("p", "Tree operations and event listeners:"));
+    append_node(&sec, &components::code_block(
+        "append_node(&parent, &child);\n\
+         clear_children(&container);\n\
+         let found = query_selector(\".my-class\");\n\
+         add_event_listener(&btn, \"click\", move |e| { ... });\n\
+         on_window_event(\"resize\", move |_| { ... });"
+    ));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── Head Management ──────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "Head Management");
+    set_attribute(&h, "id", "sec-head");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Dynamically update the document title and meta tags:"));
+    append_node(&sec, &components::code_block(
+        "set_title(\"My Page | Oxide\");\n\
+         set_meta(\"description\", \"Built with Oxide.\");"
+    ));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── Routing ──────────────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "Routing");
+    set_attribute(&h, "id", "sec-routing");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Hash-based or history-based SPA routing:"));
+    append_node(&sec, &components::code_block(
+        "let router = Router::new(RouterMode::Hash, &[\n\
+         \x20   route(\"/\",         page_home),\n\
+         \x20   route(\"/about\",    page_about),\n\
+         \x20   route(\"/user/:id\", page_user),\n\
+         ]);"
+    ));
+    append_node(&sec, &text_el("p", "Programmatic navigation and reading params:"));
+    append_node(&sec, &components::code_block(
+        "navigate(\"/about\");\n\
+         link(\"/about\", \"Go to About\");\n\
+         \n\
+         let current = use_route();\n\
+         let id = use_param(\"id\");"
+    ));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── OpenTelemetry ────────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "OpenTelemetry");
+    set_attribute(&h, "id", "sec-otel");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Built-in tracing and telemetry for WASM apps:"));
+    append_node(&sec, &components::code_block(
+        "telemetry::init(\"my-app\");\n\
+         \n\
+         let _span = telemetry::span(\"fetch-users\");\n\
+         let resp = telemetry::traced_fetch(\"/api/users\").await;"
+    ));
+    append_node(&sec, &text_el("p", "Inspect collected data:"));
+    append_node(&sec, &components::code_block(
+        "let spans = telemetry::get_spans();\n\
+         let stats = telemetry::get_stats();"
+    ));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── Resiliency ───────────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "Resiliency");
+    set_attribute(&h, "id", "sec-resiliency");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Error boundaries, retries, circuit breakers, and timeouts:"));
+    append_node(&sec, &components::code_block(
+        "let view = resiliency::error_boundary(|| {\n\
+         \x20   risky_component()\n\
+         });"
+    ));
+    append_node(&sec, &components::code_block(
+        "let result = resiliency::retry(3, || async {\n\
+         \x20   fetch(\"/api/data\").await\n\
+         }).await;"
+    ));
+    append_node(&sec, &components::code_block(
+        "let cb = resiliency::CircuitBreaker::new(5, 30_000);\n\
+         let val = cb.call(|| fetch_data()).await;\n\
+         \n\
+         let resp = resiliency::with_timeout(5000, fetch_data()).await;\n\
+         resiliency::sleep(1000).await;"
+    ));
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── Components ───────────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "Components");
+    set_attribute(&h, "id", "sec-components");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Oxide ships 48 ready-made components. Explore each in the Components section."));
+    let comp_list = [
+        "button \u{2014} Primary, secondary, outline, ghost, danger, and icon buttons",
+        "input \u{2014} Text input with label, placeholder, and validation",
+        "textarea \u{2014} Multi-line text input with auto-resize",
+        "select \u{2014} Dropdown select with option groups",
+        "checkbox \u{2014} Checkbox with indeterminate state",
+        "radio \u{2014} Radio button group",
+        "toggle \u{2014} On/off toggle switch",
+        "slider \u{2014} Range slider with min/max/step",
+        "search \u{2014} Search input with clear button",
+        "password \u{2014} Password input with visibility toggle",
+        "number \u{2014} Numeric input with increment/decrement",
+        "file-upload \u{2014} Drag-and-drop file upload zone",
+        "form-group \u{2014} Form field wrapper with label and error",
+        "card \u{2014} Content container with header, body, and footer",
+        "alert \u{2014} Dismissible alert banners (info, success, warning, error)",
+        "modal \u{2014} Accessible dialog overlay",
+        "drawer \u{2014} Slide-in panel from any edge",
+        "toast \u{2014} Temporary notification popups",
+        "dropdown \u{2014} Trigger + floating menu",
+        "tooltip \u{2014} Hover/focus tooltip",
+        "tabs \u{2014} Tabbed content panels",
+        "accordion \u{2014} Collapsible content sections",
+        "badge \u{2014} Status badge with severity colors",
+        "tag \u{2014} Removable tag / chip",
+        "avatar \u{2014} User avatar with fallback initials",
+        "spinner \u{2014} Loading spinner animation",
+        "progress \u{2014} Determinate progress bar",
+        "skeleton \u{2014} Placeholder loading skeleton",
+        "loading-overlay \u{2014} Full-area loading mask",
+        "empty-state \u{2014} Placeholder for empty data",
+        "divider \u{2014} Horizontal rule separator",
+        "breadcrumb \u{2014} Navigation breadcrumb trail",
+        "pagination \u{2014} Page navigation controls",
+        "table \u{2014} Data table with sorting and selection",
+        "timeline \u{2014} Vertical event timeline",
+        "stat \u{2014} Statistic display with label and trend",
+        "rating \u{2014} Star rating input",
+        "copy-button \u{2014} One-click copy to clipboard",
+        "kbd \u{2014} Keyboard shortcut display",
+        "code-block \u{2014} Syntax-highlighted code display",
+        "layout \u{2014} Responsive grid and flex layout helpers",
+        "scroll-to-top \u{2014} Floating scroll-to-top button",
+        "color-picker \u{2014} Interactive color chooser",
+        "date-picker \u{2014} Calendar date selection",
+        "stepper \u{2014} Multi-step wizard indicator",
+        "tree-view \u{2014} Hierarchical tree display",
+        "chart \u{2014} Simple SVG chart components",
+        "command-palette \u{2014} Keyboard-driven command launcher",
+    ];
+    let list = create_element("ul");
+    for desc in &comp_list {
+        let li = create_element("li");
+        append_text(&li, desc);
+        append_node(&list, &li);
+    }
+    append_node(&sec, &list);
+    append_node(&page, &sec);
+    append_node(&page, &components::divider());
+
+    // ── Debugging ────────────────────────────────────────────────────────
+    let sec = el("div", "doc-section", &[]);
+    let h = text_el("h3", "Debugging");
+    set_attribute(&h, "id", "sec-debugging");
+    append_node(&sec, &h);
+    append_node(&sec, &text_el("p", "Use oxide dev for DWARF debug info and source maps:"));
+    append_node(&sec, &components::code_block(
+        "oxide dev   # builds with debug symbols"
+    ));
+    append_node(&sec, &text_el("p", "Install the C/C++ DWARF Chrome extension to set breakpoints directly in Rust source from DevTools."));
+    append_node(&sec, &components::code_block(
+        "// In Chrome DevTools → Sources → your .rs files\n\
+         // Set breakpoints, inspect locals, step through Rust code"
+    ));
+    append_node(&page, &sec);
+
+    page
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
