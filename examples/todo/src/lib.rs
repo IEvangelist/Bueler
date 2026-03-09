@@ -1,19 +1,19 @@
-use oxide::prelude::*;
-use oxide::dom::*;
+use bueler::prelude::*;
+use bueler::dom::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
 #[wasm_bindgen(start)]
 pub fn main() {
-    set_title("Oxide Todo App");
+    set_title("Bueler Todo App");
 
     mount("#app", || {
         let todos: Signal<Vec<(String, bool)>> = signal({
-            if let Some(saved) = local_storage_get("oxide-todo-app") {
+            if let Some(saved) = local_storage_get("bueler-todo-app") {
                 parse_todos(&saved)
             } else {
                 vec![
-                    ("Learn Oxide".into(), false),
+                    ("Learn Bueler".into(), false),
                     ("Build something awesome".into(), false),
                 ]
             }
@@ -23,7 +23,7 @@ pub fn main() {
 
         // Persist on every change
         create_effect(move || {
-            local_storage_set("oxide-todo-app", &serialize_todos(&todos.get()));
+            local_storage_set("bueler-todo-app", &serialize_todos(&todos.get()));
         });
 
         let remaining = memo(move || {

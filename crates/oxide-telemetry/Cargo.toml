@@ -1,12 +1,12 @@
 [package]
-name = "oxide-telemetry"
-description = "OpenTelemetry-compatible tracing for Oxide WASM applications"
+name = "bueler-telemetry"
+description = "OpenTelemetry-compatible tracing for Bueler WASM applications"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
-oxide-core = { path = "../oxide-core" }
+bueler-core = { path = "../oxide-core" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

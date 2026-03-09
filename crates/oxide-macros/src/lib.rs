@@ -13,7 +13,7 @@ pub fn view(input: TokenStream) -> TokenStream {
     let mut parser = ViewParser::new(input2);
     let node = parser
         .parse_node()
-        .expect("oxide view!: expected at least one element");
+        .expect("bueler view!: expected at least one element");
     let mut counter = 0usize;
     gen_root(&node, &mut counter).into()
 }
@@ -95,7 +95,7 @@ impl ViewParser {
 
     fn expect_punct(&mut self, ch: char) {
         if !self.is_punct(ch) {
-            panic!("oxide view!: expected '{}', found {:?}", ch, self.peek());
+            panic!("bueler view!: expected '{}', found {:?}", ch, self.peek());
         }
         self.advance();
     }
@@ -103,7 +103,7 @@ impl ViewParser {
     fn expect_ident(&mut self) -> String {
         match self.advance() {
             Some(TokenTree::Ident(i)) => i.to_string(),
-            other => panic!("oxide view!: expected identifier, found {:?}", other),
+            other => panic!("bueler view!: expected identifier, found {:?}", other),
         }
     }
 
@@ -124,7 +124,7 @@ impl ViewParser {
                     if raw.starts_with('"') && raw.ends_with('"') {
                         Some(ViewNode::Text(raw[1..raw.len() - 1].to_string()))
                     } else {
-                        panic!("oxide view!: only string literals as text, got: {}", raw);
+                        panic!("bueler view!: only string literals as text, got: {}", raw);
                     }
                 } else {
                     unreachable!()
@@ -147,7 +147,7 @@ impl ViewParser {
                     unreachable!()
                 }
             }
-            other => panic!("oxide view!: unexpected token {:?}", other),
+            other => panic!("bueler view!: unexpected token {:?}", other),
         }
     }
 
@@ -194,7 +194,7 @@ impl ViewParser {
                 self.advance();
                 self.advance();
                 let close = self.expect_ident();
-                assert_eq!(close, tag, "oxide view!: mismatched </{}> for <{}>", close, tag);
+                assert_eq!(close, tag, "bueler view!: mismatched </{}> for <{}>", close, tag);
                 self.expect_punct('>');
                 break;
             }
@@ -222,7 +222,7 @@ impl ViewParser {
                 "on" => Attr::Event { event: suffix, handler: value },
                 "bind" => Attr::Bind { prop: suffix, signal: value },
                 "class" => Attr::ClassToggle { class: suffix, condition: value },
-                _ => panic!("oxide view!: unknown namespace '{}:'. Use on:, bind:, class:", name),
+                _ => panic!("bueler view!: unknown namespace '{}:'. Use on:, bind:, class:", name),
             };
         }
 
@@ -236,7 +236,7 @@ impl ViewParser {
                     if raw.starts_with('"') && raw.ends_with('"') {
                         Attr::Static { name, value: raw[1..raw.len()-1].to_string() }
                     } else {
-                        panic!("oxide view!: attr value must be \"string\" or {{expr}}");
+                        panic!("bueler view!: attr value must be \"string\" or {{expr}}");
                     }
                 } else { unreachable!() }
             }
@@ -248,14 +248,14 @@ impl ViewParser {
                     Attr::Dynamic { name, value: stream }
                 }
             }
-            _ => panic!("oxide view!: expected value after '='"),
+            _ => panic!("bueler view!: expected value after '='"),
         }
     }
 
     fn parse_braced_expr(&mut self) -> TokenStream2 {
         match self.advance() {
             Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Brace => g.stream(),
-            other => panic!("oxide view!: expected {{expr}}, found {:?}", other),
+            other => panic!("bueler view!: expected {{expr}}, found {:?}", other),
         }
     }
 
@@ -315,14 +315,14 @@ fn parse_conditional(tokens: Vec<TokenTree>) -> ViewNode {
             cur += 1;
             ViewParser::new(g.stream()).parse_children_until_end()
         }
-        _ => panic!("oxide view!: expected {{ view }} after if condition"),
+        _ => panic!("bueler view!: expected {{ view }} after if condition"),
     };
     let if_false = if let Some(TokenTree::Ident(id)) = tokens.get(cur) {
         if id.to_string() == "else" {
             cur += 1;
             match tokens.get(cur) {
                 Some(TokenTree::Group(g)) => ViewParser::new(g.stream()).parse_children_until_end(),
-                _ => panic!("oxide view!: expected {{ view }} after else"),
+                _ => panic!("bueler view!: expected {{ view }} after else"),
             }
         } else { vec![] }
     } else { vec![] };
@@ -349,7 +349,7 @@ fn parse_for_loop(tokens: Vec<TokenTree>) -> ViewNode {
     }
     let body = match tokens.get(cur) {
         Some(TokenTree::Group(g)) => ViewParser::new(g.stream()).parse_children_until_end(),
-        _ => panic!("oxide view!: expected {{ view }} after for ... in expression"),
+        _ => panic!("bueler view!: expected {{ view }} after for ... in expression"),
     };
     ViewNode::EachLoop {
         binding: TokenStream2::from_iter(binding),
@@ -369,9 +369,9 @@ fn gen_root(node: &ViewNode, c: &mut usize) -> TokenStream2 {
             *c += 1;
             let a = gen_attrs(attrs, &el, c);
             let ch = gen_children(children, &el, c, false);
-            quote! {{ let #el = ::oxide::dom::create_element(#tag); #a #ch #el }}
+            quote! {{ let #el = ::bueler::dom::create_element(#tag); #a #ch #el }}
         }
-        _ => panic!("oxide view!: root must be an element"),
+        _ => panic!("bueler view!: root must be an element"),
     }
 }
 
@@ -383,17 +383,17 @@ fn gen_attrs(attrs: &[Attr], el: &proc_macro2::Ident, c: &mut usize) -> TokenStr
 fn gen_attr(attr: &Attr, el: &proc_macro2::Ident, c: &mut usize) -> TokenStream2 {
     match attr {
         Attr::Static { name, value } => quote! {
-            ::oxide::dom::set_attribute(&#el, #name, #value);
+            ::bueler::dom::set_attribute(&#el, #name, #value);
         },
         Attr::Event { event, handler } => quote! {
-            ::oxide::dom::add_event_listener(&#el, #event, #handler);
+            ::bueler::dom::add_event_listener(&#el, #event, #handler);
         },
         Attr::Dynamic { name, value } => {
             let d = format_ident!("__dyn_{}", *c); *c += 1;
             quote! {{
                 let #d = #el.clone();
-                ::oxide::create_effect(move || {
-                    ::oxide::dom::set_attribute(&#d, #name, &::std::format!("{}", #value));
+                ::bueler::create_effect(move || {
+                    ::bueler::dom::set_attribute(&#d, #name, &::std::format!("{}", #value));
                 });
             }}
         }
@@ -402,25 +402,25 @@ fn gen_attr(attr: &Attr, el: &proc_macro2::Ident, c: &mut usize) -> TokenStream2
             if prop == "checked" {
                 quote! {{
                     let #b = #el.clone();
-                    ::oxide::create_effect(move || {
-                        ::oxide::dom::set_property(&#b, "checked",
+                    ::bueler::create_effect(move || {
+                        ::bueler::dom::set_property(&#b, "checked",
                             &::wasm_bindgen::JsValue::from_bool(#signal.get()));
                     });
-                    ::oxide::dom::add_event_listener(&#el, "change",
-                        move |__e: ::oxide::dom::Event| {
-                            #signal.set(::oxide::dom::event_target_checked(&__e));
+                    ::bueler::dom::add_event_listener(&#el, "change",
+                        move |__e: ::bueler::dom::Event| {
+                            #signal.set(::bueler::dom::event_target_checked(&__e));
                         });
                 }}
             } else {
                 quote! {{
                     let #b = #el.clone();
-                    ::oxide::create_effect(move || {
-                        ::oxide::dom::set_property(&#b, #prop,
+                    ::bueler::create_effect(move || {
+                        ::bueler::dom::set_property(&#b, #prop,
                             &::wasm_bindgen::JsValue::from_str(&::std::format!("{}", #signal)));
                     });
-                    ::oxide::dom::add_event_listener(&#el, "input",
-                        move |__e: ::oxide::dom::Event| {
-                            let __v = ::oxide::dom::event_target_value(&__e);
+                    ::bueler::dom::add_event_listener(&#el, "input",
+                        move |__e: ::bueler::dom::Event| {
+                            let __v = ::bueler::dom::event_target_value(&__e);
                             if let ::std::result::Result::Ok(__p) = __v.parse() {
                                 #signal.set(__p);
                             }
@@ -432,8 +432,8 @@ fn gen_attr(attr: &Attr, el: &proc_macro2::Ident, c: &mut usize) -> TokenStream2
             let t = format_ident!("__cls_{}", *c); *c += 1;
             quote! {{
                 let #t = #el.clone();
-                ::oxide::create_effect(move || {
-                    ::oxide::dom::toggle_class(&#t, #class, #condition);
+                ::bueler::create_effect(move || {
+                    ::bueler::dom::toggle_class(&#t, #class, #condition);
                 });
             }}
         }
@@ -452,33 +452,33 @@ fn gen_child(node: &ViewNode, p: &proc_macro2::Ident, c: &mut usize, reactive: b
             let a = gen_attrs(attrs, &el, c);
             let ch = gen_children(children, &el, c, reactive);
             quote! {
-                let #el = ::oxide::dom::create_element(#tag);
+                let #el = ::bueler::dom::create_element(#tag);
                 #a #ch
-                ::oxide::dom::append_node(&#p, &#el);
+                ::bueler::dom::append_node(&#p, &#el);
             }
         }
         ViewNode::Text(text) => quote! {
-            ::oxide::dom::append_text(&#p, #text);
+            ::bueler::dom::append_text(&#p, #text);
         },
         ViewNode::DynExpr(expr) => {
             if reactive {
                 let t = format_ident!("__txt_{}", *c); *c += 1;
                 quote! {
-                    let #t = ::oxide::dom::create_text_node(&::std::format!("{}", #expr));
-                    ::oxide::dom::append_node(&#p, &#t);
+                    let #t = ::bueler::dom::create_text_node(&::std::format!("{}", #expr));
+                    ::bueler::dom::append_node(&#p, &#t);
                 }
             } else {
                 let t = format_ident!("__txt_{}", *c);
                 let tc = format_ident!("__tc_{}", *c);
                 *c += 1;
                 quote! {
-                    let #t = ::oxide::dom::create_text_node("");
+                    let #t = ::bueler::dom::create_text_node("");
                     let #tc = #t.clone();
-                    ::oxide::create_effect(move || {
+                    ::bueler::create_effect(move || {
                         #tc.set_text_content(::std::option::Option::Some(
                             &::std::format!("{}", #expr)));
                     });
-                    ::oxide::dom::append_node(&#p, &#t);
+                    ::bueler::dom::append_node(&#p, &#t);
                 }
             }
         }
@@ -494,14 +494,14 @@ fn gen_child(node: &ViewNode, p: &proc_macro2::Ident, c: &mut usize, reactive: b
                 quote! { else { #s } }
             };
             quote! {{
-                let #w = ::oxide::dom::create_element("span");
-                ::oxide::dom::set_style(&#w, "display", "contents");
+                let #w = ::bueler::dom::create_element("span");
+                ::bueler::dom::set_style(&#w, "display", "contents");
                 let #wr = #w.clone();
-                ::oxide::create_effect(move || {
-                    ::oxide::dom::clear_children(&#wr);
+                ::bueler::create_effect(move || {
+                    ::bueler::dom::clear_children(&#wr);
                     if #condition { #ts } #fs
                 });
-                ::oxide::dom::append_node(&#p, &#w);
+                ::bueler::dom::append_node(&#p, &#w);
             }}
         }
         ViewNode::EachLoop { binding, iterable, body } => {
@@ -510,14 +510,14 @@ fn gen_child(node: &ViewNode, p: &proc_macro2::Ident, c: &mut usize, reactive: b
             *c += 1;
             let bs = gen_children(body, &wr, c, true);
             quote! {{
-                let #w = ::oxide::dom::create_element("span");
-                ::oxide::dom::set_style(&#w, "display", "contents");
+                let #w = ::bueler::dom::create_element("span");
+                ::bueler::dom::set_style(&#w, "display", "contents");
                 let #wr = #w.clone();
-                ::oxide::create_effect(move || {
-                    ::oxide::dom::clear_children(&#wr);
+                ::bueler::create_effect(move || {
+                    ::bueler::dom::clear_children(&#wr);
                     for #binding in #iterable { #bs }
                 });
-                ::oxide::dom::append_node(&#p, &#w);
+                ::bueler::dom::append_node(&#p, &#w);
             }}
         }
         ViewNode::Component { name, props } => {
@@ -528,13 +528,13 @@ fn gen_child(node: &ViewNode, p: &proc_macro2::Ident, c: &mut usize, reactive: b
             }).collect();
             if fields.is_empty() {
                 quote! {
-                    ::oxide::dom::append_node(&#p,
-                        &::oxide::Component::render(#comp {}));
+                    ::bueler::dom::append_node(&#p,
+                        &::bueler::Component::render(#comp {}));
                 }
             } else {
                 quote! {
-                    ::oxide::dom::append_node(&#p,
-                        &::oxide::Component::render(#comp { #(#fields),* }));
+                    ::bueler::dom::append_node(&#p,
+                        &::bueler::Component::render(#comp { #(#fields),* }));
                 }
             }
         }

@@ -3,7 +3,7 @@
 //! These follow the `use_*` naming convention and return reactive signals
 //! that auto-update when the underlying browser state changes.
 
-use oxide_core::{create_effect, signal, Signal};
+use bueler_core::{create_effect, signal, Signal};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
@@ -17,7 +17,7 @@ use wasm_bindgen::JsCast;
 /// ```ignore
 /// let name = use_local_storage("user-name", "World".to_string());
 /// // name.get() reads from signal (fast)
-/// // name.set("Oxide") writes to signal AND localStorage
+/// // name.set("Bueler") writes to signal AND localStorage
 /// ```
 pub fn use_local_storage(key: &str, default: String) -> Signal<String> {
     let initial = crate::local_storage_get(key).unwrap_or(default);

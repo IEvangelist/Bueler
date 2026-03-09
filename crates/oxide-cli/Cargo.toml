@@ -1,12 +1,12 @@
 [package]
-name = "oxide-cli"
-description = "CLI for the Oxide web framework — create, develop, build, and debug WASM apps"
+name = "bueler-cli"
+description = "CLI for the Bueler web framework — create, develop, build, and debug WASM apps"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "oxide"
+name = "bueler"
 path = "src/main.rs"
 
 [dependencies]

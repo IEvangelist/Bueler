@@ -1,6 +1,6 @@
 [package]
-name = "oxide-showcase"
-description = "Oxide feature showcase — every major web API demonstrated in Rust/WASM"
+name = "bueler-showcase"
+description = "Bueler feature showcase — every major web API demonstrated in Rust/WASM"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,9 +9,9 @@ license.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-oxide = { path = "../../crates/oxide" }
-oxide-telemetry = { path = "../../crates/oxide-telemetry" }
-oxide-resiliency = { path = "../../crates/oxide-resiliency" }
+bueler = { path = "../../crates/oxide" }
+bueler-telemetry = { path = "../../crates/oxide-telemetry" }
+bueler-resiliency = { path = "../../crates/oxide-resiliency" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

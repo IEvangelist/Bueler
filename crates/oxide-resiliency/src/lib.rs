@@ -1,6 +1,6 @@
-//! # oxide-resiliency
+//! # bueler-resiliency
 //!
-//! Production-grade resiliency patterns for Oxide applications.
+//! Production-grade resiliency patterns for Bueler applications.
 //!
 //! - [`error_boundary`] — Catch panics and render fallback UI
 //! - [`retry`] — Retry failed operations with exponential backoff
@@ -8,9 +8,9 @@
 //! - [`with_timeout`] — Abort operations that take too long
 //! - [`sleep`] — Async-friendly sleep for WASM
 
-use oxide_core::signal;
-use oxide_core::Signal;
-use oxide_dom::{create_element, append_text, set_style};
+use bueler_core::signal;
+use bueler_core::Signal;
+use bueler_dom::{create_element, append_text, set_style};
 use wasm_bindgen::JsCast as _;
 use std::future::Future;
 use std::pin::Pin;
@@ -238,7 +238,7 @@ impl CircuitBreaker {
                     self.state.set(CircuitState::Open);
                     let state = self.state;
                     let timeout = self.config.reset_timeout_ms;
-                    oxide_dom::set_timeout(
+                    bueler_dom::set_timeout(
                         move || state.set(CircuitState::HalfOpen),
                         timeout as i32,
                     );
@@ -293,12 +293,12 @@ pub async fn with_timeout<T: 'static>(
 
     let timeout_id = {
         let sender_timeout = sender.clone();
-        oxide_dom::set_timeout(move || { sender_timeout(None); }, ms as i32)
+        bueler_dom::set_timeout(move || { sender_timeout(None); }, ms as i32)
     };
 
     match receiver().await {
         Some(val) => {
-            oxide_dom::clear_timeout(timeout_id);
+            bueler_dom::clear_timeout(timeout_id);
             Ok(val)
         }
         None => Err(TimeoutError { ms }),

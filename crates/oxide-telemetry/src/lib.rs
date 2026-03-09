@@ -1,16 +1,16 @@
-//! # oxide-telemetry
+//! # bueler-telemetry
 //!
-//! OpenTelemetry-compatible tracing for Oxide WASM applications.
+//! OpenTelemetry-compatible tracing for Bueler WASM applications.
 //!
 //! ```ignore
-//! oxide_telemetry::init(Config {
+//! bueler_telemetry::init(Config {
 //!     service_name: "my-app",
 //!     endpoint: None, // console-only
 //! });
 //! // All signal/effect activity is now traced automatically.
 //! ```
 
-use oxide_core::{set_hook, HookEvent};
+use bueler_core::{set_hook, HookEvent};
 use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -32,7 +32,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            service_name: "oxide-app",
+            service_name: "bueler-app",
             endpoint: None,
             trace_reads: false,
         }
@@ -194,7 +194,7 @@ impl Telemetry {
 
 thread_local! {
     static TELEMETRY: RefCell<Telemetry> = RefCell::new(Telemetry {
-        service_name: "oxide-app",
+        service_name: "bueler-app",
         endpoint: None,
         trace_reads: false,
         spans: Vec::new(),

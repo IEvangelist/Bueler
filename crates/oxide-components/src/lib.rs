@@ -1,19 +1,19 @@
-//! # oxide-components
+//! # bueler-components
 //!
-//! Best-in-class UI component library for Oxide applications.
+//! Best-in-class UI component library for Bueler applications.
 //! All components use a builder API, include built-in dark-theme CSS
 //! (auto-injected on first use), and follow WAI-ARIA accessibility patterns.
 //!
 //! ```ignore
-//! use oxide_components::*;
+//! use bueler_components::*;
 //!
 //! let btn = button("Save").primary().on_click(move |_| save());
 //! let inp = text_input("Email").placeholder("you@example.com").bind(email);
 //! let card = card("Settings").body(content).build();
 //! ```
 
-use oxide_core::{create_effect, signal, Signal};
-use oxide_dom::*;
+use bueler_core::{create_effect, signal, Signal};
+use bueler_dom::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
@@ -22,12 +22,12 @@ use wasm_bindgen::JsCast;
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn inject_css(id: &str, css: &str) {
-    if query_selector(&format!("style[data-ox=\"{}\"]", id)).is_some() {
+    if query_selector(&format!("style[data-bu=\"{}\"]", id)).is_some() {
         return;
     }
     let doc = web_sys::window().unwrap().document().unwrap();
     let style = doc.create_element("style").unwrap();
-    style.set_attribute("data-ox", id).ok();
+    style.set_attribute("data-bu", id).ok();
     style.set_text_content(Some(css));
     if let Some(head) = doc.head() {
         head.append_child(&style).ok();
@@ -81,16 +81,16 @@ impl ButtonBuilder {
     pub fn build(self) -> web_sys::Element {
         inject_css("btn", BUTTON_CSS);
         let el = create_element("button");
-        let mut cls = format!("ox-btn ox-btn-{}", match self.variant {
+        let mut cls = format!("bu-btn bu-btn-{}", match self.variant {
             Variant::Primary => "primary", Variant::Secondary => "secondary",
             Variant::Outline => "outline", Variant::Danger => "danger", Variant::Ghost => "ghost",
         });
-        cls += match self.size { Size::Small => " ox-btn-sm", Size::Large => " ox-btn-lg", _ => "" };
-        if self.loading { cls += " ox-btn-loading"; }
+        cls += match self.size { Size::Small => " bu-btn-sm", Size::Large => " bu-btn-lg", _ => "" };
+        if self.loading { cls += " bu-btn-loading"; }
         set_attribute(&el, "class", &cls);
         if self.disabled || self.loading { set_attribute(&el, "disabled", ""); }
         if self.loading {
-            set_inner_html(&el, &format!("<span class=\"ox-spinner-inline\"></span> {}", self.label));
+            set_inner_html(&el, &format!("<span class=\"bu-spinner-inline\"></span> {}", self.label));
         } else {
             append_text(&el, &self.label);
         }
@@ -133,16 +133,16 @@ impl InputBuilder {
     pub fn build(self) -> web_sys::Element {
         inject_css("input", INPUT_CSS);
         let wrap = create_element("div");
-        set_attribute(&wrap, "class", "ox-field");
+        set_attribute(&wrap, "class", "bu-field");
         if !self.label.is_empty() {
             let lbl = create_element("label");
-            set_attribute(&lbl, "class", "ox-label");
+            set_attribute(&lbl, "class", "bu-label");
             append_text(&lbl, &self.label);
-            if self.required { let req = create_element("span"); set_attribute(&req, "class", "ox-required"); append_text(&req, " *"); append_node(&lbl, &req); }
+            if self.required { let req = create_element("span"); set_attribute(&req, "class", "bu-required"); append_text(&req, " *"); append_node(&lbl, &req); }
             append_node(&wrap, &lbl);
         }
         let input = create_element("input");
-        let cls = if self.error_msg.is_some() { "ox-input ox-input-error" } else { "ox-input" };
+        let cls = if self.error_msg.is_some() { "bu-input bu-input-error" } else { "bu-input" };
         set_attribute(&input, "class", cls);
         set_attribute(&input, "type", &self.input_type);
         if !self.placeholder.is_empty() { set_attribute(&input, "placeholder", &self.placeholder); }
@@ -155,7 +155,7 @@ impl InputBuilder {
         append_node(&wrap, &input);
         if let Some(msg) = &self.error_msg {
             let err = create_element("div");
-            set_attribute(&err, "class", "ox-error");
+            set_attribute(&err, "class", "bu-error");
             err.set_attribute("role", "alert").ok();
             append_text(&err, msg);
             append_node(&wrap, &err);
@@ -171,15 +171,15 @@ impl InputBuilder {
 pub fn textarea(label: &str, value: Signal<String>) -> web_sys::Element {
     inject_css("input", INPUT_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-field");
+    set_attribute(&wrap, "class", "bu-field");
     if !label.is_empty() {
         let lbl = create_element("label");
-        set_attribute(&lbl, "class", "ox-label");
+        set_attribute(&lbl, "class", "bu-label");
         append_text(&lbl, label);
         append_node(&wrap, &lbl);
     }
     let ta = create_element("textarea");
-    set_attribute(&ta, "class", "ox-input");
+    set_attribute(&ta, "class", "bu-input");
     set_attribute(&ta, "rows", "4");
     let ta_ref = ta.clone();
     create_effect(move || { set_property(&ta_ref, "value", &JsValue::from_str(&value.get())); });
@@ -196,15 +196,15 @@ pub fn textarea(label: &str, value: Signal<String>) -> web_sys::Element {
 pub fn select(label: &str, options: &[(&str, &str)], value: Signal<String>) -> web_sys::Element {
     inject_css("input", INPUT_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-field");
+    set_attribute(&wrap, "class", "bu-field");
     if !label.is_empty() {
         let lbl = create_element("label");
-        set_attribute(&lbl, "class", "ox-label");
+        set_attribute(&lbl, "class", "bu-label");
         append_text(&lbl, label);
         append_node(&wrap, &lbl);
     }
     let sel = create_element("select");
-    set_attribute(&sel, "class", "ox-input");
+    set_attribute(&sel, "class", "bu-input");
     for &(val, text) in options {
         let opt = create_element("option");
         set_attribute(&opt, "value", val);
@@ -226,7 +226,7 @@ pub fn select(label: &str, options: &[(&str, &str)], value: Signal<String>) -> w
 pub fn checkbox(label: &str, checked: Signal<bool>) -> web_sys::Element {
     inject_css("checkbox", CHECKBOX_CSS);
     let wrap = create_element("label");
-    set_attribute(&wrap, "class", "ox-checkbox");
+    set_attribute(&wrap, "class", "bu-checkbox");
     let input = create_element("input");
     set_attribute(&input, "type", "checkbox");
     let inp_ref = input.clone();
@@ -261,22 +261,22 @@ impl CardBuilder {
     pub fn build(self) -> web_sys::Element {
         inject_css("card", CARD_CSS);
         let card = create_element("div");
-        set_attribute(&card, "class", "ox-card");
+        set_attribute(&card, "class", "bu-card");
         if !self.title.is_empty() {
             let header = create_element("div");
-            set_attribute(&header, "class", "ox-card-header");
+            set_attribute(&header, "class", "bu-card-header");
             append_text(&header, &self.title);
             append_node(&card, &header);
         }
         if let Some(body) = self.body_el {
             let b = create_element("div");
-            set_attribute(&b, "class", "ox-card-body");
+            set_attribute(&b, "class", "bu-card-body");
             append_node(&b, &body);
             append_node(&card, &b);
         }
         if let Some(footer) = self.footer_el {
             let f = create_element("div");
-            set_attribute(&f, "class", "ox-card-footer");
+            set_attribute(&f, "class", "bu-card-footer");
             append_node(&f, &footer);
             append_node(&card, &f);
         }
@@ -315,19 +315,19 @@ impl AlertBuilder {
             Severity::Success => "success", Severity::Warning => "warning",
             Severity::Error => "error", Severity::Info => "info",
         };
-        set_attribute(&el, "class", &format!("ox-alert ox-alert-{}", sev));
+        set_attribute(&el, "class", &format!("bu-alert bu-alert-{}", sev));
         el.set_attribute("role", "alert").ok();
         let icon = match self.severity {
             Severity::Success => "✓", Severity::Warning => "⚠", Severity::Error => "✕", Severity::Info => "ℹ",
         };
         let ic = create_element("span");
-        set_attribute(&ic, "class", "ox-alert-icon");
+        set_attribute(&ic, "class", "bu-alert-icon");
         append_text(&ic, icon);
         append_node(&el, &ic);
         append_text(&el, &self.message);
         if let Some(vis) = self.dismissible {
             let btn = create_element("button");
-            set_attribute(&btn, "class", "ox-alert-close");
+            set_attribute(&btn, "class", "bu-alert-close");
             btn.set_attribute("aria-label", "Dismiss").ok();
             append_text(&btn, "×");
             add_event_listener(&btn, "click", move |_| { vis.set(false); });
@@ -360,20 +360,20 @@ impl ModalBuilder {
     pub fn build(self) -> web_sys::Element {
         inject_css("modal", MODAL_CSS);
         let overlay = create_element("div");
-        set_attribute(&overlay, "class", "ox-modal-overlay");
+        set_attribute(&overlay, "class", "bu-modal-overlay");
         overlay.set_attribute("role", "dialog").ok();
         overlay.set_attribute("aria-modal", "true").ok();
 
         let dialog = create_element("div");
-        set_attribute(&dialog, "class", "ox-modal");
+        set_attribute(&dialog, "class", "bu-modal");
         if !self.title.is_empty() {
             let header = create_element("div");
-            set_attribute(&header, "class", "ox-modal-header");
+            set_attribute(&header, "class", "bu-modal-header");
             let h3 = create_element("h3");
             append_text(&h3, &self.title);
             append_node(&header, &h3);
             let close = create_element("button");
-            set_attribute(&close, "class", "ox-modal-close");
+            set_attribute(&close, "class", "bu-modal-close");
             close.set_attribute("aria-label", "Close").ok();
             append_text(&close, "×");
             let o = self.open;
@@ -383,7 +383,7 @@ impl ModalBuilder {
         }
         if let Some(body) = self.body_el {
             let b = create_element("div");
-            set_attribute(&b, "class", "ox-modal-body");
+            set_attribute(&b, "class", "bu-modal-body");
             append_node(&b, &body);
             append_node(&dialog, &b);
         }
@@ -395,7 +395,7 @@ impl ModalBuilder {
         add_event_listener(&overlay, "click", move |e| {
             if let Some(t) = e.target() {
                 if let Some(el) = t.dyn_ref::<web_sys::Element>() {
-                    if el.class_list().contains("ox-modal-overlay") { o2.set(false); }
+                    if el.class_list().contains("bu-modal-overlay") { o2.set(false); }
                 }
             }
         });
@@ -421,7 +421,7 @@ impl ModalBuilder {
 pub fn spinner() -> web_sys::Element {
     inject_css("spinner", SPINNER_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-spinner");
+    set_attribute(&el, "class", "bu-spinner");
     el.set_attribute("role", "status").ok();
     el.set_attribute("aria-label", "Loading").ok();
     el
@@ -430,13 +430,13 @@ pub fn spinner() -> web_sys::Element {
 pub fn spinner_with_text(text: &str) -> web_sys::Element {
     inject_css("spinner", SPINNER_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-spinner-wrap");
+    set_attribute(&wrap, "class", "bu-spinner-wrap");
     let sp = create_element("div");
-    set_attribute(&sp, "class", "ox-spinner");
+    set_attribute(&sp, "class", "bu-spinner");
     sp.set_attribute("role", "status").ok();
     append_node(&wrap, &sp);
     let t = create_element("span");
-    set_attribute(&t, "class", "ox-spinner-text");
+    set_attribute(&t, "class", "bu-spinner-text");
     append_text(&t, text);
     append_node(&wrap, &t);
     wrap
@@ -449,10 +449,10 @@ pub fn spinner_with_text(text: &str) -> web_sys::Element {
 pub fn progress(value: Signal<f64>) -> web_sys::Element {
     inject_css("progress", PROGRESS_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-progress");
+    set_attribute(&wrap, "class", "bu-progress");
     wrap.set_attribute("role", "progressbar").ok();
     let bar = create_element("div");
-    set_attribute(&bar, "class", "ox-progress-bar");
+    set_attribute(&bar, "class", "bu-progress-bar");
     let bar_ref = bar.clone();
     let wrap_ref = wrap.clone();
     create_effect(move || {
@@ -472,15 +472,15 @@ pub fn tabs(items: &[(&str, fn() -> web_sys::Element)]) -> web_sys::Element {
     inject_css("tabs", TABS_CSS);
     let active = signal(0usize);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-tabs");
+    set_attribute(&wrap, "class", "bu-tabs");
 
     let nav = create_element("div");
-    set_attribute(&nav, "class", "ox-tabs-nav");
+    set_attribute(&nav, "class", "bu-tabs-nav");
     nav.set_attribute("role", "tablist").ok();
     let mut tab_btns: Vec<web_sys::Element> = Vec::new();
     for (i, &(label, _)) in items.iter().enumerate() {
         let btn = create_element("button");
-        set_attribute(&btn, "class", "ox-tab-btn");
+        set_attribute(&btn, "class", "bu-tab-btn");
         btn.set_attribute("role", "tab").ok();
         append_text(&btn, label);
         let a = active;
@@ -491,7 +491,7 @@ pub fn tabs(items: &[(&str, fn() -> web_sys::Element)]) -> web_sys::Element {
     append_node(&wrap, &nav);
 
     let panel = create_element("div");
-    set_attribute(&panel, "class", "ox-tab-panel");
+    set_attribute(&panel, "class", "bu-tab-panel");
     panel.set_attribute("role", "tabpanel").ok();
 
     let views: Vec<fn() -> web_sys::Element> = items.iter().map(|&(_, v)| v).collect();
@@ -505,10 +505,10 @@ pub fn tabs(items: &[(&str, fn() -> web_sys::Element)]) -> web_sys::Element {
         }
         for (i, btn) in tab_btns.iter().enumerate() {
             if i == idx {
-                set_attribute(btn, "class", "ox-tab-btn ox-tab-active");
+                set_attribute(btn, "class", "bu-tab-btn bu-tab-active");
                 btn.set_attribute("aria-selected", "true").ok();
             } else {
-                set_attribute(btn, "class", "ox-tab-btn");
+                set_attribute(btn, "class", "bu-tab-btn");
                 btn.set_attribute("aria-selected", "false").ok();
             }
         }
@@ -528,7 +528,7 @@ pub fn badge(text: &str, severity: Severity) -> web_sys::Element {
         Severity::Success => "success", Severity::Warning => "warning",
         Severity::Error => "error", Severity::Info => "info",
     };
-    set_attribute(&el, "class", &format!("ox-badge ox-badge-{}", sev));
+    set_attribute(&el, "class", &format!("bu-badge bu-badge-{}", sev));
     append_text(&el, text);
     el
 }
@@ -538,9 +538,9 @@ pub fn badge(text: &str, severity: Severity) -> web_sys::Element {
 // ═══════════════════════════════════════════════════════════════════════════
 
 pub fn divider() -> web_sys::Element {
-    inject_css("divider", ".ox-divider{border:none;border-top:1px solid #333;margin:1.5rem 0}");
+    inject_css("divider", ".bu-divider{border:none;border-top:1px solid #333;margin:1.5rem 0}");
     let el = create_element("hr");
-    set_attribute(&el, "class", "ox-divider");
+    set_attribute(&el, "class", "bu-divider");
     el
 }
 
@@ -551,7 +551,7 @@ pub fn divider() -> web_sys::Element {
 pub fn skeleton(width: &str, height: &str) -> web_sys::Element {
     inject_css("skeleton", SKELETON_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-skeleton");
+    set_attribute(&el, "class", "bu-skeleton");
     set_style(&el, "width", width);
     set_style(&el, "height", height);
     el
@@ -562,101 +562,101 @@ pub fn skeleton(width: &str, height: &str) -> web_sys::Element {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const BUTTON_CSS: &str = "\
-.ox-btn{display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1.1rem;font-size:0.85rem;font-family:inherit;font-weight:500;\
+.bu-btn{display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1.1rem;font-size:0.85rem;font-family:inherit;font-weight:500;\
 border:1px solid #444;border-radius:8px;cursor:pointer;transition:all .15s;outline:none;color:#e0e0e0;background:#1e1e1e}\
-.ox-btn:hover{border-color:#f97316;color:#f97316}\
-.ox-btn:active{transform:scale(.97)}\
-.ox-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}\
-.ox-btn:focus-visible{box-shadow:0 0 0 2px #f97316}\
-.ox-btn-primary{background:linear-gradient(135deg,#f97316,#ef4444);border-color:transparent;color:#fff;font-weight:600}\
-.ox-btn-primary:hover{opacity:.9;color:#fff;border-color:transparent}\
-.ox-btn-outline{background:transparent;border-color:#666}\
-.ox-btn-outline:hover{background:rgba(249,115,22,.08)}\
-.ox-btn-danger{background:transparent;border-color:#ef4444;color:#ef4444}\
-.ox-btn-danger:hover{background:#ef4444;color:#fff}\
-.ox-btn-ghost{background:transparent;border-color:transparent}\
-.ox-btn-ghost:hover{background:rgba(255,255,255,.05)}\
-.ox-btn-sm{padding:0.3rem 0.7rem;font-size:0.75rem}\
-.ox-btn-lg{padding:0.65rem 1.5rem;font-size:1rem}\
-.ox-btn-loading{pointer-events:none}\
-.ox-spinner-inline{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);\
-border-top-color:#fff;border-radius:50%;animation:ox-spin .6s linear infinite}\
-@keyframes ox-spin{to{transform:rotate(360deg)}}";
+.bu-btn:hover{border-color:#f97316;color:#f97316}\
+.bu-btn:active{transform:scale(.97)}\
+.bu-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}\
+.bu-btn:focus-visible{box-shadow:0 0 0 2px #f97316}\
+.bu-btn-primary{background:linear-gradient(135deg,#f97316,#ef4444);border-color:transparent;color:#fff;font-weight:600}\
+.bu-btn-primary:hover{opacity:.9;color:#fff;border-color:transparent}\
+.bu-btn-outline{background:transparent;border-color:#666}\
+.bu-btn-outline:hover{background:rgba(249,115,22,.08)}\
+.bu-btn-danger{background:transparent;border-color:#ef4444;color:#ef4444}\
+.bu-btn-danger:hover{background:#ef4444;color:#fff}\
+.bu-btn-ghost{background:transparent;border-color:transparent}\
+.bu-btn-ghost:hover{background:rgba(255,255,255,.05)}\
+.bu-btn-sm{padding:0.3rem 0.7rem;font-size:0.75rem}\
+.bu-btn-lg{padding:0.65rem 1.5rem;font-size:1rem}\
+.bu-btn-loading{pointer-events:none}\
+.bu-spinner-inline{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);\
+border-top-color:#fff;border-radius:50%;animation:bu-spin .6s linear infinite}\
+@keyframes bu-spin{to{transform:rotate(360deg)}}";
 
 const INPUT_CSS: &str = "\
-.ox-field{display:flex;flex-direction:column;gap:0.35rem}\
-.ox-label{font-size:0.8rem;font-weight:500;color:#aaa}\
-.ox-required{color:#ef4444}\
-.ox-input{background:#0a0a0a;border:1px solid #444;border-radius:8px;padding:0.5rem 0.75rem;\
+.bu-field{display:flex;flex-direction:column;gap:0.35rem}\
+.bu-label{font-size:0.8rem;font-weight:500;color:#aaa}\
+.bu-required{color:#ef4444}\
+.bu-input{background:#0a0a0a;border:1px solid #444;border-radius:8px;padding:0.5rem 0.75rem;\
 color:#e0e0e0;font-size:0.85rem;font-family:inherit;outline:none;transition:border-color .15s;width:100%}\
-.ox-input:focus{border-color:#f97316}\
-.ox-input-error{border-color:#ef4444}\
-.ox-error{font-size:0.75rem;color:#ef4444}\
-textarea.ox-input{resize:vertical;min-height:80px}\
-select.ox-input{cursor:pointer}";
+.bu-input:focus{border-color:#f97316}\
+.bu-input-error{border-color:#ef4444}\
+.bu-error{font-size:0.75rem;color:#ef4444}\
+textarea.bu-input{resize:vertical;min-height:80px}\
+select.bu-input{cursor:pointer}";
 
 const CHECKBOX_CSS: &str = "\
-.ox-checkbox{display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem;color:#ccc}\
-.ox-checkbox input{accent-color:#f97316;width:18px;height:18px;cursor:pointer}";
+.bu-checkbox{display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem;color:#ccc}\
+.bu-checkbox input{accent-color:#f97316;width:18px;height:18px;cursor:pointer}";
 
 const CARD_CSS: &str = "\
-.ox-card{background:#141414;border:1px solid #333;border-radius:12px;overflow:hidden}\
-.ox-card-header{padding:1rem 1.25rem;font-weight:600;font-size:0.95rem;border-bottom:1px solid #222}\
-.ox-card-body{padding:1.25rem}\
-.ox-card-footer{padding:0.75rem 1.25rem;border-top:1px solid #222;display:flex;gap:0.5rem;justify-content:flex-end}";
+.bu-card{background:#141414;border:1px solid #333;border-radius:12px;overflow:hidden}\
+.bu-card-header{padding:1rem 1.25rem;font-weight:600;font-size:0.95rem;border-bottom:1px solid #222}\
+.bu-card-body{padding:1.25rem}\
+.bu-card-footer{padding:0.75rem 1.25rem;border-top:1px solid #222;display:flex;gap:0.5rem;justify-content:flex-end}";
 
 const ALERT_CSS: &str = "\
-.ox-alert{display:flex;align-items:center;gap:0.6rem;padding:0.75rem 1rem;border-radius:8px;font-size:0.85rem;position:relative}\
-.ox-alert-icon{font-size:1rem;flex-shrink:0}\
-.ox-alert-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#86efac}\
-.ox-alert-warning{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);color:#fde047}\
-.ox-alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5}\
-.ox-alert-info{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#93c5fd}\
-.ox-alert-close{position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;\
+.bu-alert{display:flex;align-items:center;gap:0.6rem;padding:0.75rem 1rem;border-radius:8px;font-size:0.85rem;position:relative}\
+.bu-alert-icon{font-size:1rem;flex-shrink:0}\
+.bu-alert-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#86efac}\
+.bu-alert-warning{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);color:#fde047}\
+.bu-alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5}\
+.bu-alert-info{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#93c5fd}\
+.bu-alert-close{position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;\
 color:inherit;font-size:1.2rem;cursor:pointer;opacity:.6;padding:0.25rem}\
-.ox-alert-close:hover{opacity:1}";
+.bu-alert-close:hover{opacity:1}";
 
 const MODAL_CSS: &str = "\
-.ox-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;\
+.bu-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;\
 justify-content:center;z-index:1000;backdrop-filter:blur(4px)}\
-.ox-modal{background:#141414;border:1px solid #333;border-radius:14px;max-width:480px;width:92%;max-height:85vh;overflow-y:auto}\
-.ox-modal-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid #222}\
-.ox-modal-header h3{font-size:1.05rem}\
-.ox-modal-close{background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer;padding:0.25rem}\
-.ox-modal-close:hover{color:#fff}\
-.ox-modal-body{padding:1.25rem}";
+.bu-modal{background:#141414;border:1px solid #333;border-radius:14px;max-width:480px;width:92%;max-height:85vh;overflow-y:auto}\
+.bu-modal-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid #222}\
+.bu-modal-header h3{font-size:1.05rem}\
+.bu-modal-close{background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer;padding:0.25rem}\
+.bu-modal-close:hover{color:#fff}\
+.bu-modal-body{padding:1.25rem}";
 
 const SPINNER_CSS: &str = "\
-.ox-spinner{width:28px;height:28px;border:3px solid #333;border-top-color:#f97316;\
-border-radius:50%;animation:ox-spin .6s linear infinite}\
-.ox-spinner-wrap{display:flex;flex-direction:column;align-items:center;gap:0.75rem}\
-.ox-spinner-text{font-size:0.85rem;color:#888}";
+.bu-spinner{width:28px;height:28px;border:3px solid #333;border-top-color:#f97316;\
+border-radius:50%;animation:bu-spin .6s linear infinite}\
+.bu-spinner-wrap{display:flex;flex-direction:column;align-items:center;gap:0.75rem}\
+.bu-spinner-text{font-size:0.85rem;color:#888}";
 
 const PROGRESS_CSS: &str = "\
-.ox-progress{width:100%;height:8px;background:#1e1e1e;border-radius:4px;overflow:hidden}\
-.ox-progress-bar{height:100%;background:linear-gradient(90deg,#f97316,#ef4444);border-radius:4px;\
+.bu-progress{width:100%;height:8px;background:#1e1e1e;border-radius:4px;overflow:hidden}\
+.bu-progress-bar{height:100%;background:linear-gradient(90deg,#f97316,#ef4444);border-radius:4px;\
 transition:width .3s ease}";
 
 const TABS_CSS: &str = "\
-.ox-tabs{display:flex;flex-direction:column}\
-.ox-tabs-nav{display:flex;border-bottom:1px solid #333;gap:0}\
-.ox-tab-btn{padding:0.6rem 1.2rem;background:none;border:none;border-bottom:2px solid transparent;\
+.bu-tabs{display:flex;flex-direction:column}\
+.bu-tabs-nav{display:flex;border-bottom:1px solid #333;gap:0}\
+.bu-tab-btn{padding:0.6rem 1.2rem;background:none;border:none;border-bottom:2px solid transparent;\
 color:#888;font-size:0.85rem;cursor:pointer;transition:all .15s;font-family:inherit}\
-.ox-tab-btn:hover{color:#e0e0e0}\
-.ox-tab-active{color:#f97316!important;border-bottom-color:#f97316}\
-.ox-tab-panel{padding:1rem 0}";
+.bu-tab-btn:hover{color:#e0e0e0}\
+.bu-tab-active{color:#f97316!important;border-bottom-color:#f97316}\
+.bu-tab-panel{padding:1rem 0}";
 
 const BADGE_CSS: &str = "\
-.ox-badge{display:inline-flex;padding:0.15rem 0.55rem;border-radius:999px;font-size:0.7rem;font-weight:600}\
-.ox-badge-success{background:rgba(34,197,94,.15);color:#86efac}\
-.ox-badge-warning{background:rgba(234,179,8,.15);color:#fde047}\
-.ox-badge-error{background:rgba(239,68,68,.15);color:#fca5a5}\
-.ox-badge-info{background:rgba(59,130,246,.15);color:#93c5fd}";
+.bu-badge{display:inline-flex;padding:0.15rem 0.55rem;border-radius:999px;font-size:0.7rem;font-weight:600}\
+.bu-badge-success{background:rgba(34,197,94,.15);color:#86efac}\
+.bu-badge-warning{background:rgba(234,179,8,.15);color:#fde047}\
+.bu-badge-error{background:rgba(239,68,68,.15);color:#fca5a5}\
+.bu-badge-info{background:rgba(59,130,246,.15);color:#93c5fd}";
 
 const SKELETON_CSS: &str = "\
-.ox-skeleton{background:linear-gradient(90deg,#1e1e1e 25%,#2a2a2a 50%,#1e1e1e 75%);\
-background-size:200% 100%;animation:ox-shimmer 1.5s infinite;border-radius:6px}\
-@keyframes ox-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}";
+.bu-skeleton{background:linear-gradient(90deg,#1e1e1e 25%,#2a2a2a 50%,#1e1e1e 75%);\
+background-size:200% 100%;animation:bu-shimmer 1.5s infinite;border-radius:6px}\
+@keyframes bu-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 15. Scroll to Top
@@ -672,7 +672,7 @@ background-size:200% 100%;animation:ox-shimmer 1.5s infinite;border-radius:6px}\
 pub fn scroll_to_top(threshold_px: i32) -> web_sys::Element {
     inject_css("scroll-top", SCROLL_TOP_CSS);
     let btn = create_element("button");
-    set_attribute(&btn, "class", "ox-scroll-top");
+    set_attribute(&btn, "class", "bu-scroll-top");
     btn.set_attribute("aria-label", "Scroll to top").ok();
     set_inner_html(&btn, "&#8679;"); // ⇧ arrow
     set_style(&btn, "display", "none");
@@ -697,12 +697,12 @@ pub fn scroll_to_top(threshold_px: i32) -> web_sys::Element {
 }
 
 const SCROLL_TOP_CSS: &str = "\
-.ox-scroll-top{position:fixed;bottom:2rem;right:2rem;width:44px;height:44px;\
+.bu-scroll-top{position:fixed;bottom:2rem;right:2rem;width:44px;height:44px;\
 background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:50%;\
 font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;\
 box-shadow:0 4px 16px rgba(249,115,22,.35);transition:all .2s;z-index:90;opacity:.9}\
-.ox-scroll-top:hover{transform:translateY(-3px);opacity:1;box-shadow:0 6px 20px rgba(249,115,22,.5)}\
-.ox-scroll-top:active{transform:translateY(0)}";
+.bu-scroll-top:hover{transform:translateY(-3px);opacity:1;box-shadow:0 6px 20px rgba(249,115,22,.5)}\
+.bu-scroll-top:active{transform:translateY(0)}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 16. HStack — horizontal flex container
@@ -716,7 +716,7 @@ box-shadow:0 4px 16px rgba(249,115,22,.35);transition:all .2s;z-index:90;opacity
 pub fn hstack(gap: &str, children: Vec<web_sys::Element>) -> web_sys::Element {
     inject_css("hstack", HSTACK_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-hstack");
+    set_attribute(&el, "class", "bu-hstack");
     set_style(&el, "gap", gap);
     for child in children {
         append_node(&el, &child);
@@ -724,7 +724,7 @@ pub fn hstack(gap: &str, children: Vec<web_sys::Element>) -> web_sys::Element {
     el
 }
 
-const HSTACK_CSS: &str = ".ox-hstack{display:flex;align-items:center;flex-wrap:wrap}";
+const HSTACK_CSS: &str = ".bu-hstack{display:flex;align-items:center;flex-wrap:wrap}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 17. VStack — vertical flex container
@@ -738,7 +738,7 @@ const HSTACK_CSS: &str = ".ox-hstack{display:flex;align-items:center;flex-wrap:w
 pub fn vstack(gap: &str, children: Vec<web_sys::Element>) -> web_sys::Element {
     inject_css("vstack", VSTACK_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-vstack");
+    set_attribute(&el, "class", "bu-vstack");
     set_style(&el, "gap", gap);
     for child in children {
         append_node(&el, &child);
@@ -746,7 +746,7 @@ pub fn vstack(gap: &str, children: Vec<web_sys::Element>) -> web_sys::Element {
     el
 }
 
-const VSTACK_CSS: &str = ".ox-vstack{display:flex;flex-direction:column}";
+const VSTACK_CSS: &str = ".bu-vstack{display:flex;flex-direction:column}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 18. Center — center content both axes
@@ -756,12 +756,12 @@ const VSTACK_CSS: &str = ".ox-vstack{display:flex;flex-direction:column}";
 pub fn center(child: web_sys::Element) -> web_sys::Element {
     inject_css("center", CENTER_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-center");
+    set_attribute(&el, "class", "bu-center");
     append_node(&el, &child);
     el
 }
 
-const CENTER_CSS: &str = ".ox-center{display:flex;align-items:center;justify-content:center}";
+const CENTER_CSS: &str = ".bu-center{display:flex;align-items:center;justify-content:center}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 19. Spacer — flex:1 space
@@ -771,11 +771,11 @@ const CENTER_CSS: &str = ".ox-center{display:flex;align-items:center;justify-con
 pub fn spacer() -> web_sys::Element {
     inject_css("spacer", SPACER_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-spacer");
+    set_attribute(&el, "class", "bu-spacer");
     el
 }
 
-const SPACER_CSS: &str = ".ox-spacer{flex:1}";
+const SPACER_CSS: &str = ".bu-spacer{flex:1}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 20. Container — centered max-width wrapper
@@ -785,12 +785,12 @@ const SPACER_CSS: &str = ".ox-spacer{flex:1}";
 pub fn container(child: web_sys::Element) -> web_sys::Element {
     inject_css("container", CONTAINER_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-container");
+    set_attribute(&el, "class", "bu-container");
     append_node(&el, &child);
     el
 }
 
-const CONTAINER_CSS: &str = ".ox-container{max-width:1200px;margin:0 auto;padding:0 1rem;width:100%}";
+const CONTAINER_CSS: &str = ".bu-container{max-width:1200px;margin:0 auto;padding:0 1rem;width:100%}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 21. Grid — CSS grid layout
@@ -800,7 +800,7 @@ const CONTAINER_CSS: &str = ".ox-container{max-width:1200px;margin:0 auto;paddin
 pub fn grid(cols: u32, gap: &str, children: Vec<web_sys::Element>) -> web_sys::Element {
     inject_css("grid", GRID_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-grid");
+    set_attribute(&el, "class", "bu-grid");
     set_style(&el, "grid-template-columns", &format!("repeat({},1fr)", cols));
     set_style(&el, "gap", gap);
     for child in children {
@@ -809,7 +809,7 @@ pub fn grid(cols: u32, gap: &str, children: Vec<web_sys::Element>) -> web_sys::E
     el
 }
 
-const GRID_CSS: &str = ".ox-grid{display:grid}";
+const GRID_CSS: &str = ".bu-grid{display:grid}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 22. Avatar — circular avatar with initials or image
@@ -843,11 +843,11 @@ impl AvatarBuilder {
         inject_css("avatar", AVATAR_CSS);
         let el = create_element("div");
         let size_cls = match self.size {
-            AvatarSize::Small => "ox-avatar-sm",
-            AvatarSize::Medium => "ox-avatar-md",
-            AvatarSize::Large => "ox-avatar-lg",
+            AvatarSize::Small => "bu-avatar-sm",
+            AvatarSize::Medium => "bu-avatar-md",
+            AvatarSize::Large => "bu-avatar-lg",
         };
-        set_attribute(&el, "class", &format!("ox-avatar {}", size_cls));
+        set_attribute(&el, "class", &format!("bu-avatar {}", size_cls));
         el.set_attribute("role", "img").ok();
         el.set_attribute("aria-label", &self.name).ok();
 
@@ -874,11 +874,11 @@ impl AvatarBuilder {
 }
 
 const AVATAR_CSS: &str = "\
-.ox-avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;\
+.bu-avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;\
 font-weight:600;color:#fff;background:#f97316}\
-.ox-avatar-sm{width:28px;height:28px;font-size:0.65rem}\
-.ox-avatar-md{width:40px;height:40px;font-size:0.8rem}\
-.ox-avatar-lg{width:56px;height:56px;font-size:1.1rem}";
+.bu-avatar-sm{width:28px;height:28px;font-size:0.65rem}\
+.bu-avatar-md{width:40px;height:40px;font-size:0.8rem}\
+.bu-avatar-lg{width:56px;height:56px;font-size:1.1rem}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 23. Stat — big statistic value with label
@@ -888,23 +888,23 @@ font-weight:600;color:#fff;background:#f97316}\
 pub fn stat(value: &str, label: &str) -> web_sys::Element {
     inject_css("stat", STAT_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-stat");
+    set_attribute(&el, "class", "bu-stat");
     let v = create_element("div");
-    set_attribute(&v, "class", "ox-stat-value");
+    set_attribute(&v, "class", "bu-stat-value");
     append_text(&v, value);
     append_node(&el, &v);
     let l = create_element("div");
-    set_attribute(&l, "class", "ox-stat-label");
+    set_attribute(&l, "class", "bu-stat-label");
     append_text(&l, label);
     append_node(&el, &l);
     el
 }
 
 const STAT_CSS: &str = "\
-.ox-stat{display:flex;flex-direction:column;gap:0.25rem}\
-.ox-stat-value{font-size:2rem;font-weight:700;background:linear-gradient(135deg,#f97316,#ef4444);\
+.bu-stat{display:flex;flex-direction:column;gap:0.25rem}\
+.bu-stat-value{font-size:2rem;font-weight:700;background:linear-gradient(135deg,#f97316,#ef4444);\
 -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}\
-.ox-stat-label{font-size:0.85rem;color:#888}";
+.bu-stat-label{font-size:0.85rem;color:#888}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 24. Tag — small pill with optional remove
@@ -937,11 +937,11 @@ impl TagBuilder {
             Severity::Success => "success", Severity::Warning => "warning",
             Severity::Error => "error", Severity::Info => "info",
         };
-        set_attribute(&el, "class", &format!("ox-tag ox-tag-{}", sev));
+        set_attribute(&el, "class", &format!("bu-tag bu-tag-{}", sev));
         append_text(&el, &self.text);
         if let Some(vis) = self.removable {
             let btn = create_element("button");
-            set_attribute(&btn, "class", "ox-tag-remove");
+            set_attribute(&btn, "class", "bu-tag-remove");
             btn.set_attribute("aria-label", "Remove tag").ok();
             append_text(&btn, "×");
             add_event_listener(&btn, "click", move |_| { vis.set(false); });
@@ -957,15 +957,15 @@ impl TagBuilder {
 }
 
 const TAG_CSS: &str = "\
-.ox-tag{display:inline-flex;align-items:center;gap:0.3rem;padding:0.15rem 0.6rem;border-radius:999px;\
+.bu-tag{display:inline-flex;align-items:center;gap:0.3rem;padding:0.15rem 0.6rem;border-radius:999px;\
 font-size:0.75rem;font-weight:500}\
-.ox-tag-success{background:rgba(34,197,94,.15);color:#86efac}\
-.ox-tag-warning{background:rgba(234,179,8,.15);color:#fde047}\
-.ox-tag-error{background:rgba(239,68,68,.15);color:#fca5a5}\
-.ox-tag-info{background:rgba(59,130,246,.15);color:#93c5fd}\
-.ox-tag-remove{background:none;border:none;color:inherit;cursor:pointer;font-size:0.9rem;padding:0;\
+.bu-tag-success{background:rgba(34,197,94,.15);color:#86efac}\
+.bu-tag-warning{background:rgba(234,179,8,.15);color:#fde047}\
+.bu-tag-error{background:rgba(239,68,68,.15);color:#fca5a5}\
+.bu-tag-info{background:rgba(59,130,246,.15);color:#93c5fd}\
+.bu-tag-remove{background:none;border:none;color:inherit;cursor:pointer;font-size:0.9rem;padding:0;\
 line-height:1;opacity:.7}\
-.ox-tag-remove:hover{opacity:1}";
+.bu-tag-remove:hover{opacity:1}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 25. CodeBlock — syntax-highlighted code display
@@ -975,7 +975,7 @@ line-height:1;opacity:.7}\
 pub fn code_block(code: &str) -> web_sys::Element {
     inject_css("codeblock", CODE_BLOCK_CSS);
     let pre = create_element("pre");
-    set_attribute(&pre, "class", "ox-code-block");
+    set_attribute(&pre, "class", "bu-code-block");
     let code_el = create_element("code");
     append_text(&code_el, code);
     append_node(&pre, &code_el);
@@ -983,7 +983,7 @@ pub fn code_block(code: &str) -> web_sys::Element {
 }
 
 const CODE_BLOCK_CSS: &str = "\
-.ox-code-block{background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:1rem;overflow-x:auto;\
+.bu-code-block{background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:1rem;overflow-x:auto;\
 font-family:'Fira Code',Consolas,monospace;font-size:0.85rem;color:#e0e0e0;line-height:1.6;margin:0}";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -998,16 +998,16 @@ font-family:'Fira Code',Consolas,monospace;font-size:0.85rem;color:#e0e0e0;line-
 pub fn kbd(keys: &str) -> web_sys::Element {
     inject_css("kbd", KBD_CSS);
     let wrap = create_element("span");
-    set_attribute(&wrap, "class", "ox-kbd-wrap");
+    set_attribute(&wrap, "class", "bu-kbd-wrap");
     for (i, key) in keys.split('+').enumerate() {
         if i > 0 {
             let sep = create_element("span");
-            set_attribute(&sep, "class", "ox-kbd-sep");
+            set_attribute(&sep, "class", "bu-kbd-sep");
             append_text(&sep, "+");
             append_node(&wrap, &sep);
         }
         let k = create_element("kbd");
-        set_attribute(&k, "class", "ox-kbd");
+        set_attribute(&k, "class", "bu-kbd");
         append_text(&k, key.trim());
         append_node(&wrap, &k);
     }
@@ -1015,10 +1015,10 @@ pub fn kbd(keys: &str) -> web_sys::Element {
 }
 
 const KBD_CSS: &str = "\
-.ox-kbd-wrap{display:inline-flex;align-items:center;gap:0.2rem}\
-.ox-kbd{display:inline-block;padding:0.15rem 0.45rem;background:#1e1e1e;border:1px solid #444;\
+.bu-kbd-wrap{display:inline-flex;align-items:center;gap:0.2rem}\
+.bu-kbd{display:inline-block;padding:0.15rem 0.45rem;background:#1e1e1e;border:1px solid #444;\
 border-radius:4px;font-family:inherit;font-size:0.75rem;color:#ccc;box-shadow:0 2px 0 #333;line-height:1.4}\
-.ox-kbd-sep{color:#666;font-size:0.7rem}";
+.bu-kbd-sep{color:#666;font-size:0.7rem}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 27. Tooltip — CSS-only hover tooltip
@@ -1028,19 +1028,19 @@ border-radius:4px;font-family:inherit;font-size:0.75rem;color:#ccc;box-shadow:0 
 pub fn tooltip(target: web_sys::Element, text: &str) -> web_sys::Element {
     inject_css("tooltip", TOOLTIP_CSS);
     let wrap = create_element("span");
-    set_attribute(&wrap, "class", "ox-tooltip-wrap");
+    set_attribute(&wrap, "class", "bu-tooltip-wrap");
     wrap.set_attribute("data-tooltip", text).ok();
     append_node(&wrap, &target);
     wrap
 }
 
 const TOOLTIP_CSS: &str = "\
-.ox-tooltip-wrap{position:relative;display:inline-block}\
-.ox-tooltip-wrap::after{content:attr(data-tooltip);position:absolute;bottom:100%;left:50%;\
+.bu-tooltip-wrap{position:relative;display:inline-block}\
+.bu-tooltip-wrap::after{content:attr(data-tooltip);position:absolute;bottom:100%;left:50%;\
 transform:translateX(-50%);background:#1e1e1e;color:#e0e0e0;padding:0.3rem 0.6rem;border-radius:6px;\
 font-size:0.75rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;\
 border:1px solid #444;margin-bottom:6px;z-index:100}\
-.ox-tooltip-wrap:hover::after{opacity:1}";
+.bu-tooltip-wrap:hover::after{opacity:1}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 28. Timeline — vertical timeline
@@ -1054,23 +1054,23 @@ border:1px solid #444;margin-bottom:6px;z-index:100}\
 pub fn timeline(items: &[(&str, &str)]) -> web_sys::Element {
     inject_css("timeline", TIMELINE_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-timeline");
+    set_attribute(&el, "class", "bu-timeline");
     el.set_attribute("role", "list").ok();
     for &(title, desc) in items {
         let item = create_element("div");
-        set_attribute(&item, "class", "ox-timeline-item");
+        set_attribute(&item, "class", "bu-timeline-item");
         item.set_attribute("role", "listitem").ok();
         let dot = create_element("div");
-        set_attribute(&dot, "class", "ox-timeline-dot");
+        set_attribute(&dot, "class", "bu-timeline-dot");
         append_node(&item, &dot);
         let content = create_element("div");
-        set_attribute(&content, "class", "ox-timeline-content");
+        set_attribute(&content, "class", "bu-timeline-content");
         let t = create_element("div");
-        set_attribute(&t, "class", "ox-timeline-title");
+        set_attribute(&t, "class", "bu-timeline-title");
         append_text(&t, title);
         append_node(&content, &t);
         let d = create_element("div");
-        set_attribute(&d, "class", "ox-timeline-desc");
+        set_attribute(&d, "class", "bu-timeline-desc");
         append_text(&d, desc);
         append_node(&content, &d);
         append_node(&item, &content);
@@ -1080,13 +1080,13 @@ pub fn timeline(items: &[(&str, &str)]) -> web_sys::Element {
 }
 
 const TIMELINE_CSS: &str = "\
-.ox-timeline{display:flex;flex-direction:column;padding-left:1rem}\
-.ox-timeline-item{display:flex;gap:1rem;padding-bottom:1.5rem;position:relative;\
+.bu-timeline{display:flex;flex-direction:column;padding-left:1rem}\
+.bu-timeline-item{display:flex;gap:1rem;padding-bottom:1.5rem;position:relative;\
 border-left:2px solid #333;padding-left:1.5rem}\
-.ox-timeline-dot{position:absolute;left:-6px;top:0;width:10px;height:10px;border-radius:50%;background:#f97316}\
-.ox-timeline-content{display:flex;flex-direction:column;gap:0.25rem}\
-.ox-timeline-title{font-weight:600;font-size:0.9rem;color:#e0e0e0}\
-.ox-timeline-desc{font-size:0.8rem;color:#888}";
+.bu-timeline-dot{position:absolute;left:-6px;top:0;width:10px;height:10px;border-radius:50%;background:#f97316}\
+.bu-timeline-content{display:flex;flex-direction:column;gap:0.25rem}\
+.bu-timeline-title{font-weight:600;font-size:0.9rem;color:#e0e0e0}\
+.bu-timeline-desc{font-size:0.8rem;color:#888}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 29. DataTable — simple data table
@@ -1096,10 +1096,10 @@ border-left:2px solid #333;padding-left:1.5rem}\
 pub fn data_table(headers: &[&str], rows: &[Vec<String>]) -> web_sys::Element {
     inject_css("datatable", DATA_TABLE_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-table-wrap");
+    set_attribute(&wrap, "class", "bu-table-wrap");
     wrap.set_attribute("role", "table").ok();
     let table = create_element("table");
-    set_attribute(&table, "class", "ox-table");
+    set_attribute(&table, "class", "bu-table");
     let thead = create_element("thead");
     let tr = create_element("tr");
     for &h in headers {
@@ -1125,12 +1125,12 @@ pub fn data_table(headers: &[&str], rows: &[Vec<String>]) -> web_sys::Element {
 }
 
 const DATA_TABLE_CSS: &str = "\
-.ox-table-wrap{overflow-x:auto;width:100%}\
-.ox-table{width:100%;border-collapse:collapse;font-size:0.85rem}\
-.ox-table th{text-align:left;padding:0.6rem 0.75rem;border-bottom:2px solid #333;font-weight:600;color:#ccc}\
-.ox-table td{padding:0.5rem 0.75rem;border-bottom:1px solid #222;color:#e0e0e0}\
-.ox-table tbody tr:nth-child(even){background:#0f0f0f}\
-.ox-table tbody tr:hover{background:#1e1e1e}";
+.bu-table-wrap{overflow-x:auto;width:100%}\
+.bu-table{width:100%;border-collapse:collapse;font-size:0.85rem}\
+.bu-table th{text-align:left;padding:0.6rem 0.75rem;border-bottom:2px solid #333;font-weight:600;color:#ccc}\
+.bu-table td{padding:0.5rem 0.75rem;border-bottom:1px solid #222;color:#e0e0e0}\
+.bu-table tbody tr:nth-child(even){background:#0f0f0f}\
+.bu-table tbody tr:hover{background:#1e1e1e}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 30. Breadcrumb — navigation breadcrumb trail
@@ -1141,27 +1141,27 @@ const DATA_TABLE_CSS: &str = "\
 pub fn breadcrumb(items: &[(&str, &str)]) -> web_sys::Element {
     inject_css("breadcrumb", BREADCRUMB_CSS);
     let nav = create_element("nav");
-    set_attribute(&nav, "class", "ox-breadcrumb");
+    set_attribute(&nav, "class", "bu-breadcrumb");
     nav.set_attribute("aria-label", "Breadcrumb").ok();
     let ol = create_element("ol");
-    set_attribute(&ol, "class", "ox-breadcrumb-list");
+    set_attribute(&ol, "class", "bu-breadcrumb-list");
     for (i, &(label, href)) in items.iter().enumerate() {
         let li = create_element("li");
-        set_attribute(&li, "class", "ox-breadcrumb-item");
+        set_attribute(&li, "class", "bu-breadcrumb-item");
         if i == items.len() - 1 {
             let span = create_element("span");
-            set_attribute(&span, "class", "ox-breadcrumb-current");
+            set_attribute(&span, "class", "bu-breadcrumb-current");
             span.set_attribute("aria-current", "page").ok();
             append_text(&span, label);
             append_node(&li, &span);
         } else {
             let a = create_element("a");
             set_attribute(&a, "href", href);
-            set_attribute(&a, "class", "ox-breadcrumb-link");
+            set_attribute(&a, "class", "bu-breadcrumb-link");
             append_text(&a, label);
             append_node(&li, &a);
             let sep = create_element("span");
-            set_attribute(&sep, "class", "ox-breadcrumb-sep");
+            set_attribute(&sep, "class", "bu-breadcrumb-sep");
             append_text(&sep, "/");
             append_node(&li, &sep);
         }
@@ -1172,12 +1172,12 @@ pub fn breadcrumb(items: &[(&str, &str)]) -> web_sys::Element {
 }
 
 const BREADCRUMB_CSS: &str = "\
-.ox-breadcrumb-list{display:flex;align-items:center;gap:0.4rem;list-style:none;padding:0;margin:0;font-size:0.85rem}\
-.ox-breadcrumb-item{display:flex;align-items:center;gap:0.4rem}\
-.ox-breadcrumb-link{color:#888;text-decoration:none;transition:color .15s}\
-.ox-breadcrumb-link:hover{color:#f97316}\
-.ox-breadcrumb-current{color:#e0e0e0;font-weight:500}\
-.ox-breadcrumb-sep{color:#555}";
+.bu-breadcrumb-list{display:flex;align-items:center;gap:0.4rem;list-style:none;padding:0;margin:0;font-size:0.85rem}\
+.bu-breadcrumb-item{display:flex;align-items:center;gap:0.4rem}\
+.bu-breadcrumb-link{color:#888;text-decoration:none;transition:color .15s}\
+.bu-breadcrumb-link:hover{color:#f97316}\
+.bu-breadcrumb-current{color:#e0e0e0;font-weight:500}\
+.bu-breadcrumb-sep{color:#555}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 31. Pagination — page navigation
@@ -1187,7 +1187,7 @@ const BREADCRUMB_CSS: &str = "\
 pub fn pagination(total_pages: Signal<u32>, current: Signal<u32>) -> web_sys::Element {
     inject_css("pagination", PAGINATION_CSS);
     let wrap = create_element("nav");
-    set_attribute(&wrap, "class", "ox-pagination");
+    set_attribute(&wrap, "class", "bu-pagination");
     wrap.set_attribute("aria-label", "Pagination").ok();
     let wrap_ref = wrap.clone();
     create_effect(move || {
@@ -1196,7 +1196,7 @@ pub fn pagination(total_pages: Signal<u32>, current: Signal<u32>) -> web_sys::El
         let cur = current.get();
 
         let prev = create_element("button");
-        set_attribute(&prev, "class", "ox-page-btn");
+        set_attribute(&prev, "class", "bu-page-btn");
         append_text(&prev, "\u{2039}"); // ‹
         if cur <= 1 { set_attribute(&prev, "disabled", ""); }
         let c = current;
@@ -1205,7 +1205,7 @@ pub fn pagination(total_pages: Signal<u32>, current: Signal<u32>) -> web_sys::El
 
         for p in 1..=total {
             let btn = create_element("button");
-            let cls = if p == cur { "ox-page-btn ox-page-active" } else { "ox-page-btn" };
+            let cls = if p == cur { "bu-page-btn bu-page-active" } else { "bu-page-btn" };
             set_attribute(&btn, "class", cls);
             append_text(&btn, &p.to_string());
             let c = current;
@@ -1214,7 +1214,7 @@ pub fn pagination(total_pages: Signal<u32>, current: Signal<u32>) -> web_sys::El
         }
 
         let next = create_element("button");
-        set_attribute(&next, "class", "ox-page-btn");
+        set_attribute(&next, "class", "bu-page-btn");
         append_text(&next, "\u{203a}"); // ›
         if cur >= total { set_attribute(&next, "disabled", ""); }
         let c = current;
@@ -1226,12 +1226,12 @@ pub fn pagination(total_pages: Signal<u32>, current: Signal<u32>) -> web_sys::El
 }
 
 const PAGINATION_CSS: &str = "\
-.ox-pagination{display:flex;align-items:center;gap:0.25rem}\
-.ox-page-btn{background:#1e1e1e;border:1px solid #333;border-radius:6px;color:#ccc;padding:0.3rem 0.6rem;\
+.bu-pagination{display:flex;align-items:center;gap:0.25rem}\
+.bu-page-btn{background:#1e1e1e;border:1px solid #333;border-radius:6px;color:#ccc;padding:0.3rem 0.6rem;\
 font-size:0.8rem;cursor:pointer;transition:all .15s;font-family:inherit}\
-.ox-page-btn:hover:not(:disabled){border-color:#f97316;color:#f97316}\
-.ox-page-btn:disabled{opacity:.4;cursor:not-allowed}\
-.ox-page-active{background:#f97316;border-color:#f97316;color:#fff;font-weight:600}";
+.bu-page-btn:hover:not(:disabled){border-color:#f97316;color:#f97316}\
+.bu-page-btn:disabled{opacity:.4;cursor:not-allowed}\
+.bu-page-active{background:#f97316;border-color:#f97316;color:#fff;font-weight:600}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 32. Dropdown — click-to-toggle select menu
@@ -1247,10 +1247,10 @@ pub fn dropdown(trigger_text: &str, items: &[&str], selected: Signal<String>) ->
     inject_css("dropdown", DROPDOWN_CSS);
     let open = signal(false);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-dropdown");
+    set_attribute(&wrap, "class", "bu-dropdown");
 
     let trigger = create_element("button");
-    set_attribute(&trigger, "class", "ox-dropdown-trigger");
+    set_attribute(&trigger, "class", "bu-dropdown-trigger");
     let trigger_ref = trigger.clone();
     let label_text = trigger_text.to_string();
     create_effect(move || {
@@ -1259,7 +1259,7 @@ pub fn dropdown(trigger_text: &str, items: &[&str], selected: Signal<String>) ->
         clear_children(&trigger_ref);
         append_text(&trigger_ref, &display);
         let arrow = create_element("span");
-        set_attribute(&arrow, "class", "ox-dropdown-arrow");
+        set_attribute(&arrow, "class", "bu-dropdown-arrow");
         append_text(&arrow, "\u{25be}"); // ▾
         append_node(&trigger_ref, &arrow);
     });
@@ -1269,10 +1269,10 @@ pub fn dropdown(trigger_text: &str, items: &[&str], selected: Signal<String>) ->
     append_node(&wrap, &trigger);
 
     let menu = create_element("div");
-    set_attribute(&menu, "class", "ox-dropdown-menu");
+    set_attribute(&menu, "class", "bu-dropdown-menu");
     for item in items {
         let opt = create_element("div");
-        set_attribute(&opt, "class", "ox-dropdown-item");
+        set_attribute(&opt, "class", "bu-dropdown-item");
         append_text(&opt, item);
         let s = selected;
         let o = open;
@@ -1298,16 +1298,16 @@ pub fn dropdown(trigger_text: &str, items: &[&str], selected: Signal<String>) ->
 }
 
 const DROPDOWN_CSS: &str = "\
-.ox-dropdown{position:relative;display:inline-block}\
-.ox-dropdown-trigger{display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 0.9rem;\
+.bu-dropdown{position:relative;display:inline-block}\
+.bu-dropdown-trigger{display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 0.9rem;\
 background:#1e1e1e;border:1px solid #444;border-radius:8px;color:#e0e0e0;font-size:0.85rem;\
 cursor:pointer;font-family:inherit}\
-.ox-dropdown-trigger:hover{border-color:#f97316}\
-.ox-dropdown-arrow{font-size:0.7rem;color:#888}\
-.ox-dropdown-menu{position:absolute;top:100%;left:0;margin-top:4px;background:#141414;border:1px solid #333;\
+.bu-dropdown-trigger:hover{border-color:#f97316}\
+.bu-dropdown-arrow{font-size:0.7rem;color:#888}\
+.bu-dropdown-menu{position:absolute;top:100%;left:0;margin-top:4px;background:#141414;border:1px solid #333;\
 border-radius:8px;min-width:160px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden}\
-.ox-dropdown-item{padding:0.5rem 0.9rem;font-size:0.85rem;color:#ccc;cursor:pointer;transition:background .1s}\
-.ox-dropdown-item:hover{background:#1e1e1e;color:#f97316}";
+.bu-dropdown-item{padding:0.5rem 0.9rem;font-size:0.85rem;color:#ccc;cursor:pointer;transition:background .1s}\
+.bu-dropdown-item:hover{background:#1e1e1e;color:#f97316}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 33. Navbar — top navigation bar
@@ -1317,14 +1317,14 @@ border-radius:8px;min-width:160px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.4
 pub fn navbar(brand: &str, items: Vec<web_sys::Element>) -> web_sys::Element {
     inject_css("navbar", NAVBAR_CSS);
     let nav = create_element("nav");
-    set_attribute(&nav, "class", "ox-navbar");
+    set_attribute(&nav, "class", "bu-navbar");
     nav.set_attribute("role", "navigation").ok();
     let brand_el = create_element("div");
-    set_attribute(&brand_el, "class", "ox-navbar-brand");
+    set_attribute(&brand_el, "class", "bu-navbar-brand");
     append_text(&brand_el, brand);
     append_node(&nav, &brand_el);
     let links = create_element("div");
-    set_attribute(&links, "class", "ox-navbar-items");
+    set_attribute(&links, "class", "bu-navbar-items");
     for item in items {
         append_node(&links, &item);
     }
@@ -1333,10 +1333,10 @@ pub fn navbar(brand: &str, items: Vec<web_sys::Element>) -> web_sys::Element {
 }
 
 const NAVBAR_CSS: &str = "\
-.ox-navbar{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1.5rem;\
+.bu-navbar{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1.5rem;\
 background:#0a0a0a;border-bottom:1px solid #222}\
-.ox-navbar-brand{font-size:1.1rem;font-weight:700;color:#e0e0e0}\
-.ox-navbar-items{display:flex;align-items:center;gap:1rem}";
+.bu-navbar-brand{font-size:1.1rem;font-weight:700;color:#e0e0e0}\
+.bu-navbar-items{display:flex;align-items:center;gap:1rem}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 34. Toast — auto-dismissing notification
@@ -1368,7 +1368,7 @@ impl ToastBuilder {
             Severity::Success => "success", Severity::Warning => "warning",
             Severity::Error => "error", Severity::Info => "info",
         };
-        set_attribute(&el, "class", &format!("ox-toast ox-toast-{}", sev));
+        set_attribute(&el, "class", &format!("bu-toast bu-toast-{}", sev));
         el.set_attribute("role", "status").ok();
         append_text(&el, &self.message);
 
@@ -1389,13 +1389,13 @@ impl ToastBuilder {
 }
 
 const TOAST_CSS: &str = "\
-.ox-toast{position:fixed;top:1.5rem;right:1.5rem;padding:0.75rem 1.25rem;border-radius:8px;font-size:0.85rem;\
-z-index:2000;animation:ox-toast-in .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.4)}\
-@keyframes ox-toast-in{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}\
-.ox-toast-success{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#86efac}\
-.ox-toast-warning{background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);color:#fde047}\
-.ox-toast-error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fca5a5}\
-.ox-toast-info{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd}";
+.bu-toast{position:fixed;top:1.5rem;right:1.5rem;padding:0.75rem 1.25rem;border-radius:8px;font-size:0.85rem;\
+z-index:2000;animation:bu-toast-in .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.4)}\
+@keyframes bu-toast-in{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}\
+.bu-toast-success{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#86efac}\
+.bu-toast-warning{background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);color:#fde047}\
+.bu-toast-error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fca5a5}\
+.bu-toast-info{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 35. ConfirmDialog — modal confirmation
@@ -1412,35 +1412,35 @@ pub fn confirm_dialog(
     let open = signal(true);
 
     let overlay = create_element("div");
-    set_attribute(&overlay, "class", "ox-confirm-overlay");
+    set_attribute(&overlay, "class", "bu-confirm-overlay");
     overlay.set_attribute("role", "dialog").ok();
     overlay.set_attribute("aria-modal", "true").ok();
 
     let dialog = create_element("div");
-    set_attribute(&dialog, "class", "ox-confirm-dialog");
+    set_attribute(&dialog, "class", "bu-confirm-dialog");
 
     let h3 = create_element("h3");
-    set_attribute(&h3, "class", "ox-confirm-title");
+    set_attribute(&h3, "class", "bu-confirm-title");
     append_text(&h3, title);
     append_node(&dialog, &h3);
 
     let msg = create_element("p");
-    set_attribute(&msg, "class", "ox-confirm-msg");
+    set_attribute(&msg, "class", "bu-confirm-msg");
     append_text(&msg, message);
     append_node(&dialog, &msg);
 
     let actions = create_element("div");
-    set_attribute(&actions, "class", "ox-confirm-actions");
+    set_attribute(&actions, "class", "bu-confirm-actions");
 
     let cancel = create_element("button");
-    set_attribute(&cancel, "class", "ox-confirm-cancel");
+    set_attribute(&cancel, "class", "bu-confirm-cancel");
     append_text(&cancel, "Cancel");
     let o = open;
     add_event_listener(&cancel, "click", move |_| { o.set(false); });
     append_node(&actions, &cancel);
 
     let confirm = create_element("button");
-    set_attribute(&confirm, "class", "ox-confirm-ok");
+    set_attribute(&confirm, "class", "bu-confirm-ok");
     append_text(&confirm, "Confirm");
     let cb = std::cell::RefCell::new(Some(on_confirm));
     let o = open;
@@ -1463,18 +1463,18 @@ pub fn confirm_dialog(
 }
 
 const CONFIRM_DIALOG_CSS: &str = "\
-.ox-confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;\
+.bu-confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;\
 justify-content:center;z-index:1000;backdrop-filter:blur(4px)}\
-.ox-confirm-dialog{background:#141414;border:1px solid #333;border-radius:14px;padding:1.5rem;max-width:400px;width:92%}\
-.ox-confirm-title{font-size:1.05rem;margin:0 0 0.5rem;color:#e0e0e0}\
-.ox-confirm-msg{font-size:0.85rem;color:#888;margin:0 0 1.25rem}\
-.ox-confirm-actions{display:flex;gap:0.5rem;justify-content:flex-end}\
-.ox-confirm-cancel{background:#1e1e1e;border:1px solid #444;border-radius:8px;color:#ccc;padding:0.45rem 1rem;\
+.bu-confirm-dialog{background:#141414;border:1px solid #333;border-radius:14px;padding:1.5rem;max-width:400px;width:92%}\
+.bu-confirm-title{font-size:1.05rem;margin:0 0 0.5rem;color:#e0e0e0}\
+.bu-confirm-msg{font-size:0.85rem;color:#888;margin:0 0 1.25rem}\
+.bu-confirm-actions{display:flex;gap:0.5rem;justify-content:flex-end}\
+.bu-confirm-cancel{background:#1e1e1e;border:1px solid #444;border-radius:8px;color:#ccc;padding:0.45rem 1rem;\
 font-size:0.85rem;cursor:pointer;font-family:inherit}\
-.ox-confirm-cancel:hover{border-color:#888}\
-.ox-confirm-ok{background:linear-gradient(135deg,#f97316,#ef4444);border:none;border-radius:8px;color:#fff;\
+.bu-confirm-cancel:hover{border-color:#888}\
+.bu-confirm-ok{background:linear-gradient(135deg,#f97316,#ef4444);border:none;border-radius:8px;color:#fff;\
 padding:0.45rem 1rem;font-size:0.85rem;cursor:pointer;font-weight:600;font-family:inherit}\
-.ox-confirm-ok:hover{opacity:.9}";
+.bu-confirm-ok:hover{opacity:.9}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 36. LoadingOverlay — full-screen spinner backdrop
@@ -1485,11 +1485,11 @@ padding:0.45rem 1rem;font-size:0.85rem;cursor:pointer;font-weight:600;font-famil
 pub fn loading_overlay(visible: Signal<bool>) -> web_sys::Element {
     inject_css("loadoverlay", LOADING_OVERLAY_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-loading-overlay");
+    set_attribute(&el, "class", "bu-loading-overlay");
     el.set_attribute("role", "status").ok();
     el.set_attribute("aria-label", "Loading").ok();
     let sp = create_element("div");
-    set_attribute(&sp, "class", "ox-loading-spinner");
+    set_attribute(&sp, "class", "bu-loading-spinner");
     append_node(&el, &sp);
     let el_ref = el.clone();
     create_effect(move || {
@@ -1501,10 +1501,10 @@ pub fn loading_overlay(visible: Signal<bool>) -> web_sys::Element {
 }
 
 const LOADING_OVERLAY_CSS: &str = "\
-.ox-loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;\
+.bu-loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;\
 justify-content:center;z-index:1500;backdrop-filter:blur(4px)}\
-.ox-loading-spinner{width:40px;height:40px;border:4px solid #333;border-top-color:#f97316;\
-border-radius:50%;animation:ox-spin .6s linear infinite}";
+.bu-loading-spinner{width:40px;height:40px;border:4px solid #333;border-top-color:#f97316;\
+border-radius:50%;animation:bu-spin .6s linear infinite}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 37. EmptyState — no-data placeholder
@@ -1514,28 +1514,28 @@ border-radius:50%;animation:ox-spin .6s linear infinite}";
 pub fn empty_state(title: &str, description: &str, icon: &str) -> web_sys::Element {
     inject_css("emptystate", EMPTY_STATE_CSS);
     let el = create_element("div");
-    set_attribute(&el, "class", "ox-empty-state");
+    set_attribute(&el, "class", "bu-empty-state");
     let ic = create_element("div");
-    set_attribute(&ic, "class", "ox-empty-icon");
+    set_attribute(&ic, "class", "bu-empty-icon");
     append_text(&ic, icon);
     append_node(&el, &ic);
     let t = create_element("div");
-    set_attribute(&t, "class", "ox-empty-title");
+    set_attribute(&t, "class", "bu-empty-title");
     append_text(&t, title);
     append_node(&el, &t);
     let d = create_element("div");
-    set_attribute(&d, "class", "ox-empty-desc");
+    set_attribute(&d, "class", "bu-empty-desc");
     append_text(&d, description);
     append_node(&el, &d);
     el
 }
 
 const EMPTY_STATE_CSS: &str = "\
-.ox-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;\
+.bu-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;\
 padding:3rem;gap:0.75rem}\
-.ox-empty-icon{font-size:3rem;opacity:.5}\
-.ox-empty-title{font-size:1.1rem;font-weight:600;color:#ccc}\
-.ox-empty-desc{font-size:0.85rem;color:#666;text-align:center;max-width:320px}";
+.bu-empty-icon{font-size:3rem;opacity:.5}\
+.bu-empty-title{font-size:1.1rem;font-weight:600;color:#ccc}\
+.bu-empty-desc{font-size:0.85rem;color:#666;text-align:center;max-width:320px}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 38. Toggle — on/off switch
@@ -1545,20 +1545,20 @@ padding:3rem;gap:0.75rem}\
 pub fn toggle(label: &str, checked: Signal<bool>) -> web_sys::Element {
     inject_css("toggle", TOGGLE_CSS);
     let wrap = create_element("label");
-    set_attribute(&wrap, "class", "ox-toggle");
+    set_attribute(&wrap, "class", "bu-toggle");
 
     let track = create_element("div");
-    set_attribute(&track, "class", "ox-toggle-track");
+    set_attribute(&track, "class", "bu-toggle-track");
     track.set_attribute("role", "switch").ok();
 
     let thumb = create_element("div");
-    set_attribute(&thumb, "class", "ox-toggle-thumb");
+    set_attribute(&thumb, "class", "bu-toggle-thumb");
     append_node(&track, &thumb);
 
     let track_ref = track.clone();
     create_effect(move || {
         let on = checked.get();
-        toggle_class(&track_ref, "ox-toggle-on", on);
+        toggle_class(&track_ref, "bu-toggle-on", on);
         track_ref.set_attribute("aria-checked", if on { "true" } else { "false" }).ok();
     });
 
@@ -1567,21 +1567,21 @@ pub fn toggle(label: &str, checked: Signal<bool>) -> web_sys::Element {
     append_node(&wrap, &track);
 
     let lbl = create_element("span");
-    set_attribute(&lbl, "class", "ox-toggle-label");
+    set_attribute(&lbl, "class", "bu-toggle-label");
     append_text(&lbl, label);
     append_node(&wrap, &lbl);
     wrap
 }
 
 const TOGGLE_CSS: &str = "\
-.ox-toggle{display:inline-flex;align-items:center;gap:0.6rem;cursor:pointer;font-size:0.85rem;color:#ccc}\
-.ox-toggle-track{width:40px;height:22px;background:#333;border-radius:11px;position:relative;\
+.bu-toggle{display:inline-flex;align-items:center;gap:0.6rem;cursor:pointer;font-size:0.85rem;color:#ccc}\
+.bu-toggle-track{width:40px;height:22px;background:#333;border-radius:11px;position:relative;\
 transition:background .2s;cursor:pointer;flex-shrink:0}\
-.ox-toggle-thumb{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;\
+.bu-toggle-thumb{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;\
 transition:transform .2s}\
-.ox-toggle-on{background:#f97316}\
-.ox-toggle-on .ox-toggle-thumb{transform:translateX(18px)}\
-.ox-toggle-label{user-select:none}";
+.bu-toggle-on{background:#f97316}\
+.bu-toggle-on .bu-toggle-thumb{transform:translateX(18px)}\
+.bu-toggle-label{user-select:none}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 39. RadioGroup — radio button group
@@ -1591,11 +1591,11 @@ transition:transform .2s}\
 pub fn radio_group(name: &str, options: &[(&str, &str)], selected: Signal<String>) -> web_sys::Element {
     inject_css("radiogroup", RADIO_GROUP_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-radio-group");
+    set_attribute(&wrap, "class", "bu-radio-group");
     wrap.set_attribute("role", "radiogroup").ok();
     for &(value, label) in options {
         let lbl = create_element("label");
-        set_attribute(&lbl, "class", "ox-radio-item");
+        set_attribute(&lbl, "class", "bu-radio-item");
         let input = create_element("input");
         set_attribute(&input, "type", "radio");
         set_attribute(&input, "name", name);
@@ -1618,9 +1618,9 @@ pub fn radio_group(name: &str, options: &[(&str, &str)], selected: Signal<String
 }
 
 const RADIO_GROUP_CSS: &str = "\
-.ox-radio-group{display:flex;flex-direction:column;gap:0.5rem}\
-.ox-radio-item{display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem;color:#ccc}\
-.ox-radio-item input{accent-color:#f97316;width:16px;height:16px;cursor:pointer}";
+.bu-radio-group{display:flex;flex-direction:column;gap:0.5rem}\
+.bu-radio-item{display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem;color:#ccc}\
+.bu-radio-item input{accent-color:#f97316;width:16px;height:16px;cursor:pointer}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 40. Slider — range input
@@ -1630,10 +1630,10 @@ const RADIO_GROUP_CSS: &str = "\
 pub fn slider(min: f64, max: f64, step: f64, value: Signal<f64>) -> web_sys::Element {
     inject_css("slider", SLIDER_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-slider-wrap");
+    set_attribute(&wrap, "class", "bu-slider-wrap");
     let input = create_element("input");
     set_attribute(&input, "type", "range");
-    set_attribute(&input, "class", "ox-slider");
+    set_attribute(&input, "class", "bu-slider");
     set_attribute(&input, "min", &min.to_string());
     set_attribute(&input, "max", &max.to_string());
     set_attribute(&input, "step", &step.to_string());
@@ -1641,7 +1641,7 @@ pub fn slider(min: f64, max: f64, step: f64, value: Signal<f64>) -> web_sys::Ele
     input.set_attribute("aria-valuemax", &max.to_string()).ok();
 
     let display = create_element("span");
-    set_attribute(&display, "class", "ox-slider-value");
+    set_attribute(&display, "class", "bu-slider-value");
 
     let inp_ref = input.clone();
     let disp_ref = display.clone();
@@ -1664,9 +1664,9 @@ pub fn slider(min: f64, max: f64, step: f64, value: Signal<f64>) -> web_sys::Ele
 }
 
 const SLIDER_CSS: &str = "\
-.ox-slider-wrap{display:flex;align-items:center;gap:0.75rem}\
-.ox-slider{flex:1;accent-color:#f97316;height:6px;cursor:pointer}\
-.ox-slider-value{font-size:0.8rem;color:#ccc;min-width:2.5rem;text-align:right}";
+.bu-slider-wrap{display:flex;align-items:center;gap:0.75rem}\
+.bu-slider{flex:1;accent-color:#f97316;height:6px;cursor:pointer}\
+.bu-slider-value{font-size:0.8rem;color:#ccc;min-width:2.5rem;text-align:right}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 41. SearchInput — search field with clear button
@@ -1676,16 +1676,16 @@ const SLIDER_CSS: &str = "\
 pub fn search_input(placeholder: &str, value: Signal<String>) -> web_sys::Element {
     inject_css("searchinput", SEARCH_INPUT_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-search-wrap");
+    set_attribute(&wrap, "class", "bu-search-wrap");
 
     let icon = create_element("span");
-    set_attribute(&icon, "class", "ox-search-icon");
+    set_attribute(&icon, "class", "bu-search-icon");
     set_inner_html(&icon, "&#128269;"); // 🔍
     append_node(&wrap, &icon);
 
     let input = create_element("input");
     set_attribute(&input, "type", "search");
-    set_attribute(&input, "class", "ox-search-input");
+    set_attribute(&input, "class", "bu-search-input");
     set_attribute(&input, "placeholder", placeholder);
     input.set_attribute("aria-label", placeholder).ok();
 
@@ -1693,7 +1693,7 @@ pub fn search_input(placeholder: &str, value: Signal<String>) -> web_sys::Elemen
     create_effect(move || { set_property(&inp_ref, "value", &JsValue::from_str(&value.get())); });
 
     let clear = create_element("button");
-    set_attribute(&clear, "class", "ox-search-clear");
+    set_attribute(&clear, "class", "bu-search-clear");
     set_attribute(&clear, "type", "button");
     clear.set_attribute("aria-label", "Clear search").ok();
     append_text(&clear, "\u{00d7}"); // ×
@@ -1716,14 +1716,14 @@ pub fn search_input(placeholder: &str, value: Signal<String>) -> web_sys::Elemen
 }
 
 const SEARCH_INPUT_CSS: &str = "\
-.ox-search-wrap{display:flex;align-items:center;gap:0.5rem;background:#0a0a0a;border:1px solid #444;\
+.bu-search-wrap{display:flex;align-items:center;gap:0.5rem;background:#0a0a0a;border:1px solid #444;\
 border-radius:8px;padding:0.4rem 0.75rem;transition:border-color .15s}\
-.ox-search-wrap:focus-within{border-color:#f97316}\
-.ox-search-icon{font-size:0.85rem;flex-shrink:0}\
-.ox-search-input{background:transparent;border:none;color:#e0e0e0;font-size:0.85rem;outline:none;\
+.bu-search-wrap:focus-within{border-color:#f97316}\
+.bu-search-icon{font-size:0.85rem;flex-shrink:0}\
+.bu-search-input{background:transparent;border:none;color:#e0e0e0;font-size:0.85rem;outline:none;\
 font-family:inherit;flex:1;width:100%}\
-.ox-search-clear{background:none;border:none;color:#888;font-size:1.1rem;cursor:pointer;padding:0;line-height:1}\
-.ox-search-clear:hover{color:#e0e0e0}";
+.bu-search-clear{background:none;border:none;color:#888;font-size:1.1rem;cursor:pointer;padding:0;line-height:1}\
+.bu-search-clear:hover{color:#e0e0e0}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 42. PasswordInput — input with show/hide toggle
@@ -1734,21 +1734,21 @@ pub fn password_input(label: &str, value: Signal<String>) -> web_sys::Element {
     inject_css("passinput", PASSWORD_INPUT_CSS);
     inject_css("input", INPUT_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-field");
+    set_attribute(&wrap, "class", "bu-field");
 
     if !label.is_empty() {
         let lbl = create_element("label");
-        set_attribute(&lbl, "class", "ox-label");
+        set_attribute(&lbl, "class", "bu-label");
         append_text(&lbl, label);
         append_node(&wrap, &lbl);
     }
 
     let input_wrap = create_element("div");
-    set_attribute(&input_wrap, "class", "ox-pass-wrap");
+    set_attribute(&input_wrap, "class", "bu-pass-wrap");
 
     let input = create_element("input");
     set_attribute(&input, "type", "password");
-    set_attribute(&input, "class", "ox-input ox-pass-input");
+    set_attribute(&input, "class", "bu-input bu-pass-input");
 
     let inp_ref = input.clone();
     create_effect(move || { set_property(&inp_ref, "value", &JsValue::from_str(&value.get())); });
@@ -1756,7 +1756,7 @@ pub fn password_input(label: &str, value: Signal<String>) -> web_sys::Element {
     add_event_listener(&input, "input", move |e| { v.set(event_target_value(&e)); });
 
     let toggle_btn = create_element("button");
-    set_attribute(&toggle_btn, "class", "ox-pass-toggle");
+    set_attribute(&toggle_btn, "class", "bu-pass-toggle");
     set_attribute(&toggle_btn, "type", "button");
     toggle_btn.set_attribute("aria-label", "Toggle password visibility").ok();
     append_text(&toggle_btn, "\u{1f441}"); // 👁
@@ -1785,11 +1785,11 @@ pub fn password_input(label: &str, value: Signal<String>) -> web_sys::Element {
 }
 
 const PASSWORD_INPUT_CSS: &str = "\
-.ox-pass-wrap{display:flex;align-items:center;position:relative}\
-.ox-pass-input{flex:1;padding-right:2.5rem}\
-.ox-pass-toggle{position:absolute;right:0.5rem;background:none;border:none;cursor:pointer;\
+.bu-pass-wrap{display:flex;align-items:center;position:relative}\
+.bu-pass-input{flex:1;padding-right:2.5rem}\
+.bu-pass-toggle{position:absolute;right:0.5rem;background:none;border:none;cursor:pointer;\
 font-size:1rem;padding:0.25rem;color:#888}\
-.ox-pass-toggle:hover{color:#e0e0e0}";
+.bu-pass-toggle:hover{color:#e0e0e0}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 43. NumberInput — input with +/- buttons
@@ -1800,20 +1800,20 @@ pub fn number_input(label: &str, value: Signal<f64>, step: f64) -> web_sys::Elem
     inject_css("numinput", NUMBER_INPUT_CSS);
     inject_css("input", INPUT_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-field");
+    set_attribute(&wrap, "class", "bu-field");
 
     if !label.is_empty() {
         let lbl = create_element("label");
-        set_attribute(&lbl, "class", "ox-label");
+        set_attribute(&lbl, "class", "bu-label");
         append_text(&lbl, label);
         append_node(&wrap, &lbl);
     }
 
     let row = create_element("div");
-    set_attribute(&row, "class", "ox-num-wrap");
+    set_attribute(&row, "class", "bu-num-wrap");
 
     let dec = create_element("button");
-    set_attribute(&dec, "class", "ox-num-btn");
+    set_attribute(&dec, "class", "bu-num-btn");
     set_attribute(&dec, "type", "button");
     dec.set_attribute("aria-label", "Decrease").ok();
     append_text(&dec, "\u{2212}"); // −
@@ -1823,7 +1823,7 @@ pub fn number_input(label: &str, value: Signal<f64>, step: f64) -> web_sys::Elem
 
     let input = create_element("input");
     set_attribute(&input, "type", "text");
-    set_attribute(&input, "class", "ox-input ox-num-input");
+    set_attribute(&input, "class", "bu-input bu-num-input");
     set_attribute(&input, "inputmode", "decimal");
 
     let inp_ref = input.clone();
@@ -1836,7 +1836,7 @@ pub fn number_input(label: &str, value: Signal<f64>, step: f64) -> web_sys::Elem
     });
 
     let inc = create_element("button");
-    set_attribute(&inc, "class", "ox-num-btn");
+    set_attribute(&inc, "class", "bu-num-btn");
     set_attribute(&inc, "type", "button");
     inc.set_attribute("aria-label", "Increase").ok();
     append_text(&inc, "+");
@@ -1852,13 +1852,13 @@ pub fn number_input(label: &str, value: Signal<f64>, step: f64) -> web_sys::Elem
 }
 
 const NUMBER_INPUT_CSS: &str = "\
-.ox-num-wrap{display:flex;align-items:center;gap:0}\
-.ox-num-btn{width:36px;height:36px;background:#1e1e1e;border:1px solid #444;color:#ccc;font-size:1rem;\
+.bu-num-wrap{display:flex;align-items:center;gap:0}\
+.bu-num-btn{width:36px;height:36px;background:#1e1e1e;border:1px solid #444;color:#ccc;font-size:1rem;\
 cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:all .15s}\
-.ox-num-btn:first-child{border-radius:8px 0 0 8px}\
-.ox-num-btn:last-child{border-radius:0 8px 8px 0}\
-.ox-num-btn:hover{border-color:#f97316;color:#f97316}\
-.ox-num-input{border-radius:0;text-align:center;width:80px}";
+.bu-num-btn:first-child{border-radius:8px 0 0 8px}\
+.bu-num-btn:last-child{border-radius:0 8px 8px 0}\
+.bu-num-btn:hover{border-color:#f97316;color:#f97316}\
+.bu-num-input{border-radius:0;text-align:center;width:80px}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 44. FileUpload — drop zone / file picker
@@ -1868,12 +1868,12 @@ cursor:pointer;display:flex;align-items:center;justify-content:center;font-famil
 pub fn file_upload(on_file: impl FnMut(String, String) + 'static) -> web_sys::Element {
     inject_css("fileupload", FILE_UPLOAD_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-file-upload");
+    set_attribute(&wrap, "class", "bu-file-upload");
     wrap.set_attribute("role", "button").ok();
     wrap.set_attribute("aria-label", "Upload file").ok();
 
     let label_el = create_element("div");
-    set_attribute(&label_el, "class", "ox-file-label");
+    set_attribute(&label_el, "class", "bu-file-label");
     set_inner_html(&label_el, "&#128193; Drop a file or <u>browse</u>");
     append_node(&wrap, &label_el);
 
@@ -1919,16 +1919,16 @@ pub fn file_upload(on_file: impl FnMut(String, String) + 'static) -> web_sys::El
     let wrap_ref = wrap.clone();
     add_event_listener(&wrap, "dragover", move |e| {
         e.prevent_default();
-        toggle_class(&wrap_ref, "ox-file-dragover", true);
+        toggle_class(&wrap_ref, "bu-file-dragover", true);
     });
     let wrap_ref = wrap.clone();
     add_event_listener(&wrap, "dragleave", move |_| {
-        toggle_class(&wrap_ref, "ox-file-dragover", false);
+        toggle_class(&wrap_ref, "bu-file-dragover", false);
     });
     let wrap_ref = wrap.clone();
     add_event_listener(&wrap, "drop", move |e| {
         e.prevent_default();
-        toggle_class(&wrap_ref, "ox-file-dragover", false);
+        toggle_class(&wrap_ref, "bu-file-dragover", false);
     });
 
     append_node(&wrap, &input);
@@ -1936,10 +1936,10 @@ pub fn file_upload(on_file: impl FnMut(String, String) + 'static) -> web_sys::El
 }
 
 const FILE_UPLOAD_CSS: &str = "\
-.ox-file-upload{border:2px dashed #444;border-radius:12px;padding:2rem;text-align:center;cursor:pointer;\
+.bu-file-upload{border:2px dashed #444;border-radius:12px;padding:2rem;text-align:center;cursor:pointer;\
 transition:border-color .2s,background .2s;background:#0a0a0a}\
-.ox-file-upload:hover,.ox-file-dragover{border-color:#f97316;background:rgba(249,115,22,.05)}\
-.ox-file-label{font-size:0.9rem;color:#888}";
+.bu-file-upload:hover,.bu-file-dragover{border-color:#f97316;background:rgba(249,115,22,.05)}\
+.bu-file-label{font-size:0.9rem;color:#888}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 45. FormGroup — labelled form wrapper with optional error
@@ -1966,17 +1966,17 @@ impl FormGroupBuilder {
     pub fn build(self) -> web_sys::Element {
         inject_css("input", INPUT_CSS);
         let wrap = create_element("div");
-        set_attribute(&wrap, "class", "ox-field");
+        set_attribute(&wrap, "class", "bu-field");
         if !self.label.is_empty() {
             let lbl = create_element("label");
-            set_attribute(&lbl, "class", "ox-label");
+            set_attribute(&lbl, "class", "bu-label");
             append_text(&lbl, &self.label);
             append_node(&wrap, &lbl);
         }
         append_node(&wrap, &self.child);
         if let Some(msg) = &self.error_msg {
             let err = create_element("div");
-            set_attribute(&err, "class", "ox-error");
+            set_attribute(&err, "class", "bu-error");
             err.set_attribute("role", "alert").ok();
             append_text(&err, msg);
             append_node(&wrap, &err);
@@ -2017,12 +2017,12 @@ impl DrawerBuilder {
     pub fn build(self) -> web_sys::Element {
         inject_css("drawer", DRAWER_CSS);
         let overlay = create_element("div");
-        set_attribute(&overlay, "class", "ox-drawer-overlay");
+        set_attribute(&overlay, "class", "bu-drawer-overlay");
 
         let panel = create_element("div");
         let side_cls = match self.side {
-            DrawerSide::Left  => "ox-drawer ox-drawer-left",
-            DrawerSide::Right => "ox-drawer ox-drawer-right",
+            DrawerSide::Left  => "bu-drawer bu-drawer-left",
+            DrawerSide::Right => "bu-drawer bu-drawer-right",
         };
         set_attribute(&panel, "class", side_cls);
         panel.set_attribute("role", "dialog").ok();
@@ -2030,12 +2030,12 @@ impl DrawerBuilder {
 
         if !self.title.is_empty() {
             let header = create_element("div");
-            set_attribute(&header, "class", "ox-drawer-header");
+            set_attribute(&header, "class", "bu-drawer-header");
             let h3 = create_element("h3");
             append_text(&h3, &self.title);
             append_node(&header, &h3);
             let close = create_element("button");
-            set_attribute(&close, "class", "ox-drawer-close");
+            set_attribute(&close, "class", "bu-drawer-close");
             close.set_attribute("aria-label", "Close drawer").ok();
             append_text(&close, "\u{00d7}"); // ×
             let o = self.open;
@@ -2046,7 +2046,7 @@ impl DrawerBuilder {
 
         if let Some(body) = self.body_el {
             let b = create_element("div");
-            set_attribute(&b, "class", "ox-drawer-body");
+            set_attribute(&b, "class", "bu-drawer-body");
             append_node(&b, &body);
             append_node(&panel, &b);
         }
@@ -2059,7 +2059,7 @@ impl DrawerBuilder {
         add_event_listener(&overlay, "click", move |e| {
             if let Some(t) = e.target() {
                 if let Some(el) = t.dyn_ref::<web_sys::Element>() {
-                    if el.class_list().contains("ox-drawer-overlay") { o.set(false); }
+                    if el.class_list().contains("bu-drawer-overlay") { o.set(false); }
                 }
             }
         });
@@ -2077,18 +2077,18 @@ impl DrawerBuilder {
 }
 
 const DRAWER_CSS: &str = "\
-.ox-drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex}\
-.ox-drawer{background:#141414;border:1px solid #333;width:320px;max-width:85vw;height:100%;overflow-y:auto}\
-.ox-drawer-right{margin-left:auto;animation:ox-drawer-right-in .2s ease}\
-@keyframes ox-drawer-right-in{from{transform:translateX(100%)}to{transform:translateX(0)}}\
-.ox-drawer-left{margin-right:auto;animation:ox-drawer-left-in .2s ease}\
-@keyframes ox-drawer-left-in{from{transform:translateX(-100%)}to{transform:translateX(0)}}\
-.ox-drawer-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;\
+.bu-drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex}\
+.bu-drawer{background:#141414;border:1px solid #333;width:320px;max-width:85vw;height:100%;overflow-y:auto}\
+.bu-drawer-right{margin-left:auto;animation:bu-drawer-right-in .2s ease}\
+@keyframes bu-drawer-right-in{from{transform:translateX(100%)}to{transform:translateX(0)}}\
+.bu-drawer-left{margin-right:auto;animation:bu-drawer-left-in .2s ease}\
+@keyframes bu-drawer-left-in{from{transform:translateX(-100%)}to{transform:translateX(0)}}\
+.bu-drawer-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;\
 border-bottom:1px solid #222}\
-.ox-drawer-header h3{font-size:1rem;margin:0}\
-.ox-drawer-close{background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer;padding:0.25rem}\
-.ox-drawer-close:hover{color:#fff}\
-.ox-drawer-body{padding:1.25rem}";
+.bu-drawer-header h3{font-size:1rem;margin:0}\
+.bu-drawer-close{background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer;padding:0.25rem}\
+.bu-drawer-close:hover{color:#fff}\
+.bu-drawer-body{padding:1.25rem}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 47. Accordion — collapsible sections
@@ -2099,17 +2099,17 @@ pub fn accordion(items: &[(&str, fn() -> web_sys::Element)]) -> web_sys::Element
     inject_css("accordion", ACCORDION_CSS);
     let active = signal(-1i32);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-accordion");
+    set_attribute(&wrap, "class", "bu-accordion");
 
     for (i, &(header_text, content_fn)) in items.iter().enumerate() {
         let item = create_element("div");
-        set_attribute(&item, "class", "ox-accordion-item");
+        set_attribute(&item, "class", "bu-accordion-item");
 
         let header = create_element("button");
-        set_attribute(&header, "class", "ox-accordion-header");
+        set_attribute(&header, "class", "bu-accordion-header");
         append_text(&header, header_text);
         let arrow = create_element("span");
-        set_attribute(&arrow, "class", "ox-accordion-arrow");
+        set_attribute(&arrow, "class", "bu-accordion-arrow");
         append_text(&arrow, "\u{25b8}"); // ▸
         append_node(&header, &arrow);
 
@@ -2121,10 +2121,10 @@ pub fn accordion(items: &[(&str, fn() -> web_sys::Element)]) -> web_sys::Element
         append_node(&item, &header);
 
         let panel = create_element("div");
-        set_attribute(&panel, "class", "ox-accordion-panel");
+        set_attribute(&panel, "class", "bu-accordion-panel");
         let content = content_fn();
         let inner = create_element("div");
-        set_attribute(&inner, "class", "ox-accordion-inner");
+        set_attribute(&inner, "class", "bu-accordion-inner");
         append_node(&inner, &content);
         append_node(&panel, &inner);
 
@@ -2134,12 +2134,12 @@ pub fn accordion(items: &[(&str, fn() -> web_sys::Element)]) -> web_sys::Element
         create_effect(move || {
             if active.get() == idx {
                 set_style(&panel_ref, "max-height", "500px");
-                toggle_class(&header_ref, "ox-accordion-active", true);
+                toggle_class(&header_ref, "bu-accordion-active", true);
                 clear_children(&arrow_ref);
                 append_text(&arrow_ref, "\u{25be}"); // ▾
             } else {
                 set_style(&panel_ref, "max-height", "0");
-                toggle_class(&header_ref, "ox-accordion-active", false);
+                toggle_class(&header_ref, "bu-accordion-active", false);
                 clear_children(&arrow_ref);
                 append_text(&arrow_ref, "\u{25b8}"); // ▸
             }
@@ -2152,17 +2152,17 @@ pub fn accordion(items: &[(&str, fn() -> web_sys::Element)]) -> web_sys::Element
 }
 
 const ACCORDION_CSS: &str = "\
-.ox-accordion{display:flex;flex-direction:column;border:1px solid #333;border-radius:8px;overflow:hidden}\
-.ox-accordion-item{border-bottom:1px solid #222}\
-.ox-accordion-item:last-child{border-bottom:none}\
-.ox-accordion-header{display:flex;justify-content:space-between;align-items:center;width:100%;\
+.bu-accordion{display:flex;flex-direction:column;border:1px solid #333;border-radius:8px;overflow:hidden}\
+.bu-accordion-item{border-bottom:1px solid #222}\
+.bu-accordion-item:last-child{border-bottom:none}\
+.bu-accordion-header{display:flex;justify-content:space-between;align-items:center;width:100%;\
 padding:0.75rem 1rem;background:#141414;border:none;color:#e0e0e0;font-size:0.9rem;cursor:pointer;\
 font-family:inherit;text-align:left;transition:background .15s}\
-.ox-accordion-header:hover{background:#1e1e1e}\
-.ox-accordion-active{color:#f97316}\
-.ox-accordion-arrow{font-size:0.8rem;color:#888;transition:transform .2s}\
-.ox-accordion-panel{max-height:0;overflow:hidden;transition:max-height .3s ease;background:#0a0a0a}\
-.ox-accordion-inner{padding:1rem}";
+.bu-accordion-header:hover{background:#1e1e1e}\
+.bu-accordion-active{color:#f97316}\
+.bu-accordion-arrow{font-size:0.8rem;color:#888;transition:transform .2s}\
+.bu-accordion-panel{max-height:0;overflow:hidden;transition:max-height .3s ease;background:#0a0a0a}\
+.bu-accordion-inner{padding:1rem}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 48. Rating — star rating
@@ -2173,7 +2173,7 @@ pub fn rating(value: Signal<u32>, max: u32) -> web_sys::Element {
     inject_css("rating", RATING_CSS);
     let hover = signal(0u32);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "ox-rating");
+    set_attribute(&wrap, "class", "bu-rating");
     wrap.set_attribute("role", "slider").ok();
     wrap.set_attribute("aria-valuemin", "0").ok();
     wrap.set_attribute("aria-valuemax", &max.to_string()).ok();
@@ -2181,7 +2181,7 @@ pub fn rating(value: Signal<u32>, max: u32) -> web_sys::Element {
     let mut stars: Vec<web_sys::Element> = Vec::new();
     for i in 1..=max {
         let star = create_element("span");
-        set_attribute(&star, "class", "ox-star");
+        set_attribute(&star, "class", "bu-star");
         append_text(&star, "\u{2605}"); // ★
         let v = value;
         add_event_listener(&star, "click", move |_| { v.set(i); });
@@ -2200,9 +2200,9 @@ pub fn rating(value: Signal<u32>, max: u32) -> web_sys::Element {
         let active = if hov > 0 { hov } else { val };
         for (i, star) in stars.iter().enumerate() {
             if (i as u32) < active {
-                set_attribute(star, "class", "ox-star ox-star-filled");
+                set_attribute(star, "class", "bu-star bu-star-filled");
             } else {
-                set_attribute(star, "class", "ox-star");
+                set_attribute(star, "class", "bu-star");
             }
         }
     });
@@ -2210,9 +2210,9 @@ pub fn rating(value: Signal<u32>, max: u32) -> web_sys::Element {
 }
 
 const RATING_CSS: &str = "\
-.ox-rating{display:inline-flex;gap:0.15rem}\
-.ox-star{font-size:1.5rem;color:#444;cursor:pointer;transition:color .1s;user-select:none}\
-.ox-star-filled{color:#f97316}";
+.bu-rating{display:inline-flex;gap:0.15rem}\
+.bu-star{font-size:1.5rem;color:#444;cursor:pointer;transition:color .1s;user-select:none}\
+.bu-star-filled{color:#f97316}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 49. CopyButton — click-to-copy with feedback
@@ -2222,7 +2222,7 @@ const RATING_CSS: &str = "\
 pub fn copy_button(text: &str) -> web_sys::Element {
     inject_css("copybtn", COPY_BTN_CSS);
     let btn = create_element("button");
-    set_attribute(&btn, "class", "ox-copy-btn");
+    set_attribute(&btn, "class", "bu-copy-btn");
     btn.set_attribute("aria-label", "Copy to clipboard").ok();
     set_inner_html(&btn, "&#128203; Copy"); // 📋
 
@@ -2252,7 +2252,7 @@ pub fn copy_button(text: &str) -> web_sys::Element {
 }
 
 const COPY_BTN_CSS: &str = "\
-.ox-copy-btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.9rem;background:#1e1e1e;\
+.bu-copy-btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.9rem;background:#1e1e1e;\
 border:1px solid #444;border-radius:8px;color:#ccc;font-size:0.8rem;cursor:pointer;font-family:inherit;\
 transition:all .15s}\
-.ox-copy-btn:hover{border-color:#f97316;color:#f97316}";
+.bu-copy-btn:hover{border-color:#f97316;color:#f97316}";

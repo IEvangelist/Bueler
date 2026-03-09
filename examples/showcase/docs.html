@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Docs — Oxide</title>
-    <meta name="description" content="Complete API reference for Oxide: reactivity, view macro, hooks, routing, telemetry, resiliency, and 90+ framework features." />
+    <title>Docs — Bueler</title>
+    <meta name="description" content="Complete API reference for Bueler: reactivity, view macro, hooks, routing, telemetry, resiliency, and 90+ framework features." />
 
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Oxide Docs — API Reference" />
-    <meta property="og:description" content="Complete API reference for Oxide: reactivity, view macro, hooks, routing, telemetry, resiliency, and 48 components." />
-    <meta property="og:url" content="https://ievangelist.github.io/Oxide/docs.html" />
-    <meta property="og:site_name" content="Oxide" />
+    <meta property="og:title" content="Bueler Docs — API Reference" />
+    <meta property="og:description" content="Complete API reference for Bueler: reactivity, view macro, hooks, routing, telemetry, resiliency, and 48 components." />
+    <meta property="og:url" content="https://ievangelist.github.io/Bueler/docs.html" />
+    <meta property="og:site_name" content="Bueler" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Oxide Docs — API Reference" />
-    <meta name="twitter:description" content="Complete API reference for Oxide: reactivity, view macro, hooks, routing, telemetry, resiliency, and 48 components." />
+    <meta name="twitter:title" content="Bueler Docs — API Reference" />
+    <meta name="twitter:description" content="Complete API reference for Bueler: reactivity, view macro, hooks, routing, telemetry, resiliency, and 48 components." />
     <style>
         /* ═══════ RESET & CSS VARIABLES ═══════ */
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -166,7 +166,7 @@
     <header class="site-header">
         <div class="container">
             <div class="logo">
-                <a href="./#/"><span class="logo-emoji">🔥</span> <span class="gradient-text">Oxide</span></a>
+                <a href="./#/"><span class="logo-emoji">🔥</span> <span class="gradient-text">Bueler</span></a>
             </div>
             <input type="checkbox" id="nav-toggle" class="nav-toggle-cb">
             <label for="nav-toggle" class="nav-toggle" aria-label="Menu">
@@ -177,7 +177,7 @@
                 <a href="./#/playground">Playground</a>
                 <a href="./#/components">Components</a>
                 <a href="docs.html" class="active">Docs</a>
-                <a href="https://github.com/IEvangelist/Oxide" target="_blank" rel="noopener" class="gh-btn">
+                <a href="https://github.com/IEvangelist/Bueler" target="_blank" rel="noopener" class="gh-btn">
                     <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
                     GitHub
                 </a>
@@ -189,7 +189,7 @@
     <section class="page-hero">
         <div class="container">
             <div class="section-label fade-in">API Reference</div>
-            <h1 class="fade-in d1">Oxide <span class="gradient-text">Documentation</span></h1>
+            <h1 class="fade-in d1">Bueler <span class="gradient-text">Documentation</span></h1>
             <p class="fade-in d2">Comprehensive reference for every API, hook, and pattern in the framework.</p>
             <nav class="toc fade-in d3">
                 <a href="#getting-started"><span class="toc-num">1.</span> Getting Started</a>
@@ -217,7 +217,7 @@
     <section id="getting-started" class="doc-section">
         <div class="container">
             <h2 class="fade-in">1. Getting Started</h2>
-            <p>From zero to a running Oxide app in under a minute.</p>
+            <p>From zero to a running Bueler app in under a minute.</p>
 
             <h3>Install the toolchain</h3>
             <div class="code-block">
@@ -225,26 +225,26 @@
 <span class="prompt">$</span> cargo install wasm-pack</pre>
             </div>
 
-            <h3>Install the Oxide CLI</h3>
+            <h3>Install the Bueler CLI</h3>
             <div class="code-block">
-<pre><span class="prompt">$</span> cargo install --git https://github.com/IEvangelist/Oxide oxide-cli</pre>
+<pre><span class="prompt">$</span> cargo install --git https://github.com/IEvangelist/Bueler bueler-cli</pre>
             </div>
 
             <h3>Create a project</h3>
             <div class="code-block">
-<pre><span class="prompt">$</span> oxide new my-app
+<pre><span class="prompt">$</span> bueler new my-app
 <span class="prompt">$</span> cd my-app</pre>
             </div>
 
             <h3>Run the dev server</h3>
             <div class="code-block">
-<pre><span class="prompt">$</span> oxide dev
+<pre><span class="prompt">$</span> bueler dev
 <span class="cmt"># → Serving on http://localhost:8080 with live reload</span></pre>
             </div>
 
             <h3>Build for production</h3>
             <div class="code-block">
-<pre><span class="prompt">$</span> oxide build
+<pre><span class="prompt">$</span> bueler build
 <span class="cmt"># → Optimized WASM output in dist/</span></pre>
             </div>
         </div>
@@ -254,15 +254,15 @@
     <section id="cli" class="doc-section">
         <div class="container">
             <h2 class="fade-in">2. CLI Reference</h2>
-            <p>The <code>oxide</code> CLI handles scaffolding, development, and production builds.</p>
+            <p>The <code>bueler</code> CLI handles scaffolding, development, and production builds.</p>
             <div class="table-wrap">
                 <table class="cli-table">
                     <thead><tr><th>Command</th><th>Description</th><th>Key Flags</th></tr></thead>
                     <tbody>
-                        <tr><td><code>oxide new &lt;name&gt;</code></td><td>Scaffold a new project with template, Cargo.toml, and wasm32 target.</td><td><code>--template</code></td></tr>
-                        <tr><td><code>oxide dev</code></td><td>Dev server with live reload, WASM compilation, and DWARF debug info.</td><td><code>--port</code></td></tr>
-                        <tr><td><code>oxide build</code></td><td>Release build with wasm-opt, tree-shaking, and gzip-ready output.</td><td><code>--release</code></td></tr>
-                        <tr><td><code>oxide serve</code></td><td>Serve the <code>dist/</code> directory on a local HTTP server.</td><td><code>--port</code></td></tr>
+                        <tr><td><code>bueler new &lt;name&gt;</code></td><td>Scaffold a new project with template, Cargo.toml, and wasm32 target.</td><td><code>--template</code></td></tr>
+                        <tr><td><code>bueler dev</code></td><td>Dev server with live reload, WASM compilation, and DWARF debug info.</td><td><code>--port</code></td></tr>
+                        <tr><td><code>bueler build</code></td><td>Release build with wasm-opt, tree-shaking, and gzip-ready output.</td><td><code>--release</code></td></tr>
+                        <tr><td><code>bueler serve</code></td><td>Serve the <code>dist/</code> directory on a local HTTP server.</td><td><code>--port</code></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -278,7 +278,7 @@
             <h3>signal(value) — create a reactive value</h3>
             <div class="code-block">
 <pre><span class="kw">let</span> count = <span class="fn">signal</span>(<span class="num">0</span>);
-<span class="kw">let</span> name = <span class="fn">signal</span>(<span class="str">"Oxide"</span>.to_string());</pre>
+<span class="kw">let</span> name = <span class="fn">signal</span>(<span class="str">"Bueler"</span>.to_string());</pre>
             </div>
 
             <h3>Signal::get / set / update — read, write, mutate</h3>
@@ -561,8 +561,8 @@ count.<span class="fn">update</span>(|n| *n += <span class="num">1</span>); <spa
 
             <h3>set_title / set_meta</h3>
             <div class="code-block">
-<pre><span class="fn">set_title</span>(<span class="str">"My Page — Oxide"</span>);
-<span class="fn">set_meta</span>(<span class="str">"description"</span>, <span class="str">"Built with Oxide"</span>);</pre>
+<pre><span class="fn">set_title</span>(<span class="str">"My Page — Bueler"</span>);
+<span class="fn">set_meta</span>(<span class="str">"description"</span>, <span class="str">"Built with Bueler"</span>);</pre>
             </div>
         </div>
     </section>
@@ -618,7 +618,7 @@ count.<span class="fn">update</span>(|n| *n += <span class="num">1</span>); <spa
         <div class="container">
             <h2 class="fade-in">9. Pre-built Components</h2>
             <p>Best-in-class UI components with builder APIs, built-in dark-theme CSS, and ARIA accessibility.</p>
-            <p>Components are included in the <code>oxide</code> crate — access via <code>oxide::components::*</code>.</p>
+            <p>Components are included in the <code>bueler</code> crate — access via <code>bueler::components::*</code>.</p>
 
             <h3>Button</h3>
             <p>Variants: primary, outline, danger, ghost. Sizes: small, medium, large. States: loading, disabled.</p>
@@ -775,7 +775,7 @@ count.<span class="fn">update</span>(|n| *n += <span class="num">1</span>); <spa
 
             <h3>telemetry::init(Config) — enable auto-tracing</h3>
             <div class="code-block">
-<pre><span class="kw">use</span> oxide::telemetry;
+<pre><span class="kw">use</span> bueler::telemetry;
 
 telemetry::<span class="fn">init</span>(<span class="type">Config</span> {
     service_name: <span class="str">"my-app"</span>,
@@ -908,21 +908,21 @@ breaker.<span class="fn">reset</span>(); <span class="cmt">// force back to Clos
             <p>Source-level Rust debugging in the browser.</p>
 
             <ol>
-                <li>Run <code>oxide dev</code> — builds with DWARF debug info embedded in the WASM binary.</li>
+                <li>Run <code>bueler dev</code> — builds with DWARF debug info embedded in the WASM binary.</li>
                 <li>Open Chrome and install the <strong>"C/C++ DevTools Support (DWARF)"</strong> extension.</li>
                 <li>Open DevTools → <strong>Sources</strong> tab — your <code>.rs</code> files appear in the file tree.</li>
                 <li>Set breakpoints, step through code, and inspect variables just like native Rust debugging.</li>
             </ol>
             <div class="code-block">
 <pre><span class="cmt"># Build with debug info</span>
-<span class="prompt">$</span> oxide dev
+<span class="prompt">$</span> bueler dev
 
 <span class="cmt"># Chrome Sources panel shows:</span>
 <span class="cmt">#   file:// → src/lib.rs</span>
 <span class="cmt"># Set breakpoints, step in/out, inspect locals.</span>
 
 <span class="cmt"># Production strips all debug info:</span>
-<span class="prompt">$</span> oxide build</pre>
+<span class="prompt">$</span> bueler build</pre>
             </div>
         </div>
     </section>
@@ -930,17 +930,17 @@ breaker.<span class="fn">reset</span>(); <span class="cmt">// force back to Clos
     <!-- ═══════ FOOTER ═══════ -->
     <footer class="site-footer">
         <div class="container">
-            <div class="footer-brand">Built with 🔥 by the Oxide community</div>
+            <div class="footer-brand">Built with 🔥 by the Bueler community</div>
             <div class="footer-links">
                 <a href="./#/">Home</a>
                 <a href="./#/playground">Playground</a>
-                <a href="https://github.com/IEvangelist/Oxide" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/IEvangelist/Bueler" target="_blank" rel="noopener">GitHub</a>
             </div>
             <div class="footer-tagline">Rust + WebAssembly = The Future of the Web</div>
         </div>
     </footer>
     <script type="module">
-        import init from './pkg/oxide_showcase.js';
+        import init from './pkg/bueler_showcase.js';
         init();
     </script>
 </body>

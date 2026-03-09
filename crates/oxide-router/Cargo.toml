@@ -1,13 +1,13 @@
 [package]
-name = "oxide-router"
-description = "Client-side router for Oxide WASM applications"
+name = "bueler-router"
+description = "Client-side router for Bueler WASM applications"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
-oxide-core = { path = "../oxide-core" }
-oxide-dom = { path = "../oxide-dom" }
+bueler-core = { path = "../oxide-core" }
+bueler-dom = { path = "../oxide-dom" }
 wasm-bindgen = "0.2"
 js-sys = "0.3"
 

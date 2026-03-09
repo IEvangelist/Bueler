@@ -1,34 +1,34 @@
-/// Re-exports from `oxide-core` — reactive primitives.
-pub use oxide_core::{batch, create_effect, memo, provide_context, signal, untrack, use_context, Signal};
-pub use oxide_core::{set_hook, clear_hook, HookEvent};
-pub use oxide_core::{watch, on_mount, on_cleanup};
+/// Re-exports from `bueler-core` — reactive primitives.
+pub use bueler_core::{batch, create_effect, memo, provide_context, signal, untrack, use_context, Signal};
+pub use bueler_core::{set_hook, clear_hook, HookEvent};
+pub use bueler_core::{watch, on_mount, on_cleanup};
 
-/// Re-exports from `oxide-macros` — the `view!` macro.
-pub use oxide_macros::view;
+/// Re-exports from `bueler-macros` — the `view!` macro.
+pub use bueler_macros::view;
 
 /// DOM renderer utilities.
 pub mod dom {
-    pub use oxide_dom::*;
+    pub use bueler_dom::*;
 }
 
 /// Client-side router.
 pub mod router {
-    pub use oxide_router::*;
+    pub use bueler_router::*;
 }
 
 /// OpenTelemetry-compatible tracing.
 pub mod telemetry {
-    pub use oxide_telemetry::*;
+    pub use bueler_telemetry::*;
 }
 
 /// Resiliency patterns — error boundaries, retry, circuit breaker, timeout.
 pub mod resiliency {
-    pub use oxide_resiliency::*;
+    pub use bueler_resiliency::*;
 }
 
 /// Pre-built UI components — buttons, inputs, cards, modals, and more.
 pub mod components {
-    pub use oxide_components::*;
+    pub use bueler_components::*;
 }
 
 /// The Component trait — implement this for struct-based components.
@@ -36,7 +36,7 @@ pub mod components {
 /// ```ignore
 /// struct Counter { initial: i32 }
 ///
-/// impl oxide::Component for Counter {
+/// impl bueler::Component for Counter {
 ///     fn render(self) -> web_sys::Element {
 ///         let count = signal(self.initial);
 ///         view! { <div>{count}</div> }
@@ -49,10 +49,10 @@ pub trait Component {
     fn render(self) -> web_sys::Element;
 }
 
-/// Convenient glob import: `use oxide::prelude::*;`
+/// Convenient glob import: `use bueler::prelude::*;`
 pub mod prelude {
-    pub use oxide_core::{batch, create_effect, memo, provide_context, signal, untrack, use_context, Signal};
-    pub use oxide_dom::mount;
-    pub use oxide_macros::view;
+    pub use bueler_core::{batch, create_effect, memo, provide_context, signal, untrack, use_context, Signal};
+    pub use bueler_dom::mount;
+    pub use bueler_macros::view;
     pub use super::Component;
 }

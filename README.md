@@ -1,13 +1,13 @@
-# 🔥 Oxide
+# 🦀 Bueler
 
 **A Rust frontend framework that compiles to WebAssembly.**
 
 Write reactive browser apps entirely in Rust — no JavaScript. Fine-grained signals, direct DOM updates, and a modern `view!` macro with conditionals, loops, and two-way binding.
 
-**[Live Demo](https://ievangelist.github.io/Oxide/) · [Playground](https://ievangelist.github.io/Oxide/playground.html) · [Docs](https://ievangelist.github.io/Oxide/docs.html)**
+**[Live Demo](https://ievangelist.github.io/Bueler/) · [Playground](https://ievangelist.github.io/Bueler/playground.html) · [Docs](https://ievangelist.github.io/Bueler/docs.html)**
 
 ```rust
-use oxide::prelude::*;
+use bueler::prelude::*;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
@@ -18,7 +18,7 @@ pub fn main() {
         view! {
             <div>
                 <p>"Count: " {count}</p>
-                <button on:click={move |_: oxide::dom::Event| count += 1}>
+                <button on:click={move |_: bueler::dom::Event| count += 1}>
                     "Increment"
                 </button>
             </div>
@@ -34,38 +34,38 @@ pub fn main() {
 rustup target add wasm32-unknown-unknown
 cargo install wasm-pack
 
-# Install the Oxide CLI
-cargo install --git https://github.com/IEvangelist/Oxide oxide-cli
+# Install the Bueler CLI
+cargo install --git https://github.com/IEvangelist/Bueler bueler-cli
 
 # Create and run a project
-oxide new my-app
+bueler new my-app
 cd my-app
-oxide dev        # → http://localhost:8080 with live reload
+bueler dev        # → http://localhost:8080 with live reload
 ```
 
 ## CLI
 
 | Command | Description |
 |---|---|
-| `oxide new <name>` | Scaffold a new project with template, deps, and index.html |
-| `oxide dev` | Dev server with live reload + WASM debug info (DWARF) |
-| `oxide build` | Production build via wasm-pack, optimized with wasm-opt |
-| `oxide serve` | Serve the built site locally |
+| `bueler new <name>` | Scaffold a new project with template, deps, and index.html |
+| `bueler dev` | Dev server with live reload + WASM debug info (DWARF) |
+| `bueler build` | Production build via wasm-pack, optimized with wasm-opt |
+| `bueler serve` | Serve the built site locally |
 
-**Debugging:** `oxide dev` builds with DWARF debug info. Install Chrome's ["C/C++ DevTools Support (DWARF)"](https://chrome.google.com/webstore/detail/cc%2B%2B-devtools-support-dwa/pdcpmagijalfljmkmjngeonclgbbannb) extension to set breakpoints and step through Rust source in the browser.
+**Debugging:** `bueler dev` builds with DWARF debug info. Install Chrome's ["C/C++ DevTools Support (DWARF)"](https://chrome.google.com/webstore/detail/cc%2B%2B-devtools-support-dwa/pdcpmagijalfljmkmjngeonclgbbannb) extension to set breakpoints and step through Rust source in the browser.
 
 ## Architecture
 
 ```
-oxide/
+bueler/
 ├── crates/
-│   ├── oxide-core         # Signals, effects, batching, context
-│   ├── oxide-macros        # view! proc macro (if/for/bind/class)
-│   ├── oxide-dom           # DOM renderer + utilities (web-sys)
-│   ├── oxide-telemetry     # OpenTelemetry tracing
-│   ├── oxide-resiliency    # Error boundaries, retry, circuit breaker
-│   ├── oxide-cli           # CLI toolchain (new/dev/build/serve)
-│   └── oxide               # Facade — re-exports everything
+│   ├── bueler-core         # Signals, effects, batching, context
+│   ├── bueler-macros        # view! proc macro (if/for/bind/class)
+│   ├── bueler-dom           # DOM renderer + utilities (web-sys)
+│   ├── bueler-telemetry     # OpenTelemetry tracing
+│   ├── bueler-resiliency    # Error boundaries, retry, circuit breaker
+│   ├── bueler-cli           # CLI toolchain (new/dev/build/serve)
+│   └── bueler               # Facade — re-exports everything
 └── examples/
     ├── counter             # Minimal counter demo (30 KB)
     └── showcase            # 18-demo marketing site (219 KB)
@@ -102,7 +102,7 @@ view! {
         }}
 
         // Events
-        <button on:click={move |_: oxide::dom::Event| count += 1}>
+        <button on:click={move |_: bueler::dom::Event| count += 1}>
             "Click"
         </button>
 
@@ -140,7 +140,7 @@ batch(|| {                        // Coalesce updates
 Built-in observability with zero overhead when disabled:
 
 ```rust
-use oxide::telemetry;
+use bueler::telemetry;
 
 telemetry::init(telemetry::Config {
     service_name: "my-app",
@@ -158,7 +158,7 @@ let data = telemetry::traced_fetch("https://api.example.com/data").await?;
 Production-grade fault tolerance patterns:
 
 ```rust
-use oxide::resiliency::*;
+use bueler::resiliency::*;
 
 // Catch panics, render fallback UI
 let el = error_boundary(

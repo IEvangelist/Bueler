@@ -1,4 +1,4 @@
-use oxide::prelude::*;
+use bueler::prelude::*;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
@@ -8,9 +8,9 @@ pub fn main() {
 
         view! {
             <div class="container">
-                <h1>"Oxide Counter"</h1>
+                <h1>"Bueler Counter"</h1>
                 <p class="count">"Count: " {count}</p>
-                <button on:click={move |_: oxide::dom::Event| count += 1}>
+                <button on:click={move |_: bueler::dom::Event| count += 1}>
                     "Increment"
                 </button>
             </div>

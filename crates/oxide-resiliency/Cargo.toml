@@ -1,13 +1,13 @@
 [package]
-name = "oxide-resiliency"
-description = "Resiliency patterns for Oxide — error boundaries, retry, circuit breaker, timeout"
+name = "bueler-resiliency"
+description = "Resiliency patterns for Bueler — error boundaries, retry, circuit breaker, timeout"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
-oxide-core = { path = "../oxide-core" }
-oxide-dom = { path = "../oxide-dom" }
+bueler-core = { path = "../oxide-core" }
+bueler-dom = { path = "../oxide-dom" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

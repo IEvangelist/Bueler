@@ -1,10 +1,10 @@
-//! # oxide-router
+//! # bueler-router
 //!
-//! Client-side router for Oxide applications. Supports both hash-based
+//! Client-side router for Bueler applications. Supports both hash-based
 //! and history (pushState) routing modes.
 //!
 //! ```ignore
-//! use oxide_router::*;
+//! use bueler_router::*;
 //!
 //! let router = Router::new(RouterMode::Hash, &[
 //!     route("/",        || view! { <h1>"Home"</h1> }),
@@ -19,8 +19,8 @@
 //! mount("#app", || router.view());
 //! ```
 
-use oxide_core::{create_effect, signal, Signal};
-use oxide_dom::{create_element, set_attribute, append_text, append_node, add_event_listener, clear_children};
+use bueler_core::{create_effect, signal, Signal};
+use bueler_dom::{create_element, set_attribute, append_text, append_node, add_event_listener, clear_children};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -67,11 +67,11 @@ impl Router {
         let cp = current_path;
         let m = mode;
         if mode == RouterMode::Hash {
-            oxide_dom::on_window_event("hashchange", move |_| {
+            bueler_dom::on_window_event("hashchange", move |_| {
                 cp.set(current_path_fn(m));
             });
         } else {
-            oxide_dom::on_window_event("popstate", move |_| {
+            bueler_dom::on_window_event("popstate", move |_| {
                 cp.set(current_path_fn(m));
             });
         }
@@ -86,7 +86,7 @@ impl Router {
     /// matched routes should render.
     pub fn view(&self) -> web_sys::Element {
         let outlet = create_element("div");
-        set_attribute(&outlet, "data-oxide-router", "outlet");
+        set_attribute(&outlet, "data-bueler-router", "outlet");
 
         let outlet_ref = outlet.clone();
         let routes: Vec<(&'static str, fn() -> web_sys::Element)> =
@@ -176,8 +176,8 @@ pub fn use_route() -> Signal<String> {
     let path = signal(current_path(mode));
     let p = path;
     let m = mode;
-    oxide_dom::on_window_event("hashchange", move |_| { p.set(current_path_fn(m)); });
-    oxide_dom::on_window_event("popstate", move |_| { p.set(current_path_fn(m)); });
+    bueler_dom::on_window_event("hashchange", move |_| { p.set(current_path_fn(m)); });
+    bueler_dom::on_window_event("popstate", move |_| { p.set(current_path_fn(m)); });
     path
 }
 

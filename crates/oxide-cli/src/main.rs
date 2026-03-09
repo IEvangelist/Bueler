@@ -8,9 +8,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-/// 🔥 The Oxide web framework CLI
+/// 🔥 The Bueler web framework CLI
 #[derive(Parser)]
-#[command(name = "oxide", version, about, long_about = None)]
+#[command(name = "bueler", version, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -18,7 +18,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Create a new Oxide project
+    /// Create a new Bueler project
     New {
         /// Project name
         name: String,
@@ -53,7 +53,7 @@ fn main() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// oxide new
+// bueler new
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn cmd_new(name: &str) {
@@ -63,7 +63,7 @@ fn cmd_new(name: &str) {
         std::process::exit(1);
     }
 
-    println!("\n  🔥 Creating Oxide project: {}\n", name);
+    println!("\n  🔥 Creating Bueler project: {}\n", name);
 
     let crate_name = name.replace('-', "_");
     let src = root.join("src");
@@ -97,7 +97,7 @@ fn cmd_new(name: &str) {
     println!("  Project ready! Next steps:");
     println!();
     println!("    cd {}", name);
-    println!("    oxide dev");
+    println!("    bueler dev");
     println!();
 }
 
@@ -109,14 +109,14 @@ fn write_file(path: &Path, content: &str) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// oxide dev
+// bueler dev
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn cmd_dev(port: u16, release: bool) {
     check_wasm_pack();
 
     println!();
-    println!("  🔥 Oxide Dev Server");
+    println!("  🔥 Bueler Dev Server");
     println!();
 
     // Initial build
@@ -228,14 +228,14 @@ fn watch_and_rebuild(version: Arc<AtomicU64>, release: bool) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// oxide build
+// bueler build
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn cmd_build() {
     check_wasm_pack();
 
     println!();
-    println!("  🔥 Oxide Production Build");
+    println!("  🔥 Bueler Production Build");
     println!();
     println!("  ⚡ Building (release, optimized)...");
 
@@ -274,7 +274,7 @@ fn find_wasm_file(dir: &str) -> Option<PathBuf> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// oxide serve / HTTP server
+// bueler serve / HTTP server
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn cmd_serve(port: u16) {
@@ -306,7 +306,7 @@ fn serve(port: u16, version: Arc<AtomicU64>) {
             .and_then(|line| line.split_whitespace().nth(1))
             .unwrap_or("/");
 
-        if path == "/__oxide_reload" {
+        if path == "/__bueler_reload" {
             let v = version.load(Ordering::SeqCst);
             let body = v.to_string();
             let response = format!(
@@ -386,11 +386,11 @@ edition = "2026"
 crate-type = ["cdylib"]
 
 [dependencies]
-oxide = { git = "https://github.com/IEvangelist/Oxide" }
+bueler = { git = "https://github.com/IEvangelist/Bueler" }
 wasm-bindgen = "0.2"
 "#;
 
-const TEMPLATE_LIB: &str = "use oxide::prelude::*;\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn main() {\n    mount(\"#app\", || {\n        let mut count = signal(0);\n\n        view! {\n            <div class=\"app\">\n                <h1>\"My Oxide App\"</h1>\n                <p>\"Count: \" {count}</p>\n                <div class=\"buttons\">\n                    <button on:click={move |_: oxide::dom::Event| count -= 1}>\n                        \"-\"\n                    </button>\n                    <button on:click={move |_: oxide::dom::Event| count.set(0)}>\n                        \"Reset\"\n                    </button>\n                    <button on:click={move |_: oxide::dom::Event| count += 1}>\n                        \"+\"\n                    </button>\n                </div>\n            </div>\n        }\n    });\n}\n";
+const TEMPLATE_LIB: &str = "use bueler::prelude::*;\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn main() {\n    mount(\"#app\", || {\n        let mut count = signal(0);\n\n        view! {\n            <div class=\"app\">\n                <h1>\"My Bueler App\"</h1>\n                <p>\"Count: \" {count}</p>\n                <div class=\"buttons\">\n                    <button on:click={move |_: bueler::dom::Event| count -= 1}>\n                        \"-\"\n                    </button>\n                    <button on:click={move |_: bueler::dom::Event| count.set(0)}>\n                        \"Reset\"\n                    </button>\n                    <button on:click={move |_: bueler::dom::Event| count += 1}>\n                        \"+\"\n                    </button>\n                </div>\n            </div>\n        }\n    });\n}\n";
 
 const TEMPLATE_HTML: &str = r#"<!DOCTYPE html>
 <html lang="en">
@@ -432,4 +432,4 @@ const TEMPLATE_HTML: &str = r#"<!DOCTYPE html>
 
 const TEMPLATE_GITIGNORE: &str = "/target\n/pkg\n*.wasm\nCargo.lock\n";
 
-const RELOAD_SCRIPT: &str = r#"<script>(function(){let v="0";setInterval(async()=>{try{const r=await fetch("/__oxide_reload");const nv=await r.text();if(v!=="0"&&nv!==v)location.reload();v=nv}catch(e){}},500)})()</script>"#;
+const RELOAD_SCRIPT: &str = r#"<script>(function(){let v="0";setInterval(async()=>{try{const r=await fetch("/__bueler_reload");const nv=await r.text();if(v!=="0"&&nv!==v)location.reload();v=nv}catch(e){}},500)})()</script>"#;

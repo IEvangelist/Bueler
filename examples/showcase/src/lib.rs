@@ -1,10 +1,10 @@
-use oxide::prelude::*;
-use oxide::dom::*;
-use oxide::{Signal, memo};
-use oxide::telemetry;
-use oxide::resiliency;
-use oxide::router::{Router, RouterMode, route, navigate};
-use oxide::components::{self, Severity, AvatarSize, DrawerSide};
+use bueler::prelude::*;
+use bueler::dom::*;
+use bueler::{Signal, memo};
+use bueler::telemetry;
+use bueler::resiliency;
+use bueler::router::{Router, RouterMode, route, navigate};
+use bueler::components::{self, Severity, AvatarSize, DrawerSide};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
@@ -105,7 +105,7 @@ fn build_app_shell(router: Router) -> web_sys::Element {
     append_node(&logo_a, &logo_emoji);
     let logo_text = create_element("span");
     set_attribute(&logo_text, "class", "gradient-text");
-    append_text(&logo_text, "Oxide");
+    append_text(&logo_text, "Bueler");
     append_node(&logo_a, &logo_text);
     append_node(&logo, &logo_a);
     append_node(&header_container, &logo);
@@ -179,7 +179,7 @@ fn build_app_shell(router: Router) -> web_sys::Element {
 
     // GitHub link
     let gh_link = create_element("a");
-    set_attribute(&gh_link, "href", "https://github.com/IEvangelist/Oxide");
+    set_attribute(&gh_link, "href", "https://github.com/IEvangelist/Bueler");
     set_attribute(&gh_link, "target", "_blank");
     set_attribute(&gh_link, "rel", "noopener");
     set_attribute(&gh_link, "class", "gh-btn");
@@ -291,7 +291,7 @@ fn page_landing() -> web_sys::Element {
     append_node(&hero_code, &code_header);
 
     let pre = create_element("pre");
-    set_inner_html(&pre, r#"<span class="kw">use</span> oxide::prelude::*;
+    set_inner_html(&pre, r#"<span class="kw">use</span> bueler::prelude::*;
 
 <span class="kw">let</span> count = <span class="fn">signal</span>(<span class="num">0</span>);
 
@@ -314,7 +314,7 @@ fn page_landing() -> web_sys::Element {
     let fc = el("div", "container", &[]);
 
     let fl = el("div", "section-label fade-in", &[]);
-    append_text(&fl, "Why Oxide");
+    append_text(&fl, "Why Bueler");
     append_node(&fc, &fl);
 
     let ft = create_element("h2");
@@ -365,7 +365,7 @@ fn page_landing() -> web_sys::Element {
     append_text(&ct, "One CLI to rule them all.");
     append_node(&cc, &ct);
     let cs = el("p", "section-sub fade-in d2", &[]);
-    append_text(&cs, "From scaffold to production in three commands. The Oxide CLI handles the complexity so you can focus on building.");
+    append_text(&cs, "From scaffold to production in three commands. The Bueler CLI handles the complexity so you can focus on building.");
     append_node(&cc, &cs);
 
     // Install block
@@ -378,15 +378,15 @@ fn page_landing() -> web_sys::Element {
     append_node(&install_block, &install_label);
     let install_pre = create_element("pre");
     set_attribute(&install_pre, "style", "background: var(--bg); padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid var(--fg3); overflow-x: auto; font-size: 0.85rem;");
-    set_inner_html(&install_pre, r#"<span class="prompt">$</span> cargo install --git https://github.com/IEvangelist/Oxide oxide-cli"#);
+    set_inner_html(&install_pre, r#"<span class="prompt">$</span> cargo install --git https://github.com/IEvangelist/Bueler bueler-cli"#);
     append_node(&install_block, &install_pre);
     append_node(&cc, &install_block);
 
     let cli_grid = el("div", "cli-grid", &[]);
     let cli_cards: &[(&str, &str, &str)] = &[
-        ("oxide new my-app", "\u{2713} Created project my-app\n\u{2713} Added oxide dependencies\n\u{2713} Configured wasm32 target\n\u{2713} Generated index.html\n\n\u{2192} cd my-app && oxide dev", "d3"),
-        ("oxide dev", "\u{1f525} Oxide dev server v0.1.0\n  Compiling my-app...\n  Finished in 1.2s\n  Serving on http://localhost:3000\n  Live reload enabled\n  DWARF debug info \u{2713}", "d4"),
-        ("oxide build", "  Compiling my-app (release)...\n  Optimizing WASM...\n  Running wasm-opt -Oz\n  Finished in 3.8s\n\n  dist/app.wasm \u{2014} 30 KB gzipped", "d5"),
+        ("bueler new my-app", "\u{2713} Created project my-app\n\u{2713} Added bueler dependencies\n\u{2713} Configured wasm32 target\n\u{2713} Generated index.html\n\n\u{2192} cd my-app && bueler dev", "d3"),
+        ("bueler dev", "\u{1f525} Bueler dev server v0.1.0\n  Compiling my-app...\n  Finished in 1.2s\n  Serving on http://localhost:3000\n  Live reload enabled\n  DWARF debug info \u{2713}", "d4"),
+        ("bueler build", "  Compiling my-app (release)...\n  Optimizing WASM...\n  Running wasm-opt -Oz\n  Finished in 3.8s\n\n  dist/app.wasm \u{2014} 30 KB gzipped", "d5"),
     ];
     for &(cmd, output, delay) in cli_cards {
         let card = create_element("div");
@@ -416,7 +416,7 @@ fn page_landing() -> web_sys::Element {
     append_node(&cc, &cli_grid);
 
     let cli_note = el("div", "cli-note fade-in d6", &[]);
-    set_inner_html(&cli_note, r#"<strong>💡 Debug like a pro:</strong> <code>oxide dev</code> embeds DWARF debug info. Install Chrome's "C/C++ DevTools Support (DWARF)" extension to set breakpoints and step through your Rust source directly in the browser."#);
+    set_inner_html(&cli_note, r#"<strong>💡 Debug like a pro:</strong> <code>bueler dev</code> embeds DWARF debug info. Install Chrome's "C/C++ DevTools Support (DWARF)" extension to set breakpoints and step through your Rust source directly in the browser."#);
     append_node(&cc, &cli_note);
     append_node(&cli_section, &cc);
     append_node(&page, &cli_section);
@@ -496,7 +496,7 @@ fn page_landing() -> web_sys::Element {
     set_inner_html(&bt_h2, "Built for speed.<br>Measured to prove it.");
     append_node(&bc, &bt_h2);
     let bs = el("p", "section-sub fade-in d2", &[]);
-    append_text(&bs, "See how Oxide stacks up against the most popular web frameworks.");
+    append_text(&bs, "See how Bueler stacks up against the most popular web frameworks.");
     append_node(&bc, &bs);
 
     let bg = el("div", "bench-grid", &[]);
@@ -512,22 +512,22 @@ fn page_landing() -> web_sys::Element {
     let bar_chart = el("div", "bar-chart", &[]);
     let bars: &[(&str, &str, bool)] = &[
         ("Svelte", "3 KB", false), ("Solid", "7 KB", false),
-        ("Oxide", "15 KB", true), ("Leptos", "25 KB", false),
+        ("Bueler", "15 KB", true), ("Leptos", "25 KB", false),
         ("Vue", "33 KB", false), ("React", "42 KB", false),
         ("Yew", "50 KB", false),
     ];
     let widths = ["6%", "14%", "30%", "50%", "66%", "84%", "100%"];
-    for (i, &(name, size, is_oxide)) in bars.iter().enumerate() {
+    for (i, &(name, size, is_bueler)) in bars.iter().enumerate() {
         let row = el("div", "bar-row", &[]);
         let fw = el("div", "bar-framework", &[]);
-        if is_oxide {
+        if is_bueler {
             set_attribute(&fw, "style", "color:var(--accent);font-weight:700;");
         }
         append_text(&fw, name);
         append_node(&row, &fw);
         let track = el("div", "bar-track", &[]);
         let fill = create_element("div");
-        let fill_class = if is_oxide { "bar-fill oxide-bar" } else { "bar-fill" };
+        let fill_class = if is_bueler { "bar-fill bueler-bar" } else { "bar-fill" };
         set_attribute(&fill, "class", fill_class);
         set_attribute(&fill, "style", &format!("width:{}", widths[i]));
         let sz = create_element("span");
@@ -551,16 +551,16 @@ fn page_landing() -> web_sys::Element {
     let tw = el("div", "table-wrap", &[]);
     let table = create_element("table");
     set_attribute(&table, "class", "comparison-table");
-    set_inner_html(&table, r#"<thead><tr><th>Feature</th><th>React</th><th>Vue</th><th>Svelte</th><th>Solid</th><th>Leptos</th><th class="col-oxide">Oxide</th></tr></thead>
+    set_inner_html(&table, r#"<thead><tr><th>Feature</th><th>React</th><th>Vue</th><th>Svelte</th><th>Solid</th><th>Leptos</th><th class="col-bueler">Bueler</th></tr></thead>
 <tbody>
-<tr><td>Language</td><td>JS/TS</td><td>JS/TS</td><td>JS/TS</td><td>JS/TS</td><td>Rust</td><td class="col-oxide">Rust</td></tr>
-<tr><td>Reactivity</td><td>VDOM</td><td>Proxy</td><td>Compiler</td><td>Signals</td><td>Signals</td><td class="col-oxide">Signals</td></tr>
-<tr><td>Bundle Size</td><td>42 KB</td><td>33 KB</td><td>3 KB</td><td>7 KB</td><td>25 KB</td><td class="col-oxide">15 KB</td></tr>
-<tr><td>Type Safety</td><td>Optional</td><td>Optional</td><td>Optional</td><td>Optional</td><td>Native</td><td class="col-oxide">Native</td></tr>
-<tr><td>Memory Safety</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-yes">Yes</td><td class="col-oxide check-yes">Yes</td></tr>
-<tr><td>WASM Native</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-yes">Yes</td><td class="col-oxide check-yes">Yes</td></tr>
-<tr><td>Two-way Bind</td><td class="check-no">❌</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-no">❌</td><td class="check-yes">✅</td><td class="col-oxide check-yes">✅</td></tr>
-<tr><td>Cond. Render</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="col-oxide check-yes">✅</td></tr>
+<tr><td>Language</td><td>JS/TS</td><td>JS/TS</td><td>JS/TS</td><td>JS/TS</td><td>Rust</td><td class="col-bueler">Rust</td></tr>
+<tr><td>Reactivity</td><td>VDOM</td><td>Proxy</td><td>Compiler</td><td>Signals</td><td>Signals</td><td class="col-bueler">Signals</td></tr>
+<tr><td>Bundle Size</td><td>42 KB</td><td>33 KB</td><td>3 KB</td><td>7 KB</td><td>25 KB</td><td class="col-bueler">15 KB</td></tr>
+<tr><td>Type Safety</td><td>Optional</td><td>Optional</td><td>Optional</td><td>Optional</td><td>Native</td><td class="col-bueler">Native</td></tr>
+<tr><td>Memory Safety</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-yes">Yes</td><td class="col-bueler check-yes">Yes</td></tr>
+<tr><td>WASM Native</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-yes">Yes</td><td class="col-bueler check-yes">Yes</td></tr>
+<tr><td>Two-way Bind</td><td class="check-no">❌</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-no">❌</td><td class="check-yes">✅</td><td class="col-bueler check-yes">✅</td></tr>
+<tr><td>Cond. Render</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="col-bueler check-yes">✅</td></tr>
 </tbody>"#);
     append_node(&tw, &table);
     append_node(&table_div, &tw);
@@ -683,7 +683,7 @@ fn page_landing() -> web_sys::Element {
     set_attribute(&footer, "class", "site-footer");
     let footer_c = el("div", "container", &[]);
     let fb = el("div", "footer-brand", &[]);
-    append_text(&fb, "Built with \u{1f525} by the Oxide community");
+    append_text(&fb, "Built with \u{1f525} by the Bueler community");
     append_node(&footer_c, &fb);
 
     let fl_div = el("div", "footer-links", &[]);
@@ -698,7 +698,7 @@ fn page_landing() -> web_sys::Element {
     add_event_listener(&docs_a, "click", |e: Event| { e.prevent_default(); navigate("/docs"); });
     append_node(&fl_div, &docs_a);
     let gh_a = create_element("a");
-    set_attribute(&gh_a, "href", "https://github.com/IEvangelist/Oxide");
+    set_attribute(&gh_a, "href", "https://github.com/IEvangelist/Bueler");
     set_attribute(&gh_a, "target", "_blank");
     set_attribute(&gh_a, "rel", "noopener");
     append_text(&gh_a, "GitHub");
@@ -722,7 +722,7 @@ fn page_playground_home() -> web_sys::Element {
     let page = el("div", "pg-page", &[]);
 
     let hero = el("div", "home-hero", &[]);
-    let h1 = text_el("h1", "\u{1f525} Oxide Playground");
+    let h1 = text_el("h1", "\u{1f525} Bueler Playground");
     append_node(&hero, &h1);
     let sub = text_el("p", "Explore interactive demos and component playgrounds — all running in Rust compiled to WebAssembly.");
     append_node(&hero, &sub);
@@ -1427,7 +1427,7 @@ fn pg_modal() -> web_sys::Element {
 
     let modal_body = text_el("p", "This modal is rendered and controlled entirely by Rust signals compiled to WASM.");
     let modal_el = components::modal(is_open)
-        .title("Oxide Modal")
+        .title("Bueler Modal")
         .body(modal_body)
         .build();
     append_node(&preview, &modal_el);
@@ -1435,7 +1435,7 @@ fn pg_modal() -> web_sys::Element {
     let code = create_element("pre");
     set_attribute(&code, "class", "pg-code");
     code.set_text_content(Some(
-        "let is_open = signal(false);\n\nmodal(is_open)\n    .title(\"Oxide Modal\")\n    .body(content)\n    .build()"
+        "let is_open = signal(false);\n\nmodal(is_open)\n    .title(\"Bueler Modal\")\n    .body(content)\n    .build()"
     ));
     append_node(&page, &code);
 
@@ -2016,7 +2016,7 @@ fn pg_accordion() -> web_sys::Element {
     set_style(&preview, "flex-direction", "column");
     set_style(&preview, "align-items", "stretch");
     append_node(&preview, &components::accordion(&[
-        ("Getting Started", || text_el("div", "Install Oxide and create your first WASM app in minutes.")),
+        ("Getting Started", || text_el("div", "Install Bueler and create your first WASM app in minutes.")),
         ("Components", || text_el("div", "Explore 40+ pre-built components with full API docs.")),
         ("Deployment", || text_el("div", "Deploy to any static host — just HTML, CSS, and WASM.")),
     ]));
@@ -2099,11 +2099,11 @@ fn pg_dropdown() -> web_sys::Element {
     });
     append_node(&controls, &display);
 
-    append_node(&preview, &components::dropdown("Choose framework", &["Oxide", "React", "Vue", "Svelte"], selected));
+    append_node(&preview, &components::dropdown("Choose framework", &["Bueler", "React", "Vue", "Svelte"], selected));
 
     let code = create_element("pre");
     set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let sel = signal(String::new());\ndropdown(\"Choose framework\", &[\"Oxide\", \"React\", \"Vue\"], sel)"));
+    code.set_text_content(Some("let sel = signal(String::new());\ndropdown(\"Choose framework\", &[\"Bueler\", \"React\", \"Vue\"], sel)"));
     append_node(&page, &code);
 
     append_node(&page, &api_table(&[
@@ -2292,11 +2292,11 @@ fn pg_rating() -> web_sys::Element {
 fn pg_copy_button() -> web_sys::Element {
     let (page, preview, _, _) = pg_shell("Copy Button", "Button that copies text to the clipboard.");
 
-    append_node(&preview, &components::copy_button("Hello from Oxide!"));
+    append_node(&preview, &components::copy_button("Hello from Bueler!"));
 
     let code = create_element("pre");
     set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("copy_button(\"Hello from Oxide!\")"));
+    code.set_text_content(Some("copy_button(\"Hello from Bueler!\")"));
     append_node(&page, &code);
 
     append_node(&page, &api_table(&[
@@ -2548,7 +2548,7 @@ fn page_forms() -> web_sys::Element {
     let h2 = text_el("h2", "Form Patterns");
     append_node(&page, &h2);
     let desc = el("p", "pg-desc", &[]);
-    append_text(&desc, "Composing Oxide components into real-world forms.");
+    append_text(&desc, "Composing Bueler components into real-world forms.");
     append_node(&page, &desc);
 
     // ── Login Form ──
@@ -2691,9 +2691,9 @@ fn page_composition() -> web_sys::Element {
     append_node(&table_preview, &components::data_table(
         &["ID", "Name", "Email", "Role"],
         &[
-            vec!["1".into(), "Alice".into(), "alice@oxide.dev".into(), "Admin".into()],
-            vec!["2".into(), "Bob".into(), "bob@oxide.dev".into(), "Editor".into()],
-            vec!["3".into(), "Carol".into(), "carol@oxide.dev".into(), "Viewer".into()],
+            vec!["1".into(), "Alice".into(), "alice@bueler.dev".into(), "Admin".into()],
+            vec!["2".into(), "Bob".into(), "bob@bueler.dev".into(), "Editor".into()],
+            vec!["3".into(), "Carol".into(), "carol@bueler.dev".into(), "Viewer".into()],
         ],
     ));
     append_node(&table_preview, &components::pagination(total_pg, curr_pg));
@@ -2737,7 +2737,7 @@ fn tutorial_login() -> web_sys::Element {
     let h2 = text_el("h2", "Tutorial: Build a Login Form");
     append_node(&page, &h2);
     let desc = el("p", "pg-desc", &[]);
-    append_text(&desc, "Step-by-step guide to building a login form with Oxide components.");
+    append_text(&desc, "Step-by-step guide to building a login form with Bueler components.");
     append_node(&page, &desc);
 
     // Step 1
@@ -2980,12 +2980,12 @@ fn demo_temperature() -> web_sys::Element {
 
 fn demo_todo() -> web_sys::Element {
     let todos: Signal<Vec<(String, bool)>> = signal({
-        if let Some(saved) = local_storage_get("oxide-todos") {
+        if let Some(saved) = local_storage_get("bueler-todos") {
             parse_todos(&saved)
         } else {
             vec![
                 ("Learn Rust".into(), true),
-                ("Build with Oxide".into(), false),
+                ("Build with Bueler".into(), false),
                 ("Deploy to WASM".into(), false),
             ]
         }
@@ -3069,7 +3069,7 @@ fn demo_todo() -> web_sys::Element {
     // Persist on change
     create_effect(move || {
         let items = todos.get();
-        local_storage_set("oxide-todos", &serialize_todos(&items));
+        local_storage_set("bueler-todos", &serialize_todos(&items));
     });
 
     // Count display
@@ -3427,7 +3427,7 @@ fn page_docs() -> web_sys::Element {
     // Title
     append_node(&page, &text_el("h2", "API Reference"));
     let desc = el("p", "pg-desc", &[]);
-    append_text(&desc, "Comprehensive reference for every API in the Oxide framework.");
+    append_text(&desc, "Comprehensive reference for every API in the Bueler framework.");
     append_node(&page, &desc);
 
     // ── Table of contents ────────────────────────────────────────────────
@@ -3465,16 +3465,16 @@ fn page_docs() -> web_sys::Element {
     let h = text_el("h3", "Quick Start");
     set_attribute(&h, "id", "sec-quickstart");
     append_node(&sec, &h);
-    append_node(&sec, &text_el("p", "Install the Oxide CLI globally with cargo:"));
-    append_node(&sec, &components::code_block("cargo install oxide-cli"));
+    append_node(&sec, &text_el("p", "Install the Bueler CLI globally with cargo:"));
+    append_node(&sec, &components::code_block("cargo install bueler-cli"));
     append_node(&sec, &text_el("p", "Create a new project:"));
-    append_node(&sec, &components::code_block("oxide new my-app\ncd my-app"));
+    append_node(&sec, &components::code_block("bueler new my-app\ncd my-app"));
     append_node(&sec, &text_el("p", "Start the dev server with hot-reload:"));
-    append_node(&sec, &components::code_block("oxide dev"));
+    append_node(&sec, &components::code_block("bueler dev"));
     append_node(&sec, &text_el("p", "Build for production:"));
-    append_node(&sec, &components::code_block("oxide build --release"));
+    append_node(&sec, &components::code_block("bueler build --release"));
     append_node(&sec, &text_el("p", "Serve the optimised output locally:"));
-    append_node(&sec, &components::code_block("oxide serve"));
+    append_node(&sec, &components::code_block("bueler serve"));
     append_node(&page, &sec);
     append_node(&page, &components::divider());
 
@@ -3483,12 +3483,12 @@ fn page_docs() -> web_sys::Element {
     let h = text_el("h3", "CLI");
     set_attribute(&h, "id", "sec-cli");
     append_node(&sec, &h);
-    append_node(&sec, &text_el("p", "The oxide CLI provides project scaffolding, dev server, build, and preview commands."));
+    append_node(&sec, &text_el("p", "The bueler CLI provides project scaffolding, dev server, build, and preview commands."));
     append_node(&sec, &components::code_block(
-        "oxide new <name>   # Scaffold a new Oxide project\n\
-         oxide dev          # Start dev server with hot-reload\n\
-         oxide build        # Compile WASM + bundle assets\n\
-         oxide serve        # Preview the production build locally"
+        "bueler new <name>   # Scaffold a new Bueler project\n\
+         bueler dev          # Start dev server with hot-reload\n\
+         bueler build        # Compile WASM + bundle assets\n\
+         bueler serve        # Preview the production build locally"
     ));
     append_node(&page, &sec);
     append_node(&page, &components::divider());
@@ -3498,7 +3498,7 @@ fn page_docs() -> web_sys::Element {
     let h = text_el("h3", "Core Reactivity");
     set_attribute(&h, "id", "sec-reactivity");
     append_node(&sec, &h);
-    append_node(&sec, &text_el("p", "Signals are the foundation of Oxide\u{2019}s reactivity system."));
+    append_node(&sec, &text_el("p", "Signals are the foundation of Bueler\u{2019}s reactivity system."));
     append_node(&sec, &components::code_block(
         "// Create a signal with an initial value\n\
          let count = signal(0);\n\
@@ -3522,7 +3522,7 @@ fn page_docs() -> web_sys::Element {
     append_node(&sec, &components::code_block(
         "batch(|| {\n\
          \x20   count.set(1);\n\
-         \x20   name.set(\"Oxide\".into());\n\
+         \x20   name.set(\"Bueler\".into());\n\
          });\n\
          \n\
          let snapshot = untrack(|| count.get());"
@@ -3642,8 +3642,8 @@ fn page_docs() -> web_sys::Element {
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Dynamically update the document title and meta tags:"));
     append_node(&sec, &components::code_block(
-        "set_title(\"My Page | Oxide\");\n\
-         set_meta(\"description\", \"Built with Oxide.\");"
+        "set_title(\"My Page | Bueler\");\n\
+         set_meta(\"description\", \"Built with Bueler.\");"
     ));
     append_node(&page, &sec);
     append_node(&page, &components::divider());
@@ -3723,7 +3723,7 @@ fn page_docs() -> web_sys::Element {
     let h = text_el("h3", "Components");
     set_attribute(&h, "id", "sec-components");
     append_node(&sec, &h);
-    append_node(&sec, &text_el("p", "Oxide ships 48 ready-made components. Explore each in the Components section."));
+    append_node(&sec, &text_el("p", "Bueler ships 48 ready-made components. Explore each in the Components section."));
     let comp_list = [
         "button \u{2014} Primary, secondary, outline, ghost, danger, and icon buttons",
         "input \u{2014} Text input with label, placeholder, and validation",
@@ -3789,9 +3789,9 @@ fn page_docs() -> web_sys::Element {
     let h = text_el("h3", "Debugging");
     set_attribute(&h, "id", "sec-debugging");
     append_node(&sec, &h);
-    append_node(&sec, &text_el("p", "Use oxide dev for DWARF debug info and source maps:"));
+    append_node(&sec, &text_el("p", "Use bueler dev for DWARF debug info and source maps:"));
     append_node(&sec, &components::code_block(
-        "oxide dev   # builds with debug symbols"
+        "bueler dev   # builds with debug symbols"
     ));
     append_node(&sec, &text_el("p", "Install the C/C++ DWARF Chrome extension to set breakpoints directly in Rust source from DevTools."));
     append_node(&sec, &components::code_block(
@@ -3834,7 +3834,7 @@ fn demo_theme() -> web_sys::Element {
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn demo_notes() -> web_sys::Element {
-    let saved = local_storage_get("oxide-notes")
+    let saved = local_storage_get("bueler-notes")
         .unwrap_or_else(|| "Write your notes here...\n\nThey persist across page reloads via localStorage!".into());
     let text = signal(saved);
     let status = signal("Saved ✓".to_string());
@@ -3854,7 +3854,7 @@ fn demo_notes() -> web_sys::Element {
     add_event_listener(&ta, "input", move |e| {
         let v = event_target_value(&e);
         t.set(v.clone());
-        local_storage_set("oxide-notes", &v);
+        local_storage_set("bueler-notes", &v);
         st.set("Saved ✓".into());
     });
     append_node(&content, &ta);
@@ -4023,7 +4023,7 @@ fn demo_modal() -> web_sys::Element {
                     if el.class_list().contains("overlay") { open.set(false); }
                 }}>
                 <div class="modal">
-                    <h3>"🔥 Oxide Modal"</h3>
+                    <h3>"🔥 Bueler Modal"</h3>
                     <p>"This modal is rendered and controlled entirely by Rust signals compiled to WASM. No JavaScript!"</p>
                     <button on:click={move |_: Event| { open.set(false); }}>"Close"</button>
                 </div>
@@ -4045,7 +4045,7 @@ fn demo_dnd() -> web_sys::Element {
     let pool_label = el("div", "dnd-label", &[]);
     append_text(&pool_label, "DRAG FROM HERE");
     append_node(&pool, &pool_label);
-    for item in &["Rust 🦀", "WASM ⚡", "Oxide 🔥", "Signals 📡", "Macros 🏗️"] {
+    for item in &["Rust 🦀", "WASM ⚡", "Bueler 🔥", "Signals 📡", "Macros 🏗️"] {
         let chip = el("div", "dnd-chip", &[]);
         set_attribute(&chip, "draggable", "true");
         append_text(&chip, item);
@@ -4104,12 +4104,12 @@ fn demo_clipboard() -> web_sys::Element {
     view! {
         <div class="col">
             <div class="row">
-                <div class="clip-text">"🔥 Oxide — Rust frontend framework compiling to WASM"</div>
+                <div class="clip-text">"🔥 Bueler — Rust frontend framework compiling to WASM"</div>
                 <button on:click={move |_: Event| {
                     let window = web_sys::window().unwrap();
                     let nav = window.navigator();
                     let clipboard = nav.clipboard();
-                    let promise = clipboard.write_text("🔥 Oxide — Rust frontend framework compiling to WASM");
+                    let promise = clipboard.write_text("🔥 Bueler — Rust frontend framework compiling to WASM");
                     wasm_bindgen_futures::spawn_local(async move {
                         let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
                         copied.set(true);
