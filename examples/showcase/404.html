@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Redirecting — Oxide</title>
+    <script>
+        // GitHub Pages SPA redirect: convert /Oxide/any/path → /Oxide/#/any/path
+        var base = '/Oxide';
+        var path = location.pathname;
+        if (path.startsWith(base)) {
+            path = path.slice(base.length);
+        }
+        if (path === '' || path === '/') {
+            path = '/';
+        }
+        location.replace(base + '/#' + path + location.search);
+    </script>
+</head>
+<body></body>
+</html>

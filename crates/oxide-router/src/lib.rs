@@ -126,31 +126,24 @@ impl Router {
     }
 }
 
-/// Navigate to a path programmatically.
+/// Navigate to a path programmatically. Always uses hash-based routing
+/// to ensure compatibility with static hosting (GitHub Pages, S3, etc.).
 pub fn navigate(path: &str) {
     let window = web_sys::window().unwrap();
-    // Detect mode from presence of hash
-    let loc = window.location();
-    let current_hash = loc.hash().unwrap_or_default();
-
-    if current_hash.starts_with('#') || path.starts_with('#') {
-        // Hash mode
-        let hash_path = if path.starts_with('#') { path.to_string() } else { format!("#{}", path) };
-        loc.set_hash(&hash_path).ok();
+    let hash = if path.starts_with('#') {
+        path.to_string()
     } else {
-        // History mode
-        let history = window.history().unwrap();
-        history.push_state_with_url(&JsValue::NULL, "", Some(path)).ok();
-        // Dispatch popstate to notify router
-        let event = web_sys::PopStateEvent::new("popstate").unwrap();
-        window.dispatch_event(&event).ok();
-    }
+        format!("#{}", path)
+    };
+    window.location().set_hash(&hash).ok();
 }
 
 /// Create a `<a>` link element that uses client-side navigation.
+/// The `href` is set to `#/path` so right-click → open-in-new-tab works.
 pub fn link(href: &str, text: &str) -> web_sys::Element {
     let a = create_element("a");
-    set_attribute(&a, "href", href);
+    let hash_href = if href.starts_with('#') { href.to_string() } else { format!("#{}", href) };
+    set_attribute(&a, "href", &hash_href);
     append_text(&a, text);
     let h = href.to_string();
     add_event_listener(&a, "click", move |e| {

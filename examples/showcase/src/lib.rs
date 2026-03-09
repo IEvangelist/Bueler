@@ -146,10 +146,12 @@ fn build_app_shell(router: Router) -> web_sys::Element {
     let mut nav_links: Vec<(web_sys::Element, String)> = Vec::new();
     for &(label, path) in nav_items {
         let a = create_element("a");
+        set_attribute(&a, "href", &format!("#{}", path));
         append_text(&a, label);
         let p = path.to_string();
         let no = nav_open;
-        add_event_listener(&a, "click", move |_| {
+        add_event_listener(&a, "click", move |e: Event| {
+            e.prevent_default();
             navigate(&p);
             no.set(false);
         });

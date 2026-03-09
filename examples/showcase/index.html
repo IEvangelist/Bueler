@@ -6,6 +6,9 @@
     <title>Oxide — Rust Web Framework</title>
     <meta name="description" content="Build web apps in Rust. Fine-grained reactivity, zero JavaScript, direct DOM manipulation. Compiles to WebAssembly." />
 
+    <!-- Clean up /index.html from URL -->
+    <script>if(location.pathname.endsWith('/index.html')){location.replace(location.pathname.replace('/index.html','/')+location.hash)}</script>
+
     <!-- Favicon (inline SVG — no external file) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
 
