@@ -268,14 +268,16 @@ fn page_landing() -> web_sys::Element {
     let hero_buttons = el("div", "hero-buttons fade-in d3", &[]);
     let btn_get_started = create_element("a");
     set_attribute(&btn_get_started, "class", "hero-btn-primary");
+    set_attribute(&btn_get_started, "href", "#/playground");
     append_text(&btn_get_started, "Get Started \u{2192}");
-    add_event_listener(&btn_get_started, "click", |_| { navigate("/playground"); });
+    add_event_listener(&btn_get_started, "click", |e: Event| { e.prevent_default(); navigate("/playground"); });
     append_node(&hero_buttons, &btn_get_started);
 
     let btn_components = create_element("a");
     set_attribute(&btn_components, "class", "hero-btn-outline");
+    set_attribute(&btn_components, "href", "#/components");
     append_text(&btn_components, "See Components \u{2193}");
-    add_event_listener(&btn_components, "click", |_| { navigate("/components"); });
+    add_event_listener(&btn_components, "click", |e: Event| { e.prevent_default(); navigate("/components"); });
     append_node(&hero_buttons, &btn_components);
     append_node(&hero_text, &hero_buttons);
     append_node(&hero_container, &hero_text);
@@ -691,8 +693,9 @@ fn page_landing() -> web_sys::Element {
 
     let fl_div = el("div", "footer-links", &[]);
     let pg_link = create_element("a");
+    set_attribute(&pg_link, "href", "#/playground");
     append_text(&pg_link, "Playground");
-    add_event_listener(&pg_link, "click", |_| { navigate("/playground"); });
+    add_event_listener(&pg_link, "click", |e: Event| { e.prevent_default(); navigate("/playground"); });
     append_node(&fl_div, &pg_link);
     let docs_a = create_element("a");
     set_attribute(&docs_a, "href", "docs.html");
@@ -905,8 +908,9 @@ fn pg_shell(title: &str, description: &str) -> (web_sys::Element, web_sys::Eleme
 
     // Back link
     let back = el("a", "pg-back", &[]);
+    set_attribute(&back, "href", "#/components");
     append_text(&back, "\u{2190} Components");
-    add_event_listener(&back, "click", |_| { navigate("/components"); });
+    add_event_listener(&back, "click", |e: Event| { e.prevent_default(); navigate("/components"); });
     append_node(&page, &back);
 
     let h2 = text_el("h2", title);
