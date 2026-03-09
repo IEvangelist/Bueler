@@ -39,7 +39,7 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Run tests
-        run: cargo test -p oxide-core
+        run: cargo test -p bueler-core
 
       - name: Build showcase
         run: cd examples/showcase && wasm-pack build --target web --release
