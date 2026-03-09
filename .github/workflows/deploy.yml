@@ -48,6 +48,7 @@ jobs:
         run: |
           mkdir -p _site
           cp examples/showcase/*.html _site/
+          cp examples/showcase/*.svg _site/
           cp -r examples/showcase/pkg _site/pkg
 
       - name: Upload Pages artifact

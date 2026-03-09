@@ -99,10 +99,11 @@ fn build_app_shell(router: Router) -> web_sys::Element {
         navigate("/");
     });
     set_attribute(&logo_a_ref, "href", "#/");
-    let logo_emoji = create_element("span");
-    set_attribute(&logo_emoji, "class", "logo-emoji");
-    append_text(&logo_emoji, "\u{1f525}");
-    append_node(&logo_a, &logo_emoji);
+    let logo_img = create_element("img");
+    set_attribute(&logo_img, "src", "icon.svg");
+    set_attribute(&logo_img, "alt", "Bueler");
+    set_attribute(&logo_img, "class", "logo-icon");
+    append_node(&logo_a, &logo_img);
     let logo_text = create_element("span");
     set_attribute(&logo_text, "class", "gradient-text");
     append_text(&logo_text, "Bueler");
