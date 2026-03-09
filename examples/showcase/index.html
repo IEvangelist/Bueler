@@ -49,28 +49,29 @@
         .orb-2 { width: 400px; height: 400px; background: var(--accent2); top: 200px; right: -150px; animation-delay: -7s; }
         .orb-3 { width: 350px; height: 350px; background: var(--purple); bottom: -50px; left: 30%; animation-delay: -13s; }
 
-        /* ═══════ HEADER / NAV ═══════ */
-        .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(10,10,10,0.8); backdrop-filter: blur(16px) saturate(180%); border-bottom: 1px solid rgba(255,255,255,0.06); }
-        .site-header .container { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+        /* ═══════ APP SHELL ═══════ */
+        .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+        .app-header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(10,10,10,0.85); backdrop-filter: blur(16px) saturate(180%); border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .app-header .container { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+        .app-nav { display: flex; align-items: center; gap: 1.5rem; }
+        .app-nav a { color: var(--fg2); font-size: 0.85rem; font-weight: 500; transition: color 0.2s; cursor: pointer; }
+        .app-nav a:hover { color: var(--fg); text-decoration: none; }
+        .app-nav a.active { color: var(--accent); }
+        .app-content { flex: 1; padding-top: 80px; padding-bottom: 3rem; }
         .logo { font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 0.4rem; }
         .logo a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; }
         .logo-emoji { font-size: 1.4rem; -webkit-text-fill-color: initial; }
-        .header-nav { display: flex; align-items: center; gap: 1.5rem; }
-        .header-nav a { color: var(--fg2); font-size: 0.85rem; font-weight: 500; transition: color 0.2s; }
-        .header-nav a:hover { color: var(--fg); text-decoration: none; }
-        .header-nav a.active { color: var(--accent); }
         .gh-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 1rem; border-radius: 6px; border: 1px solid var(--fg3); color: var(--fg) !important; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; }
         .gh-btn:hover { border-color: var(--accent); color: var(--accent) !important; text-decoration: none; }
         .gh-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
         /* Hamburger menu */
-        .nav-toggle-cb { display: none; }
-        .nav-toggle { display: none; cursor: pointer; flex-direction: column; gap: 4px; z-index: 101; }
+        .nav-toggle { display: none; cursor: pointer; flex-direction: column; gap: 4px; z-index: 101; background: none; border: none; padding: 4px; }
         .nav-toggle span { display: block; width: 20px; height: 2px; background: var(--fg); transition: all 0.3s; }
 
-        /* ═══════ HERO ═══════ */
-        .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding-top: 80px; overflow: hidden; }
-        .hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; width: 100%; }
+        /* ═══════ HERO (landing page) ═══════ */
+        .landing .hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding-top: 80px; overflow: hidden; }
+        .landing .hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; width: 100%; }
         .hero-text h1 { font-size: clamp(2rem, 6vw, 4rem); font-weight: 900; line-height: 1.08; letter-spacing: -0.03em; margin-bottom: 1.25rem; }
         .hero-text h1 .rust-word { background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--purple) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .hero-text p { color: var(--fg2); font-size: 1.15rem; line-height: 1.7; margin-bottom: 2rem; max-width: 480px; }
@@ -157,10 +158,18 @@
         .live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse-dot 2s infinite; }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .demo-live-panel > div { flex: 1; }
-        .see-all { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 2rem; padding: 0.75rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 600; border: 1px solid var(--fg3); color: var(--fg); transition: all 0.2s; text-decoration: none; }
+        .see-all { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 2rem; padding: 0.75rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 600; border: 1px solid var(--fg3); color: var(--fg); transition: all 0.2s; text-decoration: none; cursor: pointer; }
         .see-all:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
 
-        /* ═══════ DEMO COMPONENT STYLES ═══════ */
+        /* ═══════ FOOTER ═══════ */
+        .site-footer { padding: 4rem 0 3rem; border-top: 1px solid rgba(255,255,255,0.04); text-align: center; }
+        .footer-brand { font-size: 1rem; color: var(--fg2); margin-bottom: 1rem; }
+        .footer-links { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; }
+        .footer-links a { color: var(--fg3); font-size: 0.85rem; transition: color 0.2s; cursor: pointer; }
+        .footer-links a:hover { color: var(--accent); text-decoration: none; }
+        .footer-tagline { color: var(--fg3); font-size: 0.8rem; font-style: italic; }
+
+        /* ═══════ SHARED COMPONENT STYLES ═══════ */
         button, .btn { padding: 0.45rem 1rem; font-size: 0.85rem; border: 1px solid var(--fg3); border-radius: 6px; background: var(--bg3); color: var(--fg); cursor: pointer; transition: all 0.15s; font-family: var(--font); }
         button:hover, .btn:hover { border-color: var(--accent); color: var(--accent); }
         button:active { transform: scale(0.97); }
@@ -169,13 +178,63 @@
         .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.75rem; }
         .btn-danger { border-color: var(--accent2); color: var(--accent2); }
         .btn-danger:hover { background: var(--accent2); color: white; }
-        input[type="text"], input[type="number"], input[type="url"], textarea, select { background: var(--bg); border: 1px solid var(--fg3); border-radius: 6px; padding: 0.45rem 0.7rem; color: var(--fg); font-family: var(--font); font-size: 0.85rem; outline: none; transition: border-color 0.15s; }
+        input[type="text"], input[type="number"], input[type="url"], input[type="email"], input[type="password"], textarea, select { background: var(--bg); border: 1px solid var(--fg3); border-radius: 6px; padding: 0.45rem 0.7rem; color: var(--fg); font-family: var(--font); font-size: 0.85rem; outline: none; transition: border-color 0.15s; }
         input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+        textarea { resize: vertical; }
+        input[type="range"] { width: 100%; accent-color: var(--accent); }
+        input[type="color"] { width: 50px; height: 32px; border: 1px solid var(--fg3); border-radius: 6px; cursor: pointer; }
         input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; }
         .row { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+        .col { display: flex; flex-direction: column; gap: 0.5rem; }
         .big-num { font-size: 3rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
         .mono { font-family: var(--mono); }
+
+        /* ═══════ PLAYGROUND PAGE LAYOUT ═══════ */
+        .pg-page { max-width: var(--max-w); margin: 0 auto; padding: 0 2rem; }
+        .pg-page h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .pg-desc { color: var(--fg2); font-size: 1rem; margin-bottom: 1.5rem; max-width: 600px; }
+        .pg-back { display: inline-block; color: var(--fg2); font-size: 0.85rem; margin-bottom: 1rem; cursor: pointer; transition: color 0.2s; }
+        .pg-back:hover { color: var(--accent); text-decoration: none; }
+        .pg-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .pg-preview { padding: 2rem; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; min-height: 150px; }
+        .pg-controls { display: flex; flex-direction: column; gap: 1rem; }
+        .pg-code { background: #0d1117; border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 1.25rem; font-size: 0.82rem; line-height: 1.6; color: #c9d1d9; overflow-x: auto; }
+        .pg-api { margin-top: 2rem; overflow-x: auto; }
+        .pg-api h3 { font-size: 1rem; margin-bottom: 0.75rem; color: var(--fg); }
+        .api-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .api-table th { text-align: left; padding: 0.5rem 0.75rem; background: var(--bg3); color: var(--fg2); font-weight: 600; border-bottom: 1px solid #333; }
+        .api-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--fg2); }
+        .api-table td:first-child code { color: var(--accent); font-size: 0.8rem; }
+        .api-table td:last-child { color: var(--fg); }
+        .api-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        /* ═══════ COMPONENT CATALOG ═══════ */
+        .catalog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .catalog-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 1.25rem; cursor: pointer; transition: all 0.25s; }
+        .catalog-card:hover { border-color: rgba(249,115,22,0.3); transform: translateY(-3px); box-shadow: 0 4px 20px rgba(249,115,22,0.08); }
+        .catalog-card .cc-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
+        .catalog-card .cc-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .catalog-card .cc-desc { font-size: 0.8rem; color: var(--fg2); line-height: 1.5; }
+
+        /* ═══════ DEMOS PAGE ═══════ */
+        .demo-section { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .demo-section h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+        /* ═══════ HOME PAGE (playground home) ═══════ */
+        .home-hero { text-align: center; padding: 4rem 0 3rem; }
+        .home-hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 900; margin-bottom: 0.75rem; }
+        .home-hero p { color: var(--fg2); font-size: 1.1rem; max-width: 600px; margin: 0 auto 2rem; }
+        .home-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 700px; margin: 0 auto; }
+        .home-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 2rem; cursor: pointer; transition: all 0.25s; text-align: left; }
+        .home-card:hover { border-color: rgba(249,115,22,0.3); transform: translateY(-2px); }
+        .home-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .home-card p { color: var(--fg2); font-size: 0.9rem; }
+
+        /* ═══════ DEMO-SPECIFIC CSS ═══════ */
         .counter-btns button { min-width: 60px; font-size: 1.2rem; }
+        .temp-row { display: flex; align-items: center; gap: 1rem; }
+        .temp-row label { font-size: 0.8rem; color: var(--fg2); min-width: 70px; }
+        .temp-row input { width: 120px; }
         .todo-input-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
         .todo-input-row input { flex: 1; }
         .todo-list { list-style: none; }
@@ -185,18 +244,71 @@
         .todo-filters { display: flex; gap: 0.3rem; margin-bottom: 0.7rem; }
         .todo-filters button.active { border-color: var(--accent); color: var(--accent); }
         .todo-count { font-size: 0.8rem; color: var(--fg2); margin-top: 0.5rem; }
+        .stopwatch-time { font-size: 3.5rem; font-family: var(--mono); text-align: center; font-variant-numeric: tabular-nums; }
+        .stopwatch-btns { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-field label { display: block; font-size: 0.75rem; color: var(--fg2); margin-bottom: 0.3rem; }
+        .form-field input, .form-field select, .form-field textarea { width: 100%; }
+        .form-output { margin-top: 1rem; padding: 0.7rem; background: var(--bg); border-radius: 6px; font-size: 0.8rem; }
+        .form-output code { color: var(--accent); }
+        .fetch-result { max-height: 250px; overflow-y: auto; font-size: 0.8rem; font-family: var(--mono); background: var(--bg); padding: 0.7rem; border-radius: 6px; white-space: pre-wrap; word-break: break-all; }
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--fg3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .mouse-area { position: relative; height: 200px; background: var(--bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--fg3); cursor: crosshair; }
+        .mouse-dot { position: absolute; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; transform: translate(-50%,-50%); pointer-events: none; box-shadow: 0 0 12px var(--accent); }
+        .mouse-coords { text-align: center; margin-top: 0.5rem; font-family: var(--mono); font-size: 0.9rem; color: var(--fg2); }
+        .key-display { min-height: 80px; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: 6px; border: 1px solid var(--fg3); }
+        .key-cap { padding: 0.8rem 1.5rem; border: 2px solid var(--accent); border-radius: 8px; font-size: 1.5rem; font-family: var(--mono); background: var(--bg2); min-width: 60px; text-align: center; box-shadow: 0 3px 0 var(--fg3); }
+        .key-info { margin-top: 0.5rem; font-size: 0.8rem; color: var(--fg2); text-align: center; }
+        .canvas-wrap canvas { width: 100%; border-radius: 6px; border: 1px solid var(--fg3); cursor: crosshair; background: #111; }
+        .canvas-tools { display: flex; gap: 0.5rem; margin-bottom: 0.7rem; align-items: center; }
+        .canvas-tools label { font-size: 0.8rem; color: var(--fg2); }
+        .theme-preview { padding: 1rem; border-radius: 6px; transition: all 0.3s; }
+        .theme-preview.light { background: #f5f5f5; color: #1a1a1a; }
+        .theme-preview.dark { background: var(--bg); color: var(--fg); }
+        .notes-area { width: 100%; min-height: 150px; }
+        .notes-status { font-size: 0.75rem; color: var(--fg3); margin-top: 0.3rem; }
+        .anim-stage { position: relative; height: 200px; background: var(--bg); border-radius: 6px; overflow: hidden; border: 1px solid var(--fg3); }
+        .anim-ball { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); box-shadow: 0 0 15px var(--accent); }
+        .chart-wrap svg { width: 100%; height: 200px; }
+        .chart-bar { transition: height 0.3s, y 0.3s; }
+        .chart-label { font-size: 11px; fill: var(--fg2); font-family: var(--font); }
+        .chart-value { font-size: 10px; fill: var(--fg); font-family: var(--mono); }
+        .chart-btns { display: flex; gap: 0.5rem; margin-top: 0.7rem; }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+        .modal { background: var(--bg2); border: 1px solid var(--fg3); border-radius: var(--radius); padding: 2rem; max-width: 400px; width: 90%; }
+        .modal h3 { margin-bottom: 0.5rem; }
+        .modal p { color: var(--fg2); font-size: 0.9rem; margin-bottom: 1rem; }
+        .hidden { display: none !important; }
+        .dnd-container { display: flex; gap: 1rem; }
+        .dnd-pool, .dnd-drop { flex: 1; min-height: 120px; padding: 0.7rem; border: 2px dashed var(--fg3); border-radius: 6px; background: var(--bg); }
+        .dnd-drop.over { border-color: var(--accent); background: rgba(249,115,22,0.05); }
+        .dnd-chip { display: inline-block; padding: 0.3rem 0.8rem; margin: 0.2rem; background: var(--bg3); border: 1px solid var(--fg3); border-radius: 6px; font-size: 0.8rem; cursor: grab; }
+        .dnd-chip:active { cursor: grabbing; }
+        .dnd-label { font-size: 0.7rem; color: var(--fg3); margin-bottom: 0.4rem; }
+        .clip-text { background: var(--bg); padding: 0.5rem 0.7rem; border-radius: 6px; font-family: var(--mono); font-size: 0.85rem; border: 1px solid var(--fg3); }
+        .clip-toast { color: var(--green); font-size: 0.8rem; margin-left: 0.5rem; opacity: 0; transition: opacity 0.3s; }
+        .clip-toast.show { opacity: 1; }
 
-        /* ═══════ FOOTER ═══════ */
-        .site-footer { padding: 4rem 0 3rem; border-top: 1px solid rgba(255,255,255,0.04); text-align: center; }
-        .footer-brand { font-size: 1rem; color: var(--fg2); margin-bottom: 1rem; }
-        .footer-links { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; }
-        .footer-links a { color: var(--fg3); font-size: 0.85rem; transition: color 0.2s; }
-        .footer-links a:hover { color: var(--accent); text-decoration: none; }
-        .footer-tagline { color: var(--fg3); font-size: 0.8rem; font-style: italic; }
+        /* ═══════ TUTORIAL STEPS ═══════ */
+        .tutorial-steps { display: flex; flex-direction: column; gap: 2rem; }
+        .tutorial-step { background: var(--bg2); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 1.5rem; }
+        .tutorial-step h3 { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .tutorial-step-num { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .tutorial-step p { color: var(--fg2); font-size: 0.9rem; margin-bottom: 0.75rem; }
+
+        /* ═══════ FORMS / COMPOSITION ═══════ */
+        .example-section { margin-bottom: 2.5rem; }
+        .example-section h3 { margin-bottom: 0.75rem; }
+        .example-section p { color: var(--fg2); font-size: 0.9rem; margin-bottom: 1rem; }
+        .example-preview { background: var(--bg2); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 0.75rem; }
+
+        /* ═══════ CATALOG CATEGORIES ═══════ */
+        .catalog-category { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-top: 2rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
 
         /* ═══════ RESPONSIVE ═══════ */
         @media (max-width: 1024px) {
-            .hero .container { grid-template-columns: 1fr; gap: 2.5rem; }
+            .landing .hero .container { grid-template-columns: 1fr; gap: 2.5rem; }
             .hero-code { max-width: 600px; }
             .features-grid, .cli-grid { grid-template-columns: repeat(2, 1fr); }
             .bench-grid, .production-grid { grid-template-columns: 1fr; }
@@ -204,7 +316,7 @@
         @media (max-width: 768px) {
             .container { padding: 0 1rem; }
             .nav-toggle { display: flex; }
-            .header-nav {
+            .app-nav {
                 display: none;
                 position: absolute;
                 top: 100%;
@@ -216,15 +328,18 @@
                 gap: 0.75rem;
                 z-index: 100;
             }
-            .header-nav a { font-size: 0.9rem; padding: 0.4rem 0; }
-            .header-nav .gh-btn { align-self: flex-start; }
-            .nav-toggle-cb:checked ~ .header-nav { display: flex; }
-            .nav-toggle-cb:checked ~ .nav-toggle span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
-            .nav-toggle-cb:checked ~ .nav-toggle span:nth-child(2) { opacity: 0; }
-            .nav-toggle-cb:checked ~ .nav-toggle span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
-            .site-header .container { position: relative; }
+            .app-nav.open { display: flex; }
+            .app-nav a { font-size: 0.9rem; padding: 0.4rem 0; }
+            .app-header .container { position: relative; }
             .gh-btn { padding: 0.3rem 0.6rem; font-size: 0.7rem; }
-            .hero { min-height: auto; padding: 100px 0 60px; }
+            .landing .hero { min-height: auto; padding: 100px 0 60px; }
+            .pg-layout { grid-template-columns: 1fr; }
+            .catalog-grid { grid-template-columns: repeat(2, 1fr); }
+            .home-cards { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .dnd-container { flex-direction: column; }
+            .api-table { font-size: 0.72rem; }
+            .api-table th, .api-table td { padding: 0.4rem 0.5rem; }
             .features-grid, .cli-grid { grid-template-columns: 1fr; }
             .stats-row { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
             .demo-card { grid-template-columns: 1fr; }
@@ -235,6 +350,7 @@
             .feature-card { padding: 1.25rem; }
         }
         @media (max-width: 480px) {
+            .catalog-grid { grid-template-columns: 1fr; }
             .stats-row { grid-template-columns: 1fr 1fr; }
             .hero-buttons { flex-direction: column; }
             .hero-btn-primary, .hero-btn-outline { text-align: center; justify-content: center; }
@@ -242,270 +358,7 @@
     </style>
 </head>
 <body>
-
-    <!-- ═══════ HEADER ═══════ -->
-    <header class="site-header">
-        <div class="container">
-            <div class="logo">
-                <a href="index.html"><span class="logo-emoji">🔥</span> <span class="gradient-text">Oxide</span></a>
-            </div>
-            <input type="checkbox" id="nav-toggle" class="nav-toggle-cb">
-            <label for="nav-toggle" class="nav-toggle" aria-label="Menu">
-                <span></span><span></span><span></span>
-            </label>
-            <nav class="header-nav">
-                <a href="#features">Features</a>
-                <a href="#cli">CLI</a>
-                <a href="#benchmarks">Benchmarks</a>
-                <a href="playground.html">Playground</a>
-                <a href="docs.html">Docs</a>
-                <a href="https://github.com/IEvangelist/Oxide" target="_blank" rel="noopener" class="gh-btn">
-                    <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-                    GitHub
-                </a>
-            </nav>
-        </div>
-    </header>
-
-    <!-- ═══════ HERO ═══════ -->
-    <section class="hero">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-        <div class="container">
-            <div class="hero-text">
-                <h1 class="fade-in">Build web apps in<br><span class="rust-word">Rust.</span></h1>
-                <p class="fade-in d2">Fine-grained reactivity. Zero JavaScript. Direct DOM manipulation. Compiles to WebAssembly.</p>
-                <div class="hero-buttons fade-in d3">
-                    <a href="docs.html" class="hero-btn-primary">Get Started →</a>
-                    <a href="playground.html" class="hero-btn-outline">See Demos ↓</a>
-                </div>
-            </div>
-            <div class="hero-code fade-in d4">
-                <div class="hero-code-header">
-                    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-                    <span>main.rs</span>
-                </div>
-<pre><span class="kw">use</span> oxide::prelude::*;
-
-<span class="kw">let</span> count = <span class="fn">signal</span>(<span class="num">0</span>);
-
-<span class="fn">view!</span> {
-    &lt;<span class="tag-name">div</span>&gt;
-        &lt;<span class="tag-name">p</span>&gt;<span class="str">"Count: "</span> {count}&lt;/<span class="tag-name">p</span>&gt;
-        &lt;<span class="tag-name">button</span> <span class="attr">on:click</span>={<span class="kw">move</span> |_| count += <span class="num">1</span>}&gt;
-            <span class="str">"Increment"</span>
-        &lt;/<span class="tag-name">button</span>&gt;
-    &lt;/<span class="tag-name">div</span>&gt;
-}</pre>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════ FEATURES ═══════ -->
-    <section id="features" class="features-section">
-        <div class="container">
-            <div class="section-label fade-in">Why Oxide</div>
-            <h2 class="section-title fade-in d1">Everything you need.<br>Nothing you don't.</h2>
-            <p class="section-sub fade-in d2">A Rust-native web framework that compiles to WebAssembly with fine-grained reactivity, zero JavaScript overhead, and full type safety.</p>
-            <div class="features-grid">
-                <div class="feature-card fade-in d2"><div class="feature-icon">🎯</div><h3>Fine-Grained Reactivity</h3><p>Signals track exactly what changes. No virtual DOM diffing. O(1) updates directly to the DOM nodes that need them.</p></div>
-                <div class="feature-card fade-in d3"><div class="feature-icon">🚀</div><h3>Zero JavaScript</h3><p>Write your entire frontend in Rust. Type-safe, memory-safe, compile-checked. The only JS is the WASM loader shim.</p></div>
-                <div class="feature-card fade-in d4"><div class="feature-icon">📦</div><h3>Tiny Bundles</h3><p>30 KB hello world. 178 KB for a full 18-demo showcase. Tree-shaking at the Rust compiler level.</p></div>
-                <div class="feature-card fade-in d5"><div class="feature-icon">⚡</div><h3>Modern DX</h3><p>JSX-like view! macro with if/else, for loops, bind:value, class toggling. Feels like React, runs like C.</p></div>
-                <div class="feature-card fade-in d6"><div class="feature-icon">🛡️</div><h3>Type Safe</h3><p>Catch bugs at compile time, not in production. Strongly-typed signals, props, and events. No runtime surprises.</p></div>
-                <div class="feature-card fade-in d7"><div class="feature-icon">🔧</div><h3>Full Web API Access</h3><p>Canvas, Fetch, LocalStorage, Drag &amp; Drop, Clipboard, SVG, Audio — every browser API, from Rust.</p></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════ CLI SECTION ═══════ -->
-    <section id="cli" class="cli-section">
-        <div class="container">
-            <div class="section-label fade-in">Developer Experience</div>
-            <h2 class="section-title fade-in d1">One CLI to rule them all.</h2>
-            <p class="section-sub fade-in d2">From scaffold to production in three commands. The Oxide CLI handles the complexity so you can focus on building.</p>
-            <div class="code-block fade-in d2" style="margin: 1.5rem 0;">
-                <div style="font-size: 0.75rem; color: var(--fg3); margin-bottom: 0.5rem;">Install the CLI</div>
-<pre style="background: var(--bg); padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid var(--fg3); overflow-x: auto; font-size: 0.85rem;"><span class="prompt">$</span> cargo install --git https://github.com/IEvangelist/Oxide oxide-cli</pre>
-            </div>
-            <div class="cli-grid">
-                <div class="cli-card fade-in d3">
-                    <div class="cli-card-header"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
-                    <div class="cli-card-body">
-                        <div class="cli-cmd"><span class="prompt">$</span> oxide new my-app</div>
-                        <div class="cli-output">✓ Created project my-app<br>✓ Added oxide dependencies<br>✓ Configured wasm32 target<br>✓ Generated index.html<br><br>→ cd my-app &amp;&amp; oxide dev</div>
-                    </div>
-                </div>
-                <div class="cli-card fade-in d4">
-                    <div class="cli-card-header"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
-                    <div class="cli-card-body">
-                        <div class="cli-cmd"><span class="prompt">$</span> oxide dev</div>
-                        <div class="cli-output">🔥 Oxide dev server v0.1.0<br>  Compiling my-app...<br>  Finished in 1.2s<br>  Serving on http://localhost:3000<br>  Live reload enabled<br>  DWARF debug info ✓</div>
-                    </div>
-                </div>
-                <div class="cli-card fade-in d5">
-                    <div class="cli-card-header"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
-                    <div class="cli-card-body">
-                        <div class="cli-cmd"><span class="prompt">$</span> oxide build</div>
-                        <div class="cli-output">  Compiling my-app (release)...<br>  Optimizing WASM...<br>  Running wasm-opt -Oz<br>  Finished in 3.8s<br><br>  dist/app.wasm — 30 KB gzipped</div>
-                    </div>
-                </div>
-            </div>
-            <div class="cli-note fade-in d6">
-                <strong>💡 Debug like a pro:</strong> <code>oxide dev</code> embeds DWARF debug info. Install Chrome's "C/C++ DevTools Support (DWARF)" extension to set breakpoints and step through your Rust source directly in the browser.
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════ STATS ═══════ -->
-    <section class="stats-section">
-        <div class="container">
-            <div class="stats-row">
-                <div class="stat-card fade-in d1"><div class="stat-num">30 KB</div><div class="stat-label">Hello World Bundle</div></div>
-                <div class="stat-card fade-in d2"><div class="stat-num">18</div><div class="stat-label">Interactive Demos</div></div>
-                <div class="stat-card fade-in d3"><div class="stat-num">0</div><div class="stat-label">Lines of JavaScript</div></div>
-                <div class="stat-card fade-in d4"><div class="stat-num">9</div><div class="stat-label">Framework Crates</div></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════ PRODUCTION READY ═══════ -->
-    <section id="production" class="production-section">
-        <div class="container">
-            <div class="section-label fade-in">Production Grade</div>
-            <h2 class="section-title fade-in d1">Battle-tested.<br>Observable. Resilient.</h2>
-            <p class="section-sub fade-in d2">Built-in observability and fault tolerance. No extra dependencies required.</p>
-            <div class="production-grid">
-                <div class="feature-card fade-in d3">
-                    <div class="feature-icon">📡</div>
-                    <h3>OpenTelemetry Built-in</h3>
-                    <p>Automatic tracing of signals, effects, and fetches. W3C trace context propagation. Zero overhead when disabled.</p>
-                </div>
-                <div class="feature-card fade-in d4">
-                    <div class="feature-icon">🛡️</div>
-                    <h3>Resiliency Framework</h3>
-                    <p>Error boundaries, retry with backoff, circuit breakers, async timeouts. Production-grade fault tolerance.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════ BENCHMARKS ═══════ -->
-    <section id="benchmarks" class="benchmarks-section">
-        <div class="container">
-            <div class="section-label fade-in">Performance</div>
-            <h2 class="section-title fade-in d1">Built for speed.<br>Measured to prove it.</h2>
-            <p class="section-sub fade-in d2">See how Oxide stacks up against the most popular web frameworks.</p>
-            <div class="bench-grid">
-                <div class="fade-in d3">
-                    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Bundle Size (Hello World, gzipped)</h3>
-                    <div class="bar-chart">
-                        <div class="bar-row"><div class="bar-framework">Svelte</div><div class="bar-track"><div class="bar-fill" style="width:6%"><span class="bar-size">3 KB</span></div></div></div>
-                        <div class="bar-row"><div class="bar-framework">Solid</div><div class="bar-track"><div class="bar-fill" style="width:14%"><span class="bar-size">7 KB</span></div></div></div>
-                        <div class="bar-row"><div class="bar-framework" style="color:var(--accent);font-weight:700;">Oxide</div><div class="bar-track"><div class="bar-fill oxide-bar" style="width:30%"><span class="bar-size">15 KB</span></div></div></div>
-                        <div class="bar-row"><div class="bar-framework">Leptos</div><div class="bar-track"><div class="bar-fill" style="width:50%"><span class="bar-size">25 KB</span></div></div></div>
-                        <div class="bar-row"><div class="bar-framework">Vue</div><div class="bar-track"><div class="bar-fill" style="width:66%"><span class="bar-size">33 KB</span></div></div></div>
-                        <div class="bar-row"><div class="bar-framework">React</div><div class="bar-track"><div class="bar-fill" style="width:84%"><span class="bar-size">42 KB</span></div></div></div>
-                        <div class="bar-row"><div class="bar-framework">Yew</div><div class="bar-track"><div class="bar-fill" style="width:100%"><span class="bar-size">50 KB</span></div></div></div>
-                    </div>
-                </div>
-                <div class="fade-in d4">
-                    <h3 style="font-size:1rem;font-weight:700;margin-bottom:1.25rem;">Feature Comparison</h3>
-                    <div class="table-wrap">
-                        <table class="comparison-table">
-                            <thead><tr><th>Feature</th><th>React</th><th>Vue</th><th>Svelte</th><th>Solid</th><th>Leptos</th><th class="col-oxide">Oxide</th></tr></thead>
-                            <tbody>
-                                <tr><td>Language</td><td>JS/TS</td><td>JS/TS</td><td>JS/TS</td><td>JS/TS</td><td>Rust</td><td class="col-oxide">Rust</td></tr>
-                                <tr><td>Reactivity</td><td>VDOM</td><td>Proxy</td><td>Compiler</td><td>Signals</td><td>Signals</td><td class="col-oxide">Signals</td></tr>
-                                <tr><td>Bundle Size</td><td>42 KB</td><td>33 KB</td><td>3 KB</td><td>7 KB</td><td>25 KB</td><td class="col-oxide">15 KB</td></tr>
-                                <tr><td>Type Safety</td><td>Optional</td><td>Optional</td><td>Optional</td><td>Optional</td><td>Native</td><td class="col-oxide">Native</td></tr>
-                                <tr><td>Memory Safety</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-yes">Yes</td><td class="col-oxide check-yes">Yes</td></tr>
-                                <tr><td>WASM Native</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-yes">Yes</td><td class="col-oxide check-yes">Yes</td></tr>
-                                <tr><td>Two-way Bind</td><td class="check-no">❌</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-no">❌</td><td class="check-yes">✅</td><td class="col-oxide check-yes">✅</td></tr>
-                                <tr><td>Cond. Render</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="col-oxide check-yes">✅</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════ FEATURED DEMOS ═══════ -->
-    <section id="demos" class="demos-section">
-        <div class="container">
-            <div class="section-label fade-in">Interactive</div>
-            <h2 class="section-title fade-in d1">Try It Live</h2>
-            <p class="section-sub fade-in d2">Every demo runs entirely in Rust compiled to WebAssembly. Zero JavaScript.</p>
-            <div class="demo-featured">
-                <!-- Counter -->
-                <div class="demo-card fade-in d3">
-                    <div class="demo-code-panel">
-                        <div class="demo-code-title">Counter — Source</div>
-<pre><span class="kw">let mut</span> count = <span class="fn">signal</span>(<span class="num">0</span>);
-
-<span class="fn">view!</span> {
-    &lt;<span class="tag-name">div</span>&gt;
-        &lt;<span class="tag-name">p</span> <span class="attr">class</span>=<span class="str">"big-num"</span>&gt;{count}&lt;/<span class="tag-name">p</span>&gt;
-        &lt;<span class="tag-name">div</span> <span class="attr">class</span>=<span class="str">"row"</span>&gt;
-            &lt;<span class="tag-name">button</span> <span class="attr">on:click</span>={<span class="kw">move</span> |_| count -= <span class="num">1</span>}&gt;<span class="str">"−"</span>&lt;/<span class="tag-name">button</span>&gt;
-            &lt;<span class="tag-name">button</span> <span class="attr">on:click</span>={<span class="kw">move</span> |_| count.<span class="fn">set</span>(<span class="num">0</span>)}&gt;<span class="str">"Reset"</span>&lt;/<span class="tag-name">button</span>&gt;
-            &lt;<span class="tag-name">button</span> <span class="attr">on:click</span>={<span class="kw">move</span> |_| count += <span class="num">1</span>}&gt;<span class="str">"+"</span>&lt;/<span class="tag-name">button</span>&gt;
-        &lt;/<span class="tag-name">div</span>&gt;
-    &lt;/<span class="tag-name">div</span>&gt;
-}</pre>
-                    </div>
-                    <div class="demo-live-panel">
-                        <div class="demo-live-title"><span class="live-dot"></span> Live Demo</div>
-                        <div id="demo-counter-live"></div>
-                    </div>
-                </div>
-                <!-- Todo -->
-                <div class="demo-card fade-in d4">
-                    <div class="demo-code-panel">
-                        <div class="demo-code-title">Todo List — Source</div>
-<pre><span class="kw">let</span> todos = <span class="fn">signal</span>(<span class="fn">vec!</span>[...]);
-<span class="kw">let</span> input = <span class="fn">signal</span>(<span class="type">String</span>::<span class="fn">new</span>());
-
-<span class="fn">view!</span> {
-    &lt;<span class="tag-name">input</span> <span class="attr">bind:value</span>={input} /&gt;
-    &lt;<span class="tag-name">ul</span>&gt;
-        {<span class="kw">for</span> (text, done) <span class="kw">in</span> todos.<span class="fn">get</span>() {
-            &lt;<span class="tag-name">li</span> <span class="attr">class:done</span>={done}&gt;
-                {text}
-            &lt;/<span class="tag-name">li</span>&gt;
-        }}
-    &lt;/<span class="tag-name">ul</span>&gt;
-}</pre>
-                    </div>
-                    <div class="demo-live-panel">
-                        <div class="demo-live-title"><span class="live-dot"></span> Live Demo</div>
-                        <div id="demo-todo-live"></div>
-                    </div>
-                </div>
-            </div>
-            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:2.5rem;">
-                <a href="playground.html#/components" class="see-all" style="margin-top:0;">Component Library →</a>
-                <a href="playground.html#/demos" class="see-all" style="margin-top:0;">All 18 Demos →</a>
-                <a href="playground.html#/forms" class="see-all" style="margin-top:0;">Form Patterns →</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════ FOOTER ═══════ -->
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-brand">Built with 🔥 by the Oxide community</div>
-            <div class="footer-links">
-                <a href="playground.html">Playground</a>
-                <a href="docs.html">Docs</a>
-                <a href="https://github.com/IEvangelist/Oxide" target="_blank" rel="noopener">GitHub</a>
-            </div>
-            <div class="footer-tagline">Rust + WebAssembly = The Future of the Web</div>
-        </div>
-    </footer>
-
+    <div id="app"></div>
     <script type="module">
         import init from './pkg/oxide_showcase.js';
         init();

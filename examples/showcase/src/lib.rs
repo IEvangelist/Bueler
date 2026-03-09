@@ -14,11 +14,10 @@ use wasm_bindgen::JsCast;
 
 #[wasm_bindgen(start)]
 pub fn main() {
-    // If #app exists, this is the playground SPA page — mount the full routed app
-    if let Some(_) = query_selector("#app") {
-        mount("#app", || {
-            let router = Router::new(RouterMode::Hash, &[
-            route("/",                    page_home),
+    mount("#app", || {
+        let router = Router::new(RouterMode::Hash, &[
+            route("/",                    page_landing),
+            route("/playground",          page_playground_home),
             route("/demos",               page_demos),
             route("/components",          page_catalog),
             route("/components/button",   pg_button),
@@ -35,7 +34,6 @@ pub fn main() {
             route("/components/badge",    pg_badge),
             route("/components/divider",  pg_divider),
             route("/components/skeleton", pg_skeleton),
-            // New component routes
             route("/components/avatar",          pg_avatar),
             route("/components/stat",            pg_stat),
             route("/components/tag",             pg_tag),
@@ -63,7 +61,6 @@ pub fn main() {
             route("/components/code-block",      pg_code_block),
             route("/components/file-upload",     pg_file_upload),
             route("/components/form-group",      pg_form_group),
-            // Page routes
             route("/forms",               page_forms),
             route("/composition",         page_composition),
             route("/tutorials/login",     tutorial_login),
@@ -71,21 +68,8 @@ pub fn main() {
         ]);
 
         build_app_shell(router)
-        });
-    } else {
-        // Non-SPA page (landing, docs) — only mount individual demos by ID + scroll-to-top
-        let demo_mounts: &[(&str, fn() -> web_sys::Element)] = &[
-            ("demo-counter-live", demo_counter),
-            ("demo-todo-live",    demo_todo),
-        ];
-        for &(id, builder) in demo_mounts {
-            if let Some(container) = query_selector(&format!("#{}", id)) {
-                container.append_child(&builder()).ok();
-            }
-        }
-    }
+    });
 
-    // Scroll-to-top on every page
     body().append_child(&components::scroll_to_top(300)).ok();
 }
 
@@ -107,7 +91,12 @@ fn build_app_shell(router: Router) -> web_sys::Element {
     let logo = create_element("div");
     set_attribute(&logo, "class", "logo");
     let logo_a = create_element("a");
-    set_attribute(&logo_a, "href", "index.html");
+    let logo_a_ref = logo_a.clone();
+    add_event_listener(&logo_a, "click", move |e: web_sys::Event| {
+        e.prevent_default();
+        navigate("/");
+    });
+    set_attribute(&logo_a_ref, "href", "#/");
     let logo_emoji = create_element("span");
     set_attribute(&logo_emoji, "class", "logo-emoji");
     append_text(&logo_emoji, "\u{1f525}");
@@ -148,10 +137,9 @@ fn build_app_shell(router: Router) -> web_sys::Element {
 
     let nav_items: &[(&str, &str)] = &[
         ("Home", "/"),
-        ("Demos", "/demos"),
+        ("Playground", "/playground"),
         ("Components", "/components"),
         ("Forms", "/forms"),
-        ("Composition", "/composition"),
         ("Tutorials", "/tutorials/login"),
     ];
     for &(label, path) in nav_items {
@@ -216,10 +204,500 @@ fn text_el(tag: &str, text: &str) -> web_sys::Element {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Page: Home
+// Page: Landing — marketing home page
 // ═══════════════════════════════════════════════════════════════════════════
 
-fn page_home() -> web_sys::Element {
+fn page_landing() -> web_sys::Element {
+    let page = create_element("div");
+    set_attribute(&page, "class", "landing");
+
+    // ── Hero ──
+    let hero = create_element("section");
+    set_attribute(&hero, "class", "hero");
+
+    // Floating orbs
+    for (i, cls) in ["orb orb-1", "orb orb-2", "orb orb-3"].iter().enumerate() {
+        let orb = create_element("div");
+        set_attribute(&orb, "class", cls);
+        let _ = i;
+        append_node(&hero, &orb);
+    }
+
+    let hero_container = el("div", "container", &[]);
+
+    // Hero text
+    let hero_text = el("div", "hero-text", &[]);
+    let h1 = create_element("h1");
+    set_attribute(&h1, "class", "fade-in");
+    append_text(&h1, "Build web apps in ");
+    let br = create_element("br");
+    append_node(&h1, &br);
+    let rust_word = create_element("span");
+    set_attribute(&rust_word, "class", "rust-word");
+    append_text(&rust_word, "Rust.");
+    append_node(&h1, &rust_word);
+    append_node(&hero_text, &h1);
+
+    let hero_p = create_element("p");
+    set_attribute(&hero_p, "class", "fade-in d2");
+    append_text(&hero_p, "Fine-grained reactivity. Zero JavaScript. Direct DOM manipulation. Compiles to WebAssembly.");
+    append_node(&hero_text, &hero_p);
+
+    let hero_buttons = el("div", "hero-buttons fade-in d3", &[]);
+    let btn_get_started = create_element("a");
+    set_attribute(&btn_get_started, "class", "hero-btn-primary");
+    append_text(&btn_get_started, "Get Started \u{2192}");
+    add_event_listener(&btn_get_started, "click", |_| { navigate("/playground"); });
+    append_node(&hero_buttons, &btn_get_started);
+
+    let btn_components = create_element("a");
+    set_attribute(&btn_components, "class", "hero-btn-outline");
+    append_text(&btn_components, "See Components \u{2193}");
+    add_event_listener(&btn_components, "click", |_| { navigate("/components"); });
+    append_node(&hero_buttons, &btn_components);
+    append_node(&hero_text, &hero_buttons);
+    append_node(&hero_container, &hero_text);
+
+    // Hero code block
+    let hero_code = el("div", "hero-code fade-in d4", &[]);
+    let code_header = el("div", "hero-code-header", &[]);
+    for cls in &["dot dot-r", "dot dot-y", "dot dot-g"] {
+        let d = create_element("div");
+        set_attribute(&d, "class", cls);
+        append_node(&code_header, &d);
+    }
+    let fname = create_element("span");
+    append_text(&fname, "main.rs");
+    append_node(&code_header, &fname);
+    append_node(&hero_code, &code_header);
+
+    let pre = create_element("pre");
+    set_inner_html(&pre, r#"<span class="kw">use</span> oxide::prelude::*;
+
+<span class="kw">let</span> count = <span class="fn">signal</span>(<span class="num">0</span>);
+
+<span class="fn">view!</span> {
+    &lt;<span class="tag-name">div</span>&gt;
+        &lt;<span class="tag-name">p</span>&gt;<span class="str">"Count: "</span> {count}&lt;/<span class="tag-name">p</span>&gt;
+        &lt;<span class="tag-name">button</span> <span class="attr">on:click</span>={<span class="kw">move</span> |_| count += <span class="num">1</span>}&gt;
+            <span class="str">"Increment"</span>
+        &lt;/<span class="tag-name">button</span>&gt;
+    &lt;/<span class="tag-name">div</span>&gt;
+}"#);
+    append_node(&hero_code, &pre);
+    append_node(&hero_container, &hero_code);
+    append_node(&hero, &hero_container);
+    append_node(&page, &hero);
+
+    // ── Features ──
+    let features_section = create_element("section");
+    set_attribute(&features_section, "class", "features-section");
+    let fc = el("div", "container", &[]);
+
+    let fl = el("div", "section-label fade-in", &[]);
+    append_text(&fl, "Why Oxide");
+    append_node(&fc, &fl);
+
+    let ft = create_element("h2");
+    set_attribute(&ft, "class", "section-title fade-in d1");
+    set_inner_html(&ft, "Everything you need.<br>Nothing you don't.");
+    append_node(&fc, &ft);
+
+    let fs = el("p", "section-sub fade-in d2", &[]);
+    append_text(&fs, "A Rust-native web framework that compiles to WebAssembly with fine-grained reactivity, zero JavaScript overhead, and full type safety.");
+    append_node(&fc, &fs);
+
+    let fg = el("div", "features-grid", &[]);
+    let features: &[(&str, &str, &str, &str)] = &[
+        ("d2", "\u{1f3af}", "Fine-Grained Reactivity", "Signals track exactly what changes. No virtual DOM diffing. O(1) updates directly to the DOM nodes that need them."),
+        ("d3", "\u{1f680}", "Zero JavaScript", "Write your entire frontend in Rust. Type-safe, memory-safe, compile-checked. The only JS is the WASM loader shim."),
+        ("d4", "\u{1f4e6}", "Tiny Bundles", "30 KB hello world. 178 KB for a full 18-demo showcase. Tree-shaking at the Rust compiler level."),
+        ("d5", "\u{26a1}", "Modern DX", "JSX-like view! macro with if/else, for loops, bind:value, class toggling. Feels like React, runs like C."),
+        ("d6", "\u{1f6e1}\u{fe0f}", "Type Safe", "Catch bugs at compile time, not in production. Strongly-typed signals, props, and events. No runtime surprises."),
+        ("d7", "\u{1f527}", "Full Web API Access", "Canvas, Fetch, LocalStorage, Drag & Drop, Clipboard, SVG, Audio \u{2014} every browser API, from Rust."),
+    ];
+    for &(delay, icon, title, desc) in features {
+        let card = create_element("div");
+        set_attribute(&card, "class", &format!("feature-card fade-in {}", delay));
+        let ic = el("div", "feature-icon", &[]);
+        append_text(&ic, icon);
+        append_node(&card, &ic);
+        let h3 = text_el("h3", title);
+        append_node(&card, &h3);
+        let p = create_element("p");
+        append_text(&p, desc);
+        append_node(&card, &p);
+        append_node(&fg, &card);
+    }
+    append_node(&fc, &fg);
+    append_node(&features_section, &fc);
+    append_node(&page, &features_section);
+
+    // ── CLI Section ──
+    let cli_section = create_element("section");
+    set_attribute(&cli_section, "class", "cli-section");
+    let cc = el("div", "container", &[]);
+
+    let cl = el("div", "section-label fade-in", &[]);
+    append_text(&cl, "Developer Experience");
+    append_node(&cc, &cl);
+    let ct = create_element("h2");
+    set_attribute(&ct, "class", "section-title fade-in d1");
+    append_text(&ct, "One CLI to rule them all.");
+    append_node(&cc, &ct);
+    let cs = el("p", "section-sub fade-in d2", &[]);
+    append_text(&cs, "From scaffold to production in three commands. The Oxide CLI handles the complexity so you can focus on building.");
+    append_node(&cc, &cs);
+
+    // Install block
+    let install_block = create_element("div");
+    set_attribute(&install_block, "class", "code-block fade-in d2");
+    set_attribute(&install_block, "style", "margin: 1.5rem 0;");
+    let install_label = create_element("div");
+    set_attribute(&install_label, "style", "font-size: 0.75rem; color: var(--fg3); margin-bottom: 0.5rem;");
+    append_text(&install_label, "Install the CLI");
+    append_node(&install_block, &install_label);
+    let install_pre = create_element("pre");
+    set_attribute(&install_pre, "style", "background: var(--bg); padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid var(--fg3); overflow-x: auto; font-size: 0.85rem;");
+    set_inner_html(&install_pre, r#"<span class="prompt">$</span> cargo install --git https://github.com/IEvangelist/Oxide oxide-cli"#);
+    append_node(&install_block, &install_pre);
+    append_node(&cc, &install_block);
+
+    let cli_grid = el("div", "cli-grid", &[]);
+    let cli_cards: &[(&str, &str, &str)] = &[
+        ("oxide new my-app", "\u{2713} Created project my-app\n\u{2713} Added oxide dependencies\n\u{2713} Configured wasm32 target\n\u{2713} Generated index.html\n\n\u{2192} cd my-app && oxide dev", "d3"),
+        ("oxide dev", "\u{1f525} Oxide dev server v0.1.0\n  Compiling my-app...\n  Finished in 1.2s\n  Serving on http://localhost:3000\n  Live reload enabled\n  DWARF debug info \u{2713}", "d4"),
+        ("oxide build", "  Compiling my-app (release)...\n  Optimizing WASM...\n  Running wasm-opt -Oz\n  Finished in 3.8s\n\n  dist/app.wasm \u{2014} 30 KB gzipped", "d5"),
+    ];
+    for &(cmd, output, delay) in cli_cards {
+        let card = create_element("div");
+        set_attribute(&card, "class", &format!("cli-card fade-in {}", delay));
+        let header = el("div", "cli-card-header", &[]);
+        for c in &["dot dot-r", "dot dot-y", "dot dot-g"] {
+            let d = create_element("div");
+            set_attribute(&d, "class", c);
+            append_node(&header, &d);
+        }
+        append_node(&card, &header);
+        let body = el("div", "cli-card-body", &[]);
+        let cmd_div = el("div", "cli-cmd", &[]);
+        let prompt = create_element("span");
+        set_attribute(&prompt, "class", "prompt");
+        append_text(&prompt, "$ ");
+        append_node(&cmd_div, &prompt);
+        append_text(&cmd_div, cmd);
+        append_node(&body, &cmd_div);
+        let out_div = el("div", "cli-output", &[]);
+        // Convert newlines to <br>
+        set_inner_html(&out_div, &output.replace('\n', "<br>"));
+        append_node(&body, &out_div);
+        append_node(&card, &body);
+        append_node(&cli_grid, &card);
+    }
+    append_node(&cc, &cli_grid);
+
+    let cli_note = el("div", "cli-note fade-in d6", &[]);
+    set_inner_html(&cli_note, r#"<strong>💡 Debug like a pro:</strong> <code>oxide dev</code> embeds DWARF debug info. Install Chrome's "C/C++ DevTools Support (DWARF)" extension to set breakpoints and step through your Rust source directly in the browser."#);
+    append_node(&cc, &cli_note);
+    append_node(&cli_section, &cc);
+    append_node(&page, &cli_section);
+
+    // ── Stats ──
+    let stats_section = create_element("section");
+    set_attribute(&stats_section, "class", "stats-section");
+    let sc = el("div", "container", &[]);
+    let sr = el("div", "stats-row", &[]);
+    let stats: &[(&str, &str, &str)] = &[
+        ("30 KB", "Hello World Bundle", "d1"),
+        ("18", "Interactive Demos", "d2"),
+        ("0", "Lines of JavaScript", "d3"),
+        ("9", "Framework Crates", "d4"),
+    ];
+    for &(num, label, delay) in stats {
+        let card = create_element("div");
+        set_attribute(&card, "class", &format!("stat-card fade-in {}", delay));
+        let n = el("div", "stat-num", &[]);
+        append_text(&n, num);
+        append_node(&card, &n);
+        let l = el("div", "stat-label", &[]);
+        append_text(&l, label);
+        append_node(&card, &l);
+        append_node(&sr, &card);
+    }
+    append_node(&sc, &sr);
+    append_node(&stats_section, &sc);
+    append_node(&page, &stats_section);
+
+    // ── Production Ready ──
+    let prod_section = create_element("section");
+    set_attribute(&prod_section, "class", "production-section");
+    let pc = el("div", "container", &[]);
+    let pl = el("div", "section-label fade-in", &[]);
+    append_text(&pl, "Production Grade");
+    append_node(&pc, &pl);
+    let pt = create_element("h2");
+    set_attribute(&pt, "class", "section-title fade-in d1");
+    set_inner_html(&pt, "Battle-tested.<br>Observable. Resilient.");
+    append_node(&pc, &pt);
+    let ps = el("p", "section-sub fade-in d2", &[]);
+    append_text(&ps, "Built-in observability and fault tolerance. No extra dependencies required.");
+    append_node(&pc, &ps);
+
+    let pg = el("div", "production-grid", &[]);
+    let prod_cards: &[(&str, &str, &str, &str)] = &[
+        ("d3", "\u{1f4e1}", "OpenTelemetry Built-in", "Automatic tracing of signals, effects, and fetches. W3C trace context propagation. Zero overhead when disabled."),
+        ("d4", "\u{1f6e1}\u{fe0f}", "Resiliency Framework", "Error boundaries, retry with backoff, circuit breakers, async timeouts. Production-grade fault tolerance."),
+    ];
+    for &(delay, icon, title, desc) in prod_cards {
+        let card = create_element("div");
+        set_attribute(&card, "class", &format!("feature-card fade-in {}", delay));
+        let ic = el("div", "feature-icon", &[]);
+        append_text(&ic, icon);
+        append_node(&card, &ic);
+        let h3 = text_el("h3", title);
+        append_node(&card, &h3);
+        let p = create_element("p");
+        append_text(&p, desc);
+        append_node(&card, &p);
+        append_node(&pg, &card);
+    }
+    append_node(&pc, &pg);
+    append_node(&prod_section, &pc);
+    append_node(&page, &prod_section);
+
+    // ── Benchmarks ──
+    let bench_section = create_element("section");
+    set_attribute(&bench_section, "class", "benchmarks-section");
+    let bc = el("div", "container", &[]);
+    let bl = el("div", "section-label fade-in", &[]);
+    append_text(&bl, "Performance");
+    append_node(&bc, &bl);
+    let bt_h2 = create_element("h2");
+    set_attribute(&bt_h2, "class", "section-title fade-in d1");
+    set_inner_html(&bt_h2, "Built for speed.<br>Measured to prove it.");
+    append_node(&bc, &bt_h2);
+    let bs = el("p", "section-sub fade-in d2", &[]);
+    append_text(&bs, "See how Oxide stacks up against the most popular web frameworks.");
+    append_node(&bc, &bs);
+
+    let bg = el("div", "bench-grid", &[]);
+
+    // Bar chart
+    let bar_div = create_element("div");
+    set_attribute(&bar_div, "class", "fade-in d3");
+    let bar_title = create_element("h3");
+    set_attribute(&bar_title, "style", "font-size:1rem;font-weight:700;margin-bottom:1.25rem;");
+    append_text(&bar_title, "Bundle Size (Hello World, gzipped)");
+    append_node(&bar_div, &bar_title);
+
+    let bar_chart = el("div", "bar-chart", &[]);
+    let bars: &[(&str, &str, bool)] = &[
+        ("Svelte", "3 KB", false), ("Solid", "7 KB", false),
+        ("Oxide", "15 KB", true), ("Leptos", "25 KB", false),
+        ("Vue", "33 KB", false), ("React", "42 KB", false),
+        ("Yew", "50 KB", false),
+    ];
+    let widths = ["6%", "14%", "30%", "50%", "66%", "84%", "100%"];
+    for (i, &(name, size, is_oxide)) in bars.iter().enumerate() {
+        let row = el("div", "bar-row", &[]);
+        let fw = el("div", "bar-framework", &[]);
+        if is_oxide {
+            set_attribute(&fw, "style", "color:var(--accent);font-weight:700;");
+        }
+        append_text(&fw, name);
+        append_node(&row, &fw);
+        let track = el("div", "bar-track", &[]);
+        let fill = create_element("div");
+        let fill_class = if is_oxide { "bar-fill oxide-bar" } else { "bar-fill" };
+        set_attribute(&fill, "class", fill_class);
+        set_attribute(&fill, "style", &format!("width:{}", widths[i]));
+        let sz = create_element("span");
+        set_attribute(&sz, "class", "bar-size");
+        append_text(&sz, size);
+        append_node(&fill, &sz);
+        append_node(&track, &fill);
+        append_node(&row, &track);
+        append_node(&bar_chart, &row);
+    }
+    append_node(&bar_div, &bar_chart);
+    append_node(&bg, &bar_div);
+
+    // Comparison table
+    let table_div = create_element("div");
+    set_attribute(&table_div, "class", "fade-in d4");
+    let table_title = create_element("h3");
+    set_attribute(&table_title, "style", "font-size:1rem;font-weight:700;margin-bottom:1.25rem;");
+    append_text(&table_title, "Feature Comparison");
+    append_node(&table_div, &table_title);
+    let tw = el("div", "table-wrap", &[]);
+    let table = create_element("table");
+    set_attribute(&table, "class", "comparison-table");
+    set_inner_html(&table, r#"<thead><tr><th>Feature</th><th>React</th><th>Vue</th><th>Svelte</th><th>Solid</th><th>Leptos</th><th class="col-oxide">Oxide</th></tr></thead>
+<tbody>
+<tr><td>Language</td><td>JS/TS</td><td>JS/TS</td><td>JS/TS</td><td>JS/TS</td><td>Rust</td><td class="col-oxide">Rust</td></tr>
+<tr><td>Reactivity</td><td>VDOM</td><td>Proxy</td><td>Compiler</td><td>Signals</td><td>Signals</td><td class="col-oxide">Signals</td></tr>
+<tr><td>Bundle Size</td><td>42 KB</td><td>33 KB</td><td>3 KB</td><td>7 KB</td><td>25 KB</td><td class="col-oxide">15 KB</td></tr>
+<tr><td>Type Safety</td><td>Optional</td><td>Optional</td><td>Optional</td><td>Optional</td><td>Native</td><td class="col-oxide">Native</td></tr>
+<tr><td>Memory Safety</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-yes">Yes</td><td class="col-oxide check-yes">Yes</td></tr>
+<tr><td>WASM Native</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-no">No</td><td class="check-yes">Yes</td><td class="col-oxide check-yes">Yes</td></tr>
+<tr><td>Two-way Bind</td><td class="check-no">❌</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-no">❌</td><td class="check-yes">✅</td><td class="col-oxide check-yes">✅</td></tr>
+<tr><td>Cond. Render</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="check-yes">✅</td><td class="col-oxide check-yes">✅</td></tr>
+</tbody>"#);
+    append_node(&tw, &table);
+    append_node(&table_div, &tw);
+    append_node(&bg, &table_div);
+    append_node(&bc, &bg);
+    append_node(&bench_section, &bc);
+    append_node(&page, &bench_section);
+
+    // ── Featured Demos (static code previews) ──
+    let demos_section = create_element("section");
+    set_attribute(&demos_section, "class", "demos-section");
+    let dc = el("div", "container", &[]);
+    let dl = el("div", "section-label fade-in", &[]);
+    append_text(&dl, "Interactive");
+    append_node(&dc, &dl);
+    let dt = create_element("h2");
+    set_attribute(&dt, "class", "section-title fade-in d1");
+    append_text(&dt, "Try It Live");
+    append_node(&dc, &dt);
+    let ds = el("p", "section-sub fade-in d2", &[]);
+    append_text(&ds, "Every demo runs entirely in Rust compiled to WebAssembly. Zero JavaScript.");
+    append_node(&dc, &ds);
+
+    let df = el("div", "demo-featured", &[]);
+
+    // Counter preview card
+    let counter_card = create_element("div");
+    set_attribute(&counter_card, "class", "demo-card fade-in d3");
+    let counter_code = el("div", "demo-code-panel", &[]);
+    let counter_title = el("div", "demo-code-title", &[]);
+    append_text(&counter_title, "Counter \u{2014} Source");
+    append_node(&counter_code, &counter_title);
+    let counter_pre = create_element("pre");
+    set_inner_html(&counter_pre, r#"<span class="kw">let mut</span> count = <span class="fn">signal</span>(<span class="num">0</span>);
+
+<span class="fn">view!</span> {
+    &lt;<span class="tag-name">div</span>&gt;
+        &lt;<span class="tag-name">p</span> <span class="attr">class</span>=<span class="str">"big-num"</span>&gt;{count}&lt;/<span class="tag-name">p</span>&gt;
+        &lt;<span class="tag-name">div</span> <span class="attr">class</span>=<span class="str">"row"</span>&gt;
+            &lt;<span class="tag-name">button</span> <span class="attr">on:click</span>={<span class="kw">move</span> |_| count -= <span class="num">1</span>}&gt;<span class="str">"−"</span>&lt;/<span class="tag-name">button</span>&gt;
+            &lt;<span class="tag-name">button</span> <span class="attr">on:click</span>={<span class="kw">move</span> |_| count.<span class="fn">set</span>(<span class="num">0</span>)}&gt;<span class="str">"Reset"</span>&lt;/<span class="tag-name">button</span>&gt;
+            &lt;<span class="tag-name">button</span> <span class="attr">on:click</span>={<span class="kw">move</span> |_| count += <span class="num">1</span>}&gt;<span class="str">"+"</span>&lt;/<span class="tag-name">button</span>&gt;
+        &lt;/<span class="tag-name">div</span>&gt;
+    &lt;/<span class="tag-name">div</span>&gt;
+}"#);
+    append_node(&counter_code, &counter_pre);
+    append_node(&counter_card, &counter_code);
+    let counter_live = el("div", "demo-live-panel", &[]);
+    let counter_live_title = el("div", "demo-live-title", &[]);
+    let live_dot1 = el("span", "live-dot", &[]);
+    append_node(&counter_live_title, &live_dot1);
+    append_text(&counter_live_title, " Live Demo");
+    append_node(&counter_live, &counter_live_title);
+    let counter_demo = create_element("div");
+    append_node(&counter_demo, &demo_counter());
+    append_node(&counter_live, &counter_demo);
+    append_node(&counter_card, &counter_live);
+    append_node(&df, &counter_card);
+
+    // Todo preview card
+    let todo_card = create_element("div");
+    set_attribute(&todo_card, "class", "demo-card fade-in d4");
+    let todo_code = el("div", "demo-code-panel", &[]);
+    let todo_title = el("div", "demo-code-title", &[]);
+    append_text(&todo_title, "Todo List \u{2014} Source");
+    append_node(&todo_code, &todo_title);
+    let todo_pre = create_element("pre");
+    set_inner_html(&todo_pre, r#"<span class="kw">let</span> todos = <span class="fn">signal</span>(<span class="fn">vec!</span>[...]);
+<span class="kw">let</span> input = <span class="fn">signal</span>(<span class="type">String</span>::<span class="fn">new</span>());
+
+<span class="fn">view!</span> {
+    &lt;<span class="tag-name">input</span> <span class="attr">bind:value</span>={input} /&gt;
+    &lt;<span class="tag-name">ul</span>&gt;
+        {<span class="kw">for</span> (text, done) <span class="kw">in</span> todos.<span class="fn">get</span>() {
+            &lt;<span class="tag-name">li</span> <span class="attr">class:done</span>={done}&gt;
+                {text}
+            &lt;/<span class="tag-name">li</span>&gt;
+        }}
+    &lt;/<span class="tag-name">ul</span>&gt;
+}"#);
+    append_node(&todo_code, &todo_pre);
+    append_node(&todo_card, &todo_code);
+    let todo_live = el("div", "demo-live-panel", &[]);
+    let todo_live_title = el("div", "demo-live-title", &[]);
+    let live_dot2 = el("span", "live-dot", &[]);
+    append_node(&todo_live_title, &live_dot2);
+    append_text(&todo_live_title, " Live Demo");
+    append_node(&todo_live, &todo_live_title);
+    let todo_demo = create_element("div");
+    append_node(&todo_demo, &demo_todo());
+    append_node(&todo_live, &todo_demo);
+    append_node(&todo_card, &todo_live);
+    append_node(&df, &todo_card);
+
+    append_node(&dc, &df);
+
+    // CTA buttons
+    let cta_row = create_element("div");
+    set_attribute(&cta_row, "style", "display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:2.5rem;");
+    let cta_links: &[(&str, &str)] = &[
+        ("Component Library \u{2192}", "/components"),
+        ("All 18 Demos \u{2192}", "/demos"),
+        ("Form Patterns \u{2192}", "/forms"),
+    ];
+    for &(label, path) in cta_links {
+        let a = create_element("a");
+        set_attribute(&a, "class", "see-all");
+        set_attribute(&a, "style", "margin-top:0;");
+        append_text(&a, label);
+        let p = path.to_string();
+        add_event_listener(&a, "click", move |_| { navigate(&p); });
+        append_node(&cta_row, &a);
+    }
+    append_node(&dc, &cta_row);
+    append_node(&demos_section, &dc);
+    append_node(&page, &demos_section);
+
+    // ── Footer ──
+    let footer = create_element("footer");
+    set_attribute(&footer, "class", "site-footer");
+    let footer_c = el("div", "container", &[]);
+    let fb = el("div", "footer-brand", &[]);
+    append_text(&fb, "Built with \u{1f525} by the Oxide community");
+    append_node(&footer_c, &fb);
+
+    let fl_div = el("div", "footer-links", &[]);
+    let pg_link = create_element("a");
+    append_text(&pg_link, "Playground");
+    add_event_listener(&pg_link, "click", |_| { navigate("/playground"); });
+    append_node(&fl_div, &pg_link);
+    let docs_a = create_element("a");
+    set_attribute(&docs_a, "href", "docs.html");
+    append_text(&docs_a, "Docs");
+    append_node(&fl_div, &docs_a);
+    let gh_a = create_element("a");
+    set_attribute(&gh_a, "href", "https://github.com/IEvangelist/Oxide");
+    set_attribute(&gh_a, "target", "_blank");
+    set_attribute(&gh_a, "rel", "noopener");
+    append_text(&gh_a, "GitHub");
+    append_node(&fl_div, &gh_a);
+    append_node(&footer_c, &fl_div);
+
+    let ft_div = el("div", "footer-tagline", &[]);
+    append_text(&ft_div, "Rust + WebAssembly = The Future of the Web");
+    append_node(&footer_c, &ft_div);
+    append_node(&footer, &footer_c);
+    append_node(&page, &footer);
+
+    page
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Page: Playground Home
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn page_playground_home() -> web_sys::Element {
     let page = el("div", "pg-page", &[]);
 
     let hero = el("div", "home-hero", &[]);
