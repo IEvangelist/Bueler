@@ -14,8 +14,10 @@ use wasm_bindgen::JsCast;
 
 #[wasm_bindgen(start)]
 pub fn main() {
-    mount("#app", || {
-        let router = Router::new(RouterMode::Hash, &[
+    // If #app exists, this is the playground SPA page — mount the full routed app
+    if let Some(_) = query_selector("#app") {
+        mount("#app", || {
+            let router = Router::new(RouterMode::Hash, &[
             route("/",                    page_home),
             route("/demos",               page_demos),
             route("/components",          page_catalog),
@@ -69,7 +71,22 @@ pub fn main() {
         ]);
 
         build_app_shell(router)
-    });
+        });
+    } else {
+        // Non-SPA page (landing, docs) — only mount individual demos by ID + scroll-to-top
+        let demo_mounts: &[(&str, fn() -> web_sys::Element)] = &[
+            ("demo-counter-live", demo_counter),
+            ("demo-todo-live",    demo_todo),
+        ];
+        for &(id, builder) in demo_mounts {
+            if let Some(container) = query_selector(&format!("#{}", id)) {
+                container.append_child(&builder()).ok();
+            }
+        }
+    }
+
+    // Scroll-to-top on every page
+    body().append_child(&components::scroll_to_top(300)).ok();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -173,10 +190,6 @@ fn build_app_shell(router: Router) -> web_sys::Element {
     set_attribute(&content, "class", "app-content");
     append_node(&content, &router.view());
     append_node(&shell, &content);
-
-    // Scroll-to-top
-    let b = body();
-    b.append_child(&components::scroll_to_top(300)).ok();
 
     shell
 }
