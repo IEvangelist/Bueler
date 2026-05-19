@@ -13,6 +13,7 @@ bueler = { path = "../../crates/oxide" }
 bueler-telemetry = { path = "../../crates/oxide-telemetry" }
 bueler-resiliency = { path = "../../crates/oxide-resiliency" }
 bueler-showcase-anim = { path = "../../crates/showcase-anim" }
+bueler-showcase-highlight = { path = "../../crates/showcase-highlight" }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

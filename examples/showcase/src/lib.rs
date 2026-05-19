@@ -8,6 +8,8 @@ use bueler::components::{self, Severity, AvatarSize, DrawerSide};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
+mod highlight;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Entry point — SPA with hash-based routing
 // ═══════════════════════════════════════════════════════════════════════════
@@ -66,6 +68,7 @@ pub fn main() {
             route("/composition",         page_composition),
             route("/tutorials/login",     tutorial_login),
             route("/tutorials/dashboard", tutorial_dashboard),
+            route("/benchmarks",          page_benchmarks),
             route("/docs",                page_docs),
         ]);
 
@@ -145,6 +148,7 @@ fn build_app_shell(router: Router) -> web_sys::Element {
         ("Components", "/components"),
         ("Docs", "/docs"),
         ("Tutorials", "/tutorials/login"),
+        ("Benchmarks", "/benchmarks"),
     ];
     let mut nav_links: Vec<(web_sys::Element, String)> = Vec::new();
     for &(label, path) in nav_items {
@@ -1028,7 +1032,7 @@ fn pg_button() -> web_sys::Element {
 
     // Code block
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let l = label.get();
@@ -1043,7 +1047,7 @@ fn pg_button() -> web_sys::Element {
         if ld { chain.push_str(".loading(true)"); }
         if dis { chain.push_str(".disabled(true)"); }
         chain.push_str(".build()");
-        code_ref.set_text_content(Some(&chain));
+        highlight::render(&code_ref, chain);
     });
     append_node(&page, &code);
 
@@ -1108,7 +1112,7 @@ fn pg_input() -> web_sys::Element {
 
     // Code block
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let l = label.get();
@@ -1123,7 +1127,7 @@ fn pg_input() -> web_sys::Element {
         if r { chain.push_str("\n    .required()"); }
         if !e.is_empty() { chain.push_str(&format!("\n    .error(\"{}\")", e)); }
         chain.push_str("\n    .build()");
-        code_ref.set_text_content(Some(&chain));
+        highlight::render(&code_ref, chain);
     });
     append_node(&page, &code);
 
@@ -1164,13 +1168,13 @@ fn pg_textarea() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let l = label.get();
-        code_ref.set_text_content(Some(&format!(
+        highlight::render(&code_ref, &format!(
             "let value = signal(String::new());\ntextarea(\"{}\", value)", l
-        )));
+        ));
     });
     append_node(&page, &code);
 
@@ -1220,13 +1224,13 @@ fn pg_select() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let l = label.get();
-        code_ref.set_text_content(Some(&format!(
+        highlight::render(&code_ref, &format!(
             "let value = signal(\"us\".to_string());\nselect(\"{}\", &[\n    (\"us\", \"United States\"),\n    (\"uk\", \"United Kingdom\"),\n    (\"ca\", \"Canada\"),\n], value)", l
-        )));
+        ));
     });
     append_node(&page, &code);
 
@@ -1269,13 +1273,13 @@ fn pg_checkbox() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let l = label.get();
-        code_ref.set_text_content(Some(&format!(
+        highlight::render(&code_ref, format!(
             "let checked = signal(false);\ncheckbox(\"{}\", checked)", l
-        )));
+        ));
     });
     append_node(&page, &code);
 
@@ -1317,7 +1321,7 @@ fn pg_card() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let t = title.get();
@@ -1325,7 +1329,7 @@ fn pg_card() -> web_sys::Element {
         let mut s = format!("card(\"{}\")\n    .body(content)", t);
         if sf { s.push_str("\n    .footer(button(\"Save\").primary().build())"); }
         s.push_str("\n    .build()");
-        code_ref.set_text_content(Some(&s));
+        highlight::render(&code_ref, s);
     });
     append_node(&page, &code);
 
@@ -1384,7 +1388,7 @@ fn pg_alert() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let m = message.get();
@@ -1393,7 +1397,7 @@ fn pg_alert() -> web_sys::Element {
         let mut chain = format!("alert(\"{}\")\n    .{}()", m, s);
         if d { chain.push_str("\n    .dismissible(visible_signal)"); }
         chain.push_str("\n    .build()");
-        code_ref.set_text_content(Some(&chain));
+        highlight::render(&code_ref, chain);
     });
     append_node(&page, &code);
 
@@ -1434,12 +1438,7 @@ fn pg_modal() -> web_sys::Element {
         .build();
     append_node(&preview, &modal_el);
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some(
-        "let is_open = signal(false);\n\nmodal(is_open)\n    .title(\"Bueler Modal\")\n    .body(content)\n    .build()"
-    ));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let is_open = signal(false);\n\nmodal(is_open)\n    .title(\"Bueler Modal\")\n    .body(content)\n    .build()"));
 
     append_node(&page, &api_table(&[
         ("open", "Signal<bool>", "\u{2014}", "Controls modal visibility"),
@@ -1476,13 +1475,13 @@ fn pg_spinner() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         if show_text.get() {
-            code_ref.set_text_content(Some("spinner_with_text(\"Loading...\")"));
+            highlight::render(&code_ref, "spinner_with_text(\"Loading...\")");
         } else {
-            code_ref.set_text_content(Some("spinner()"));
+            highlight::render(&code_ref, "spinner()");
         }
     });
     append_node(&page, &code);
@@ -1538,12 +1537,12 @@ fn pg_progress() -> web_sys::Element {
     append_node(&preview, &components::progress(value));
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
-        code_ref.set_text_content(Some(&format!(
+        highlight::render(&code_ref, format!(
             "let value = signal({:.0}.0);\nprogress(value)", value.get()
-        )));
+        ));
     });
     append_node(&page, &code);
 
@@ -1573,12 +1572,7 @@ fn pg_tabs() -> web_sys::Element {
         ("Billing", || text_el("div", "Subscription plans, payment methods, and invoices.")),
     ]));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some(
-        "tabs(&[\n    (\"Profile\",  || view! { <div>\"Profile content\"</div> }),\n    (\"Settings\", || view! { <div>\"Settings content\"</div> }),\n    (\"Billing\",  || view! { <div>\"Billing content\"</div> }),\n])"
-    ));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("tabs(&[\n    (\"Profile\",  || view! { <div>\"Profile content\"</div> }),\n    (\"Settings\", || view! { <div>\"Settings content\"</div> }),\n    (\"Billing\",  || view! { <div>\"Billing content\"</div> }),\n])"));
 
     append_node(&page, &api_table(&[
         ("items", "&[(&str, fn()->Element)]", "\u{2014}", "Tab label and content builder pairs"),
@@ -1618,7 +1612,7 @@ fn pg_badge() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let t = text.get();
@@ -1629,9 +1623,9 @@ fn pg_badge() -> web_sys::Element {
             "error"   => "Error",
             _         => "Info",
         };
-        code_ref.set_text_content(Some(&format!(
+        highlight::render(&code_ref, format!(
             "badge(\"{}\", Severity::{})", t, sev_name
-        )));
+        ));
     });
     append_node(&page, &code);
 
@@ -1661,10 +1655,7 @@ fn pg_divider() -> web_sys::Element {
     append_node(&preview, &components::divider());
     append_node(&preview, &text_el("p", "Content below the divider."));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("divider()"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("divider()"));
 
     append_node(&page, &api_table(&[
         ("(no args)", "\u{2014}", "\u{2014}", "Renders a horizontal divider line"),
@@ -1692,12 +1683,7 @@ fn pg_skeleton() -> web_sys::Element {
     append_node(&preview, &components::skeleton("60%", "20px"));
     append_node(&preview, &components::skeleton("200px", "100px"));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some(
-        "skeleton(\"100%\", \"20px\")\nskeleton(\"80%\", \"20px\")\nskeleton(\"200px\", \"100px\")"
-    ));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("skeleton(\"100%\", \"20px\")\nskeleton(\"80%\", \"20px\")\nskeleton(\"200px\", \"100px\")"));
 
     append_node(&page, &api_table(&[
         ("width", "&str", "\u{2014}", "CSS width (e.g. \"100%\", \"200px\")"),
@@ -1734,7 +1720,7 @@ fn pg_avatar() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let n = name.get();
@@ -1742,7 +1728,7 @@ fn pg_avatar() -> web_sys::Element {
         let mut c = format!("avatar(\"{}\")", n);
         if s != "medium" { c.push_str(&format!(".size(AvatarSize::{:?})", if s == "small" { "Small" } else { "Large" })); }
         c.push_str(".build()");
-        code_ref.set_text_content(Some(&c));
+        highlight::render(&code_ref, c);
     });
     append_node(&page, &code);
 
@@ -1772,10 +1758,10 @@ fn pg_stat() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
-        code_ref.set_text_content(Some(&format!("stat(\"{}\", \"{}\")", value.get(), label.get())));
+        highlight::render(&code_ref, format!("stat(\"{}\", \"{}\")", value.get(), label.get()));
     });
     append_node(&page, &code);
 
@@ -1811,13 +1797,13 @@ fn pg_tag() -> web_sys::Element {
     });
 
     let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
+    set_attribute(&code, "class", "bu-hl");
     let code_ref = code.clone();
     create_effect(move || {
         let sev_name = match sev_str.get().as_str() {
             "success" => "Success", "warning" => "Warning", "error" => "Error", _ => "Info",
         };
-        code_ref.set_text_content(Some(&format!("tag(\"{}\").variant(Severity::{}).build()", text.get(), sev_name)));
+        highlight::render(&code_ref, format!("tag(\"{}\").variant(Severity::{}).build()", text.get(), sev_name));
     });
     append_node(&page, &code);
 
@@ -1845,10 +1831,7 @@ fn pg_toggle() -> web_sys::Element {
 
     append_node(&preview, &components::toggle("Dark Mode", checked));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let on = signal(false);\ntoggle(\"Dark Mode\", on)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let on = signal(false);\ntoggle(\"Dark Mode\", on)"));
 
     append_node(&page, &api_table(&[
         ("label", "&str", "\u{2014}", "Toggle label text"),
@@ -1878,10 +1861,7 @@ fn pg_radio() -> web_sys::Element {
         ("opt3", "Enterprise"),
     ], selected));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let selected = signal(\"opt1\".to_string());\nradio_group(\"plan\", &[\n    (\"opt1\", \"Free Plan\"),\n    (\"opt2\", \"Pro Plan\"),\n    (\"opt3\", \"Enterprise\"),\n], selected)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let selected = signal(\"opt1\".to_string());\nradio_group(\"plan\", &[\n    (\"opt1\", \"Free Plan\"),\n    (\"opt2\", \"Pro Plan\"),\n    (\"opt3\", \"Enterprise\"),\n], selected)"));
 
     append_node(&page, &api_table(&[
         ("name", "&str", "\u{2014}", "Group name attribute"),
@@ -1908,10 +1888,7 @@ fn pg_slider() -> web_sys::Element {
     set_style(&preview, "align-items", "stretch");
     append_node(&preview, &components::slider(0.0, 100.0, 1.0, value));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let value = signal(50.0);\nslider(0.0, 100.0, 1.0, value)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let value = signal(50.0);\nslider(0.0, 100.0, 1.0, value)"));
 
     append_node(&page, &api_table(&[
         ("min", "f64", "\u{2014}", "Minimum value"),
@@ -1939,10 +1916,7 @@ fn pg_search() -> web_sys::Element {
     set_style(&preview, "align-items", "stretch");
     append_node(&preview, &components::search_input("Search components...", value));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let query = signal(String::new());\nsearch_input(\"Search components...\", query)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let query = signal(String::new());\nsearch_input(\"Search components...\", query)"));
 
     append_node(&page, &api_table(&[
         ("placeholder", "&str", "\u{2014}", "Placeholder text"),
@@ -1969,10 +1943,7 @@ fn pg_password() -> web_sys::Element {
     set_style(&preview, "align-items", "stretch");
     append_node(&preview, &components::password_input("Password", value));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let pw = signal(String::new());\npassword_input(\"Password\", pw)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let pw = signal(String::new());\npassword_input(\"Password\", pw)"));
 
     append_node(&page, &api_table(&[
         ("label", "&str", "\u{2014}", "Input label text"),
@@ -1998,10 +1969,7 @@ fn pg_number() -> web_sys::Element {
     set_style(&preview, "align-items", "stretch");
     append_node(&preview, &components::number_input("Quantity", value, 1.0));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let qty = signal(0.0);\nnumber_input(\"Quantity\", qty, 1.0)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let qty = signal(0.0);\nnumber_input(\"Quantity\", qty, 1.0)"));
 
     append_node(&page, &api_table(&[
         ("label", "&str", "\u{2014}", "Input label text"),
@@ -2023,10 +1991,7 @@ fn pg_accordion() -> web_sys::Element {
         ("Deployment", || text_el("div", "Deploy to any static host — just HTML, CSS, and WASM.")),
     ]));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("accordion(&[\n    (\"Getting Started\", || view()),\n    (\"Components\", || view()),\n    (\"Deployment\", || view()),\n])"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("accordion(&[\n    (\"Getting Started\", || view()),\n    (\"Components\", || view()),\n    (\"Deployment\", || view()),\n])"));
 
     append_node(&page, &api_table(&[
         ("items", "&[(&str, fn()->Element)]", "\u{2014}", "Title and content builder pairs"),
@@ -2046,10 +2011,7 @@ fn pg_breadcrumb() -> web_sys::Element {
         ("Breadcrumb", ""),
     ]));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("breadcrumb(&[\n    (\"Home\", \"#/\"),\n    (\"Components\", \"#/components\"),\n    (\"Breadcrumb\", \"\"),\n])"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("breadcrumb(&[\n    (\"Home\", \"#/\"),\n    (\"Components\", \"#/components\"),\n    (\"Breadcrumb\", \"\"),\n])"));
 
     append_node(&page, &api_table(&[
         ("items", "&[(&str, &str)]", "\u{2014}", "Label-href pairs (empty href = current page)"),
@@ -2075,10 +2037,7 @@ fn pg_pagination() -> web_sys::Element {
     set_style(&preview, "align-items", "stretch");
     append_node(&preview, &components::pagination(total, current));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let total = signal(10u32);\nlet current = signal(1u32);\npagination(total, current)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let total = signal(10u32);\nlet current = signal(1u32);\npagination(total, current)"));
 
     append_node(&page, &api_table(&[
         ("total_pages", "Signal<u32>", "\u{2014}", "Total number of pages"),
@@ -2103,10 +2062,7 @@ fn pg_dropdown() -> web_sys::Element {
 
     append_node(&preview, &components::dropdown("Choose framework", &["Bueler", "React", "Vue", "Svelte"], selected));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let sel = signal(String::new());\ndropdown(\"Choose framework\", &[\"Bueler\", \"React\", \"Vue\"], sel)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let sel = signal(String::new());\ndropdown(\"Choose framework\", &[\"Bueler\", \"React\", \"Vue\"], sel)"));
 
     append_node(&page, &api_table(&[
         ("trigger_text", "&str", "\u{2014}", "Button text for the dropdown trigger"),
@@ -2138,10 +2094,7 @@ fn pg_toast() -> web_sys::Element {
     });
     append_node(&preview, &btn);
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("toast(\"Operation completed!\")\n    .severity(Severity::Success)\n    .duration_ms(3000)\n    .show()"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("toast(\"Operation completed!\")\n    .severity(Severity::Success)\n    .duration_ms(3000)\n    .show()"));
 
     append_node(&page, &api_table(&[
         ("message", "&str", "\u{2014}", "Toast message text"),
@@ -2178,10 +2131,7 @@ fn pg_drawer() -> web_sys::Element {
         append_node(&preview_ref, &d);
     });
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let open = signal(false);\ndrawer(open)\n    .side(DrawerSide::Right)\n    .title(\"Settings\")\n    .body(content)\n    .build()"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let open = signal(false);\ndrawer(open)\n    .side(DrawerSide::Right)\n    .title(\"Settings\")\n    .body(content)\n    .build()"));
 
     append_node(&page, &api_table(&[
         ("open", "Signal<bool>", "\u{2014}", "Controls drawer visibility"),
@@ -2206,10 +2156,7 @@ fn pg_timeline() -> web_sys::Element {
         ("v1.0 Stable", "Production-ready release with SSR support."),
     ]));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("timeline(&[\n    (\"Project Created\", \"Initial commit.\"),\n    (\"Alpha Release\", \"Core components.\"),\n    (\"v1.0 Stable\", \"Production ready.\"),\n])"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("timeline(&[\n    (\"Project Created\", \"Initial commit.\"),\n    (\"Alpha Release\", \"Core components.\"),\n    (\"v1.0 Stable\", \"Production ready.\"),\n])"));
 
     append_node(&page, &api_table(&[
         ("items", "&[(&str, &str)]", "\u{2014}", "Title-description pairs for timeline entries"),
@@ -2232,10 +2179,7 @@ fn pg_table() -> web_sys::Element {
         ],
     ));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("data_table(\n    &[\"Name\", \"Role\", \"Status\"],\n    &[\n        vec![\"Alice\".into(), \"Engineer\".into(), \"Active\".into()],\n        vec![\"Bob\".into(), \"Designer\".into(), \"Away\".into()],\n    ],\n)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("data_table(\n    &[\"Name\", \"Role\", \"Status\"],\n    &[\n        vec![\"Alice\".into(), \"Engineer\".into(), \"Active\".into()],\n        vec![\"Bob\".into(), \"Designer\".into(), \"Away\".into()],\n    ],\n)"));
 
     append_node(&page, &api_table(&[
         ("headers", "&[&str]", "\u{2014}", "Column header labels"),
@@ -2251,10 +2195,7 @@ fn pg_tooltip() -> web_sys::Element {
     let target = components::button("Hover me").primary().build();
     append_node(&preview, &components::tooltip(target, "This is a tooltip!"));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let btn = button(\"Hover me\").primary().build();\ntooltip(btn, \"This is a tooltip!\")"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let btn = button(\"Hover me\").primary().build();\ntooltip(btn, \"This is a tooltip!\")"));
 
     append_node(&page, &api_table(&[
         ("target", "Element", "\u{2014}", "Element to attach tooltip to"),
@@ -2278,10 +2219,7 @@ fn pg_rating() -> web_sys::Element {
 
     append_node(&preview, &components::rating(value, 5));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let stars = signal(3u32);\nrating(stars, 5)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let stars = signal(3u32);\nrating(stars, 5)"));
 
     append_node(&page, &api_table(&[
         ("value", "Signal<u32>", "\u{2014}", "Two-way bound rating value"),
@@ -2296,10 +2234,7 @@ fn pg_copy_button() -> web_sys::Element {
 
     append_node(&preview, &components::copy_button("Hello from Bueler!"));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("copy_button(\"Hello from Bueler!\")"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("copy_button(\"Hello from Bueler!\")"));
 
     append_node(&page, &api_table(&[
         ("text", "&str", "\u{2014}", "Text to copy to clipboard on click"),
@@ -2319,10 +2254,7 @@ fn pg_empty_state() -> web_sys::Element {
         "\u{1f50d}",
     ));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("empty_state(\n    \"No results found\",\n    \"Try adjusting your search.\",\n    \"\u{1f50d}\",\n)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("empty_state(\n    \"No results found\",\n    \"Try adjusting your search.\",\n    \"\u{1f50d}\",\n)"));
 
     append_node(&page, &api_table(&[
         ("title", "&str", "\u{2014}", "Empty state heading"),
@@ -2346,10 +2278,7 @@ fn pg_loading_overlay() -> web_sys::Element {
     append_node(&preview, &show_btn);
     append_node(&preview, &components::loading_overlay(visible));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("let visible = signal(false);\nloading_overlay(visible)"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("let visible = signal(false);\nloading_overlay(visible)"));
 
     append_node(&page, &api_table(&[
         ("visible", "Signal<bool>", "false", "Controls overlay visibility"),
@@ -2413,10 +2342,7 @@ fn pg_layout() -> web_sys::Element {
     append_node(&c_section, &components::center(components::spinner()));
     append_node(&page, &c_section);
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("hstack(\"1rem\", vec![a, b, c])\nvstack(\"1rem\", vec![x, y, z])\ngrid(3, \"1rem\", items)\ncenter(spinner())\ncontainer(content)\nspacer()"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("hstack(\"1rem\", vec![a, b, c])\nvstack(\"1rem\", vec![x, y, z])\ngrid(3, \"1rem\", items)\ncenter(spinner())\ncontainer(content)\nspacer()"));
 
     append_node(&page, &api_table(&[
         ("hstack(gap, children)", "Element", "\u{2014}", "Horizontal flex row"),
@@ -2444,10 +2370,7 @@ fn pg_kbd() -> web_sys::Element {
     append_node(&shortcuts, &components::kbd("Shift+Enter"));
     append_node(&preview, &shortcuts);
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("kbd(\"Ctrl+C\")\nkbd(\"Ctrl+V\")\nkbd(\"Shift+Enter\")"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("kbd(\"Ctrl+C\")\nkbd(\"Ctrl+V\")\nkbd(\"Shift+Enter\")"));
 
     append_node(&page, &api_table(&[
         ("keys", "&str", "\u{2014}", "Keyboard shortcut text (e.g. \"Ctrl+C\")"),
@@ -2461,14 +2384,11 @@ fn pg_code_block() -> web_sys::Element {
 
     set_style(&preview, "flex-direction", "column");
     set_style(&preview, "align-items", "stretch");
-    append_node(&preview, &components::code_block(
+    append_node(&preview, &highlight::rust(
         "fn main() {\n    let count = signal(0);\n    mount(\"#app\", || {\n        button(\"Click me\")\n            .on_click(move |_| count += 1)\n    });\n}"
     ));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("code_block(\"fn main() { ... }\")"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("code_block(\"fn main() { ... }\")"));
 
     append_node(&page, &api_table(&[
         ("code", "&str", "\u{2014}", "Source code text to display"),
@@ -2495,10 +2415,7 @@ fn pg_file_upload() -> web_sys::Element {
         file_name.set(format!("Selected: {}", name));
     }));
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("file_upload(|name, content| {\n    log(&format!(\"File: {}\", name));\n})"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("file_upload(|name, content| {\n    log(&format!(\"File: {}\", name));\n})"));
 
     append_node(&page, &api_table(&[
         ("on_file", "FnMut(String, String)", "\u{2014}", "Callback with (filename, content)"),
@@ -2526,10 +2443,7 @@ fn pg_form_group() -> web_sys::Element {
         append_node(&preview_ref, &fg.build());
     });
 
-    let code = create_element("pre");
-    set_attribute(&code, "class", "pg-code");
-    code.set_text_content(Some("form_group(\"Email\", text_input(\"\").build())\n    .error(\"Invalid email\")\n    .build()"));
-    append_node(&page, &code);
+        append_node(&page, &highlight::rust("form_group(\"Email\", text_input(\"\").build())\n    .error(\"Invalid email\")\n    .build()"));
 
     append_node(&page, &api_table(&[
         ("label", "&str", "\u{2014}", "Group label text"),
@@ -2570,10 +2484,7 @@ fn page_forms() -> web_sys::Element {
         .build();
     append_node(&login_preview, &login_card);
     append_node(&section1, &login_preview);
-    let code1 = create_element("pre");
-    set_attribute(&code1, "class", "pg-code");
-    code1.set_text_content(Some("card(\"Sign In\").body(vstack(\"1rem\", vec![\n    text_input(\"Email\").input_type(\"email\").bind(email).build(),\n    password_input(\"Password\", pw),\n    button(\"Sign In\").primary().build(),\n])).build()"));
-    append_node(&section1, &code1);
+        append_node(&section1, &highlight::rust("card(\"Sign In\").body(vstack(\"1rem\", vec![\n    text_input(\"Email\").input_type(\"email\").bind(email).build(),\n    password_input(\"Password\", pw),\n    button(\"Sign In\").primary().build(),\n])).build()"));
     append_node(&page, &section1);
 
     // ── Signup Form ──
@@ -2597,10 +2508,7 @@ fn page_forms() -> web_sys::Element {
         .build();
     append_node(&signup_preview, &signup_card);
     append_node(&section2, &signup_preview);
-    let code2 = create_element("pre");
-    set_attribute(&code2, "class", "pg-code");
-    code2.set_text_content(Some("card(\"Create Account\").body(vstack(\"1rem\", vec![\n    text_input(\"Name\").bind(name).build(),\n    text_input(\"Email\").input_type(\"email\").bind(email).build(),\n    password_input(\"Password\", pw),\n    checkbox(\"I agree to the Terms\", terms),\n    button(\"Create Account\").primary().build(),\n])).build()"));
-    append_node(&section2, &code2);
+        append_node(&section2, &highlight::rust("card(\"Create Account\").body(vstack(\"1rem\", vec![\n    text_input(\"Name\").bind(name).build(),\n    text_input(\"Email\").input_type(\"email\").bind(email).build(),\n    password_input(\"Password\", pw),\n    checkbox(\"I agree to the Terms\", terms),\n    button(\"Create Account\").primary().build(),\n])).build()"));
     append_node(&page, &section2);
 
     // ── Settings Form ──
@@ -2622,10 +2530,7 @@ fn page_forms() -> web_sys::Element {
         .build();
     append_node(&settings_preview, &settings_card);
     append_node(&section3, &settings_preview);
-    let code3 = create_element("pre");
-    set_attribute(&code3, "class", "pg-code");
-    code3.set_text_content(Some("card(\"Preferences\").body(vstack(\"1rem\", vec![\n    toggle(\"Dark Mode\", dark_mode),\n    slider(12.0, 24.0, 1.0, font_size),\n    select(\"Language\", &[(\"en\",\"English\")], lang),\n    button(\"Save\").primary().build(),\n])).build()"));
-    append_node(&section3, &code3);
+        append_node(&section3, &highlight::rust("card(\"Preferences\").body(vstack(\"1rem\", vec![\n    toggle(\"Dark Mode\", dark_mode),\n    slider(12.0, 24.0, 1.0, font_size),\n    select(\"Language\", &[(\"en\",\"English\")], lang),\n    button(\"Save\").primary().build(),\n])).build()"));
     append_node(&page, &section3);
 
     page
@@ -2656,10 +2561,7 @@ fn page_composition() -> web_sys::Element {
     ]);
     append_node(&dash_preview, &stat_grid);
     append_node(&section1, &dash_preview);
-    let code1 = create_element("pre");
-    set_attribute(&code1, "class", "pg-code");
-    code1.set_text_content(Some("grid(3, \"1rem\", vec![\n    stat(\"1,234\", \"Total Users\"),\n    stat(\"$56.7K\", \"Revenue\"),\n    stat(\"99.9%\", \"Uptime\"),\n])"));
-    append_node(&section1, &code1);
+        append_node(&section1, &highlight::rust("grid(3, \"1rem\", vec![\n    stat(\"1,234\", \"Total Users\"),\n    stat(\"$56.7K\", \"Revenue\"),\n    stat(\"99.9%\", \"Uptime\"),\n])"));
     append_node(&page, &section1);
 
     // ── Card Grid ──
@@ -2676,10 +2578,7 @@ fn page_composition() -> web_sys::Element {
     ]);
     append_node(&card_preview, &card_grid);
     append_node(&section2, &card_preview);
-    let code2 = create_element("pre");
-    set_attribute(&code2, "class", "pg-code");
-    code2.set_text_content(Some("grid(2, \"1rem\", vec![\n    card(\"Users\").body(content).build(),\n    card(\"Analytics\").body(content).build(),\n])"));
-    append_node(&section2, &code2);
+        append_node(&section2, &highlight::rust("grid(2, \"1rem\", vec![\n    card(\"Users\").body(content).build(),\n    card(\"Analytics\").body(content).build(),\n])"));
     append_node(&page, &section2);
 
     // ── Data Table with Pagination ──
@@ -2700,10 +2599,7 @@ fn page_composition() -> web_sys::Element {
     ));
     append_node(&table_preview, &components::pagination(total_pg, curr_pg));
     append_node(&section3, &table_preview);
-    let code3 = create_element("pre");
-    set_attribute(&code3, "class", "pg-code");
-    code3.set_text_content(Some("vstack(\"1rem\", vec![\n    data_table(&[\"ID\",\"Name\",\"Email\"], &rows),\n    pagination(total, current),\n])"));
-    append_node(&section3, &code3);
+        append_node(&section3, &highlight::rust("vstack(\"1rem\", vec![\n    data_table(&[\"ID\",\"Name\",\"Email\"], &rows),\n    pagination(total, current),\n])"));
     append_node(&page, &section3);
 
     // ── Alert + Toast Flow ──
@@ -2721,10 +2617,7 @@ fn page_composition() -> web_sys::Element {
     });
     append_node(&notif_preview, &toast_btn);
     append_node(&section4, &notif_preview);
-    let code4 = create_element("pre");
-    set_attribute(&code4, "class", "pg-code");
-    code4.set_text_content(Some("alert(\"Deployment successful!\").success().build()\nalert(\"Disk usage at 85%.\").warning().build()\ntoast(\"Saved!\").severity(Severity::Success).show()"));
-    append_node(&section4, &code4);
+        append_node(&section4, &highlight::rust("alert(\"Deployment successful!\").success().build()\nalert(\"Disk usage at 85%.\").warning().build()\ntoast(\"Saved!\").severity(Severity::Success).show()"));
     append_node(&page, &section4);
 
     page
@@ -2746,50 +2639,35 @@ fn tutorial_login() -> web_sys::Element {
     let s1 = el("div", "demo-section", &[]);
     append_node(&s1, &text_el("h3", "Step 1 \u{2014} Create Signals"));
     append_node(&s1, &text_el("p", "Start by creating reactive signals for your form state:"));
-    let c1 = create_element("pre");
-    set_attribute(&c1, "class", "pg-code");
-    c1.set_text_content(Some("let email = signal(String::new());\nlet password = signal(String::new());\nlet error = signal(String::new());\nlet loading = signal(false);"));
-    append_node(&s1, &c1);
+        append_node(&s1, &highlight::rust("let email = signal(String::new());\nlet password = signal(String::new());\nlet error = signal(String::new());\nlet loading = signal(false);"));
     append_node(&page, &s1);
 
     // Step 2
     let s2 = el("div", "demo-section", &[]);
     append_node(&s2, &text_el("h3", "Step 2 \u{2014} Build Inputs"));
     append_node(&s2, &text_el("p", "Create form inputs bound to signals:"));
-    let c2 = create_element("pre");
-    set_attribute(&c2, "class", "pg-code");
-    c2.set_text_content(Some("let email_input = text_input(\"Email\")\n    .placeholder(\"you@example.com\")\n    .input_type(\"email\")\n    .required()\n    .bind(email)\n    .build();\n\nlet pw_input = password_input(\"Password\", password);"));
-    append_node(&s2, &c2);
+        append_node(&s2, &highlight::rust("let email_input = text_input(\"Email\")\n    .placeholder(\"you@example.com\")\n    .input_type(\"email\")\n    .required()\n    .bind(email)\n    .build();\n\nlet pw_input = password_input(\"Password\", password);"));
     append_node(&page, &s2);
 
     // Step 3
     let s3 = el("div", "demo-section", &[]);
     append_node(&s3, &text_el("h3", "Step 3 \u{2014} Add Validation"));
     append_node(&s3, &text_el("p", "Validate inputs before submission:"));
-    let c3 = create_element("pre");
-    set_attribute(&c3, "class", "pg-code");
-    c3.set_text_content(Some("let validate = move || -> bool {\n    let e = email.get();\n    let p = password.get();\n    if e.is_empty() || !e.contains('@') {\n        error.set(\"Please enter a valid email\".into());\n        return false;\n    }\n    if p.len() < 8 {\n        error.set(\"Password must be 8+ characters\".into());\n        return false;\n    }\n    error.set(String::new());\n    true\n};"));
-    append_node(&s3, &c3);
+        append_node(&s3, &highlight::rust("let validate = move || -> bool {\n    let e = email.get();\n    let p = password.get();\n    if e.is_empty() || !e.contains('@') {\n        error.set(\"Please enter a valid email\".into());\n        return false;\n    }\n    if p.len() < 8 {\n        error.set(\"Password must be 8+ characters\".into());\n        return false;\n    }\n    error.set(String::new());\n    true\n};"));
     append_node(&page, &s3);
 
     // Step 4
     let s4 = el("div", "demo-section", &[]);
     append_node(&s4, &text_el("h3", "Step 4 \u{2014} Submit Handler"));
     append_node(&s4, &text_el("p", "Create the submit button with loading state:"));
-    let c4 = create_element("pre");
-    set_attribute(&c4, "class", "pg-code");
-    c4.set_text_content(Some("let submit = button(\"Sign In\")\n    .primary()\n    .loading(loading.get())\n    .on_click(move |_| {\n        if validate() {\n            loading.set(true);\n            // perform async login...\n        }\n    });"));
-    append_node(&s4, &c4);
+        append_node(&s4, &highlight::rust("let submit = button(\"Sign In\")\n    .primary()\n    .loading(loading.get())\n    .on_click(move |_| {\n        if validate() {\n            loading.set(true);\n            // perform async login...\n        }\n    });"));
     append_node(&page, &s4);
 
     // Step 5 — Final composition with live preview
     let s5 = el("div", "demo-section", &[]);
     append_node(&s5, &text_el("h3", "Step 5 \u{2014} Compose the Form"));
     append_node(&s5, &text_el("p", "Wrap everything in a card:"));
-    let c5 = create_element("pre");
-    set_attribute(&c5, "class", "pg-code");
-    c5.set_text_content(Some("card(\"Sign In\")\n    .body(vstack(\"1rem\", vec![\n        email_input,\n        pw_input,\n        submit,\n    ]))\n    .build()"));
-    append_node(&s5, &c5);
+        append_node(&s5, &highlight::rust("card(\"Sign In\")\n    .body(vstack(\"1rem\", vec![\n        email_input,\n        pw_input,\n        submit,\n    ]))\n    .build()"));
     // Live preview
     let live = el("div", "pg-preview", &[]);
     set_style(&live, "flex-direction", "column");
@@ -2835,20 +2713,14 @@ fn tutorial_dashboard() -> web_sys::Element {
     let s1 = el("div", "demo-section", &[]);
     append_node(&s1, &text_el("h3", "Step 1 \u{2014} Create the Layout"));
     append_node(&s1, &text_el("p", "Start with a vertical stack for the main layout:"));
-    let c1 = create_element("pre");
-    set_attribute(&c1, "class", "pg-code");
-    c1.set_text_content(Some("let dashboard = vstack(\"2rem\", vec![\n    text_el(\"h1\", \"Dashboard\"),\n    stat_row,\n    data_section,\n]);"));
-    append_node(&s1, &c1);
+        append_node(&s1, &highlight::rust("let dashboard = vstack(\"2rem\", vec![\n    text_el(\"h1\", \"Dashboard\"),\n    stat_row,\n    data_section,\n]);"));
     append_node(&page, &s1);
 
     // Step 2 — Stat Cards
     let s2 = el("div", "demo-section", &[]);
     append_node(&s2, &text_el("h3", "Step 2 \u{2014} Add Stat Cards"));
     append_node(&s2, &text_el("p", "Use a grid of stat components for key metrics:"));
-    let c2 = create_element("pre");
-    set_attribute(&c2, "class", "pg-code");
-    c2.set_text_content(Some("let stat_row = grid(4, \"1rem\", vec![\n    stat(\"2,451\", \"Users\"),\n    stat(\"$12.4K\", \"Revenue\"),\n    stat(\"342\", \"Orders\"),\n    stat(\"99.9%\", \"Uptime\"),\n]);"));
-    append_node(&s2, &c2);
+        append_node(&s2, &highlight::rust("let stat_row = grid(4, \"1rem\", vec![\n    stat(\"2,451\", \"Users\"),\n    stat(\"$12.4K\", \"Revenue\"),\n    stat(\"342\", \"Orders\"),\n    stat(\"99.9%\", \"Uptime\"),\n]);"));
     // Live preview
     let live2 = el("div", "pg-preview", &[]);
     set_style(&live2, "flex-direction", "column");
@@ -2866,10 +2738,7 @@ fn tutorial_dashboard() -> web_sys::Element {
     let s3 = el("div", "demo-section", &[]);
     append_node(&s3, &text_el("h3", "Step 3 \u{2014} Add a Data Table"));
     append_node(&s3, &text_el("p", "Display tabular data with the data_table component:"));
-    let c3 = create_element("pre");
-    set_attribute(&c3, "class", "pg-code");
-    c3.set_text_content(Some("let table = data_table(\n    &[\"Order\", \"Customer\", \"Amount\", \"Status\"],\n    &[\n        vec![\"#1001\".into(), \"Alice\".into(), \"$99\".into(), \"Shipped\".into()],\n        vec![\"#1002\".into(), \"Bob\".into(), \"$149\".into(), \"Processing\".into()],\n    ],\n);"));
-    append_node(&s3, &c3);
+        append_node(&s3, &highlight::rust("let table = data_table(\n    &[\"Order\", \"Customer\", \"Amount\", \"Status\"],\n    &[\n        vec![\"#1001\".into(), \"Alice\".into(), \"$99\".into(), \"Shipped\".into()],\n        vec![\"#1002\".into(), \"Bob\".into(), \"$149\".into(), \"Processing\".into()],\n    ],\n);"));
     let live3 = el("div", "pg-preview", &[]);
     set_style(&live3, "flex-direction", "column");
     set_style(&live3, "align-items", "stretch");
@@ -2888,10 +2757,7 @@ fn tutorial_dashboard() -> web_sys::Element {
     let s4 = el("div", "demo-section", &[]);
     append_node(&s4, &text_el("h3", "Step 4 \u{2014} Compose Everything"));
     append_node(&s4, &text_el("p", "Combine the layout, stats, table, and timeline into a full dashboard:"));
-    let c4 = create_element("pre");
-    set_attribute(&c4, "class", "pg-code");
-    c4.set_text_content(Some("container(vstack(\"2rem\", vec![\n    hstack(\"1rem\", vec![\n        text_el(\"h1\", \"Dashboard\"),\n        spacer(),\n        button(\"Export\").outline().build(),\n    ]),\n    stat_row,\n    card(\"Recent Orders\").body(table).build(),\n    card(\"Activity\").body(timeline).build(),\n]))"));
-    append_node(&s4, &c4);
+        append_node(&s4, &highlight::rust("container(vstack(\"2rem\", vec![\n    hstack(\"1rem\", vec![\n        text_el(\"h1\", \"Dashboard\"),\n        spacer(),\n        button(\"Export\").outline().build(),\n    ]),\n    stat_row,\n    card(\"Recent Orders\").body(table).build(),\n    card(\"Activity\").body(timeline).build(),\n]))"));
     let live4 = el("div", "pg-preview", &[]);
     set_style(&live4, "flex-direction", "column");
     set_style(&live4, "align-items", "stretch");
@@ -3258,6 +3124,355 @@ async fn fetch_text(url: &str) -> Result<String, JsValue> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Benchmarks page — renders examples/showcase/benchmarks.json
+// ═══════════════════════════════════════════════════════════════════════════
+
+fn page_benchmarks() -> web_sys::Element {
+    use js_sys::{Array, Reflect, JSON};
+
+    let page = el("div", "pg-page", &[]);
+    append_node(&page, &text_el("h2", "Benchmarks"));
+
+    let desc = el("p", "pg-desc", &[]);
+    append_text(
+        &desc,
+        "Continuous performance benchmarks for Bueler\u{2019}s reactivity core. \
+         Numbers below come from criterion runs executed by GitHub Actions \
+         every week (and on every push to main) — see the ",
+    );
+    let wf_link = create_element("a");
+    set_attribute(
+        &wf_link,
+        "href",
+        "https://github.com/IEvangelist/Bueler/actions/workflows/benchmarks.yml",
+    );
+    set_attribute(&wf_link, "target", "_blank");
+    set_attribute(&wf_link, "rel", "noopener");
+    append_text(&wf_link, "benchmarks workflow");
+    append_node(&desc, &wf_link);
+    append_text(&desc, ".");
+    append_node(&page, &desc);
+
+    let body = el("div", "doc-section", &[]);
+    let body_ref = body.clone();
+    let loading = el("div", "mono", &[]);
+    append_text(&loading, "Loading benchmarks.json\u{2026}");
+    append_node(&body, &loading);
+    append_node(&page, &body);
+
+    // Show the bench source so visitors can read what we measure.
+    let methodology = el("div", "doc-section", &[]);
+    append_node(&methodology, &text_el("h3", "Methodology"));
+    let p = el("p", "", &[]);
+    append_text(
+        &p,
+        "Each entry below is a criterion micro-benchmark from \
+         crates/oxide-core/benches/reactive.rs. Median nanoseconds are taken \
+         from criterion\u{2019}s statistical analysis with a 95\u{00a0}% \
+         confidence interval. Lower is better.",
+    );
+    append_node(&methodology, &p);
+    append_node(
+        &methodology,
+        &highlight::shell(
+            "# Run locally:\n\
+             cargo bench -p bueler-core --bench reactive",
+        ),
+    );
+    append_node(&page, &methodology);
+
+    wasm_bindgen_futures::spawn_local(async move {
+        clear_children(&body_ref);
+
+        let raw = match fetch_text("./benchmarks.json").await {
+            Ok(t) => t,
+            Err(_) => {
+                let err = el("div", "alert alert-warning", &[]);
+                append_text(
+                    &err,
+                    "Couldn\u{2019}t load benchmarks.json. Try opening it directly: ",
+                );
+                let a = create_element("a");
+                set_attribute(&a, "href", "./benchmarks.json");
+                append_text(&a, "./benchmarks.json");
+                append_node(&err, &a);
+                append_node(&body_ref, &err);
+                return;
+            }
+        };
+
+        let parsed = match JSON::parse(&raw) {
+            Ok(v) => v,
+            Err(_) => {
+                let err = el("div", "alert alert-warning", &[]);
+                append_text(&err, "benchmarks.json is not valid JSON yet.");
+                append_node(&body_ref, &err);
+                return;
+            }
+        };
+
+        let runs_val = Reflect::get(&parsed, &"runs".into()).unwrap_or(JsValue::UNDEFINED);
+        let runs: Array = match runs_val.dyn_into() {
+            Ok(a) => a,
+            Err(_) => {
+                let err = el("div", "alert alert-warning", &[]);
+                append_text(&err, "No benchmark runs recorded yet — check back after the next workflow run.");
+                append_node(&body_ref, &err);
+                return;
+            }
+        };
+
+        if runs.length() == 0 {
+            let err = el("div", "alert alert-info", &[]);
+            append_text(&err, "No benchmark runs recorded yet — the weekly workflow hasn\u{2019}t produced a sample yet.");
+            append_node(&body_ref, &err);
+            return;
+        }
+
+        // Latest = last entry
+        let latest = runs.get(runs.length() - 1);
+        let ts = Reflect::get(&latest, &"timestamp".into())
+            .ok()
+            .and_then(|v| v.as_string())
+            .unwrap_or_else(|| "—".into());
+        let commit_short = Reflect::get(&latest, &"commit_short".into())
+            .ok()
+            .and_then(|v| v.as_string())
+            .unwrap_or_else(|| "—".into());
+
+        let header = el("div", "mono", &[]);
+        append_text(
+            &header,
+            &format!(
+                "as of {commit_short} \u{2022} {ts} \u{2022} {} run(s) recorded",
+                runs.length()
+            ),
+        );
+        append_node(&body_ref, &header);
+
+        // Build set of benchmark names from the latest run
+        let latest_results = Reflect::get(&latest, &"results".into()).unwrap_or(JsValue::UNDEFINED);
+        if latest_results.is_undefined() || latest_results.is_null() {
+            let err = el("div", "alert alert-warning", &[]);
+            append_text(&err, "Latest run has no results recorded.");
+            append_node(&body_ref, &err);
+            return;
+        }
+
+        let latest_results_obj: js_sys::Object = latest_results.clone().unchecked_into();
+        let bench_names: Array = js_sys::Object::keys(&latest_results_obj);
+        let mut names: Vec<String> = (0..bench_names.length())
+            .filter_map(|i| bench_names.get(i).as_string())
+            .collect();
+        names.sort();
+
+        // Table
+        let table = create_element("table");
+        set_attribute(&table, "class", "bench-table");
+        let thead = create_element("thead");
+        let thr = create_element("tr");
+        for h in &["Benchmark", "Median (ns)", "95% CI (ns)", "Trend"] {
+            let th = create_element("th");
+            append_text(&th, h);
+            append_node(&thr, &th);
+        }
+        append_node(&thead, &thr);
+        append_node(&table, &thead);
+
+        let tbody = create_element("tbody");
+
+        let latest_results_obj: &JsValue = &latest_results;
+        for name in &names {
+            let res = Reflect::get(latest_results_obj, &name.as_str().into())
+                .unwrap_or(JsValue::UNDEFINED);
+            let median = Reflect::get(&res, &"median_ns".into())
+                .ok()
+                .and_then(|v| v.as_f64());
+            let lower = Reflect::get(&res, &"lower_ns".into())
+                .ok()
+                .and_then(|v| v.as_f64());
+            let upper = Reflect::get(&res, &"upper_ns".into())
+                .ok()
+                .and_then(|v| v.as_f64());
+
+            let tr = create_element("tr");
+
+            let td_name = create_element("td");
+            let code = create_element("code");
+            append_text(&code, name);
+            append_node(&td_name, &code);
+            append_node(&tr, &td_name);
+
+            let td_med = create_element("td");
+            set_attribute(&td_med, "class", "bench-num");
+            append_text(
+                &td_med,
+                &median.map(fmt_ns).unwrap_or_else(|| "—".into()),
+            );
+            append_node(&tr, &td_med);
+
+            let td_ci = create_element("td");
+            set_attribute(&td_ci, "class", "bench-num");
+            let ci_txt = match (lower, upper) {
+                (Some(l), Some(u)) => format!("{} – {}", fmt_ns(l), fmt_ns(u)),
+                _ => "—".into(),
+            };
+            append_text(&td_ci, &ci_txt);
+            append_node(&tr, &td_ci);
+
+            // Sparkline of the last up-to-12 runs for this benchmark.
+            let td_spark = create_element("td");
+            let mut history: Vec<f64> = Vec::new();
+            let start = if runs.length() > 12 { runs.length() - 12 } else { 0 };
+            for i in start..runs.length() {
+                let run = runs.get(i);
+                let r = Reflect::get(&run, &"results".into()).unwrap_or(JsValue::UNDEFINED);
+                if let Some(m) = Reflect::get(&r, &name.as_str().into())
+                    .ok()
+                    .and_then(|v| Reflect::get(&v, &"median_ns".into()).ok())
+                    .and_then(|v| v.as_f64())
+                {
+                    history.push(m);
+                }
+            }
+            append_node(&td_spark, &sparkline_svg(&history));
+            append_node(&tr, &td_spark);
+
+            append_node(&tbody, &tr);
+        }
+        append_node(&table, &tbody);
+        append_node(&body_ref, &table);
+
+        // Raw JSON link footer
+        let foot = el("p", "pg-desc", &[]);
+        append_text(&foot, "Raw data: ");
+        let a = create_element("a");
+        set_attribute(&a, "href", "./benchmarks.json");
+        set_attribute(&a, "target", "_blank");
+        append_text(&a, "benchmarks.json");
+        append_node(&foot, &a);
+        append_node(&body_ref, &foot);
+    });
+
+    inject_benchmark_css();
+    page
+}
+
+fn fmt_ns(ns: f64) -> String {
+    if ns >= 1_000_000.0 {
+        format!("{:.2} ms", ns / 1_000_000.0)
+    } else if ns >= 1_000.0 {
+        format!("{:.2} \u{00b5}s", ns / 1_000.0)
+    } else if ns >= 1.0 {
+        format!("{:.1} ns", ns)
+    } else {
+        format!("{:.3} ns", ns)
+    }
+}
+
+fn sparkline_svg(values: &[f64]) -> web_sys::Element {
+    let doc = web_sys::window().unwrap().document().unwrap();
+    let svg = doc
+        .create_element_ns(Some("http://www.w3.org/2000/svg"), "svg")
+        .unwrap();
+    let w = 110.0_f64;
+    let h = 28.0_f64;
+    svg.set_attribute("viewBox", &format!("0 0 {w} {h}")).ok();
+    svg.set_attribute("width", &w.to_string()).ok();
+    svg.set_attribute("height", &h.to_string()).ok();
+    svg.set_attribute("class", "bench-spark").ok();
+
+    if values.is_empty() {
+        let txt = doc
+            .create_element_ns(Some("http://www.w3.org/2000/svg"), "text")
+            .unwrap();
+        txt.set_attribute("x", "0").ok();
+        txt.set_attribute("y", "20").ok();
+        txt.set_attribute("fill", "#5a6473").ok();
+        txt.set_attribute("font-size", "10").ok();
+        txt.set_text_content(Some("no data"));
+        svg.append_child(&txt).ok();
+        return svg;
+    }
+
+    let lo = values.iter().cloned().fold(f64::INFINITY, f64::min);
+    let hi = values.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+    let range = (hi - lo).max(1e-9);
+    let n = values.len();
+    let mut d = String::new();
+    for (i, v) in values.iter().enumerate() {
+        let x = if n <= 1 {
+            w / 2.0
+        } else {
+            (i as f64) * (w - 2.0) / ((n - 1) as f64) + 1.0
+        };
+        let y = h - 2.0 - ((v - lo) / range) * (h - 4.0);
+        d.push_str(if i == 0 { "M" } else { "L" });
+        d.push_str(&format!("{x:.2},{y:.2} "));
+    }
+    let path = doc
+        .create_element_ns(Some("http://www.w3.org/2000/svg"), "path")
+        .unwrap();
+    path.set_attribute("d", &d).ok();
+    path.set_attribute("fill", "none").ok();
+    path.set_attribute("stroke", "#f97316").ok();
+    path.set_attribute("stroke-width", "1.5").ok();
+    path.set_attribute("stroke-linejoin", "round").ok();
+    svg.append_child(&path).ok();
+
+    // last point dot
+    if let Some(last) = values.last() {
+        let cx = if n <= 1 { w / 2.0 } else { w - 1.0 };
+        let cy = h - 2.0 - ((*last - lo) / range) * (h - 4.0);
+        let dot = doc
+            .create_element_ns(Some("http://www.w3.org/2000/svg"), "circle")
+            .unwrap();
+        dot.set_attribute("cx", &format!("{cx:.2}")).ok();
+        dot.set_attribute("cy", &format!("{cy:.2}")).ok();
+        dot.set_attribute("r", "2.2").ok();
+        dot.set_attribute("fill", "#f97316").ok();
+        svg.append_child(&dot).ok();
+    }
+
+    svg
+}
+
+fn inject_benchmark_css() {
+    use std::sync::atomic::{AtomicBool, Ordering};
+    static INJECTED: AtomicBool = AtomicBool::new(false);
+    if INJECTED.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    let doc = match web_sys::window().and_then(|w| w.document()) {
+        Some(d) => d,
+        None => return,
+    };
+    let style = match doc.create_element("style") {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+    style.set_text_content(Some(
+        "table.bench-table{width:100%;border-collapse:collapse;margin:1rem 0;\
+         font-family:'Fira Code','JetBrains Mono','SF Mono',Consolas,monospace;\
+         font-size:0.85rem;background:#0a0a0a;border:1px solid #2a2a2a;\
+         border-radius:10px;overflow:hidden}\
+         table.bench-table thead th{background:#1a1a1a;color:#f97316;\
+         text-align:left;padding:0.6rem 0.9rem;font-weight:600;\
+         border-bottom:1px solid #2a2a2a}\
+         table.bench-table tbody td{padding:0.55rem 0.9rem;\
+         border-bottom:1px solid #1a1a1a;color:#d4d4d4;vertical-align:middle}\
+         table.bench-table tbody tr:last-child td{border-bottom:none}\
+         table.bench-table td.bench-num{font-variant-numeric:tabular-nums;\
+         color:#fbbf24}\
+         table.bench-table td code{color:#a5e85d;background:none;padding:0}\
+         svg.bench-spark{display:block;vertical-align:middle}",
+    ));
+    if let Some(head) = doc.head() {
+        let _ = head.append_child(&style);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // 7. Mouse Tracker
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -3468,15 +3683,15 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-quickstart");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Install the Bueler CLI globally with cargo:"));
-    append_node(&sec, &components::code_block("cargo install bueler-cli"));
+    append_node(&sec, &highlight::shell("cargo install bueler-cli"));
     append_node(&sec, &text_el("p", "Create a new project:"));
-    append_node(&sec, &components::code_block("bueler new my-app\ncd my-app"));
+    append_node(&sec, &highlight::shell("bueler new my-app\ncd my-app"));
     append_node(&sec, &text_el("p", "Start the dev server with hot-reload:"));
-    append_node(&sec, &components::code_block("bueler dev"));
+    append_node(&sec, &highlight::shell("bueler dev"));
     append_node(&sec, &text_el("p", "Build for production:"));
-    append_node(&sec, &components::code_block("bueler build --release"));
+    append_node(&sec, &highlight::shell("bueler build"));
     append_node(&sec, &text_el("p", "Serve the optimised output locally:"));
-    append_node(&sec, &components::code_block("bueler serve"));
+    append_node(&sec, &highlight::shell("bueler serve"));
     append_node(&page, &sec);
     append_node(&page, &components::divider());
 
@@ -3486,7 +3701,7 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-cli");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "The bueler CLI provides project scaffolding, dev server, build, and preview commands."));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::shell(
         "bueler new <name>   # Scaffold a new Bueler project\n\
          bueler dev          # Start dev server with hot-reload\n\
          bueler build        # Compile WASM + bundle assets\n\
@@ -3501,7 +3716,7 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-reactivity");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Signals are the foundation of Bueler\u{2019}s reactivity system."));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "// Create a signal with an initial value\n\
          let count = signal(0);\n\
          \n\
@@ -3511,17 +3726,17 @@ fn page_docs() -> web_sys::Element {
          count.update(|n| *n += 1);"
     ));
     append_node(&sec, &text_el("p", "Effects re-run whenever their tracked signals change:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "create_effect(move || {\n\
          \x20   log!(\"{}\", count.get());\n\
          });"
     ));
     append_node(&sec, &text_el("p", "Memos are derived computations that cache their result:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "let doubled = memo(move || count.get() * 2);"
     ));
     append_node(&sec, &text_el("p", "Batch multiple signal writes into a single update, or untrack reads:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "batch(|| {\n\
          \x20   count.set(1);\n\
          \x20   name.set(\"Bueler\".into());\n\
@@ -3530,7 +3745,7 @@ fn page_docs() -> web_sys::Element {
          let snapshot = untrack(|| count.get());"
     ));
     append_node(&sec, &text_el("p", "Lifecycle hooks and context:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "on_mount(|| log!(\"mounted\"));\n\
          on_cleanup(|| log!(\"disposed\"));\n\
          \n\
@@ -3547,7 +3762,7 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-view");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "The view! macro provides declarative HTML-like syntax:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "view! {\n\
          \x20   <div class=\"card\">\n\
          \x20       <h1>{title}</h1>\n\
@@ -3556,7 +3771,7 @@ fn page_docs() -> web_sys::Element {
          }"
     ));
     append_node(&sec, &text_el("p", "Dynamic attributes, events, and two-way binding:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "view! {\n\
          \x20   <input\n\
          \x20       class:active={move || is_active.get()}\n\
@@ -3567,7 +3782,7 @@ fn page_docs() -> web_sys::Element {
          }"
     ));
     append_node(&sec, &text_el("p", "Control flow — conditionals and loops:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "view! {\n\
          \x20   {move || if show.get() {\n\
          \x20       view! { <p>\"Visible\"</p> }\n\
@@ -3590,14 +3805,14 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-hooks");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Ready-made hooks for common browser APIs:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "let stored = use_local_storage(\"key\", \"default\");\n\
          use_interval(move || tick(), 1000);\n\
          let debounced = use_debounce(move || search(), 300);\n\
          let throttled = use_throttle(move || scroll(), 100);"
     ));
     append_node(&sec, &text_el("p", "Window, pointer, and media hooks:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "let (w, h) = use_window_size();\n\
          let (sx, sy) = use_scroll();\n\
          let (mx, my) = use_mouse();\n\
@@ -3606,7 +3821,7 @@ fn page_docs() -> web_sys::Element {
          let mobile   = use_media_query(\"(max-width: 768px)\");"
     ));
     append_node(&sec, &text_el("p", "Focus and click-outside:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "use_click_outside(&menu_ref, move || close_menu());\n\
          use_focus(&input_ref);"
     ));
@@ -3619,7 +3834,7 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-dom");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Low-level helpers for imperative DOM manipulation:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "let el = create_element(\"div\");\n\
          set_attribute(&el, \"class\", \"card\");\n\
          set_property(&el, \"textContent\", \"hello\");\n\
@@ -3627,7 +3842,7 @@ fn page_docs() -> web_sys::Element {
          toggle_class(&el, \"active\", true);"
     ));
     append_node(&sec, &text_el("p", "Tree operations and event listeners:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "append_node(&parent, &child);\n\
          clear_children(&container);\n\
          let found = query_selector(\".my-class\");\n\
@@ -3643,7 +3858,7 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-head");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Dynamically update the document title and meta tags:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "set_title(\"My Page | Bueler\");\n\
          set_meta(\"description\", \"Built with Bueler.\");"
     ));
@@ -3656,7 +3871,7 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-routing");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Hash-based or history-based SPA routing:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "let router = Router::new(RouterMode::Hash, &[\n\
          \x20   route(\"/\",         page_home),\n\
          \x20   route(\"/about\",    page_about),\n\
@@ -3664,7 +3879,7 @@ fn page_docs() -> web_sys::Element {
          ]);"
     ));
     append_node(&sec, &text_el("p", "Programmatic navigation and reading params:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "navigate(\"/about\");\n\
          link(\"/about\", \"Go to About\");\n\
          \n\
@@ -3680,14 +3895,14 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-otel");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Built-in tracing and telemetry for WASM apps:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "telemetry::init(\"my-app\");\n\
          \n\
          let _span = telemetry::span(\"fetch-users\");\n\
          let resp = telemetry::traced_fetch(\"/api/users\").await;"
     ));
     append_node(&sec, &text_el("p", "Inspect collected data:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "let spans = telemetry::get_spans();\n\
          let stats = telemetry::get_stats();"
     ));
@@ -3700,17 +3915,17 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-resiliency");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Error boundaries, retries, circuit breakers, and timeouts:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "let view = resiliency::error_boundary(|| {\n\
          \x20   risky_component()\n\
          });"
     ));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "let result = resiliency::retry(3, || async {\n\
          \x20   fetch(\"/api/data\").await\n\
          }).await;"
     ));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "let cb = resiliency::CircuitBreaker::new(5, 30_000);\n\
          let val = cb.call(|| fetch_data()).await;\n\
          \n\
@@ -3792,11 +4007,11 @@ fn page_docs() -> web_sys::Element {
     set_attribute(&h, "id", "sec-debugging");
     append_node(&sec, &h);
     append_node(&sec, &text_el("p", "Use bueler dev for DWARF debug info and source maps:"));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::shell(
         "bueler dev   # builds with debug symbols"
     ));
     append_node(&sec, &text_el("p", "Install the C/C++ DWARF Chrome extension to set breakpoints directly in Rust source from DevTools."));
-    append_node(&sec, &components::code_block(
+    append_node(&sec, &highlight::rust(
         "// In Chrome DevTools → Sources → your .rs files\n\
          // Set breakpoints, inspect locals, step through Rust code"
     ));

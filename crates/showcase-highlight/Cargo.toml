@@ -1,0 +1,9 @@
+[package]
+name = "bueler-showcase-highlight"
+description = "Pure-Rust syntax tokenizer used by the showcase to colourise code samples without shipping any JavaScript."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"

@@ -1722,6 +1722,11 @@ border-radius:8px;padding:0.4rem 0.75rem;transition:border-color .15s}\
 .bu-search-icon{font-size:0.85rem;flex-shrink:0}\
 .bu-search-input{background:transparent;border:none;color:#e0e0e0;font-size:0.85rem;outline:none;\
 font-family:inherit;flex:1;width:100%}\
+.bu-search-input::-webkit-search-cancel-button,\
+.bu-search-input::-webkit-search-decoration,\
+.bu-search-input::-webkit-search-results-button,\
+.bu-search-input::-webkit-search-results-decoration{-webkit-appearance:none;appearance:none;display:none}\
+.bu-search-input::-ms-clear,.bu-search-input::-ms-reveal{display:none;width:0;height:0}\
 .bu-search-clear{background:none;border:none;color:#888;font-size:1.1rem;cursor:pointer;padding:0;line-height:1}\
 .bu-search-clear:hover{color:#e0e0e0}";
 

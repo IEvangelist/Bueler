@@ -12,6 +12,7 @@ members = [
     "crates/oxide-cli",
     "crates/docs-api-test",
     "crates/showcase-anim",
+    "crates/showcase-highlight",
     "examples/counter",
     "examples/todo",
     "examples/showcase",
