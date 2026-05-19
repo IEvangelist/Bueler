@@ -14,6 +14,7 @@ use wasm_bindgen::JsCast;
 
 #[wasm_bindgen(start)]
 pub fn main() {
+    console_error_panic_hook::set_once();
     mount("#app", || {
         let router = Router::new(RouterMode::Hash, &[
             route("/",                    page_landing),
@@ -3901,14 +3902,19 @@ fn demo_animation() -> web_sys::Element {
         }
         let w = stage.client_width() as f64 - 30.0;
         let h = stage.client_height() as f64 - 30.0;
-        let mut nx = x.get() + dx.get();
-        let mut ny = y.get() + dy.get();
-        if nx <= 0.0 || nx >= w { dx.set(-dx.get()); nx = nx.clamp(0.0, w); }
-        if ny <= 0.0 || ny >= h { dy.set(-dy.get()); ny = ny.clamp(0.0, h); }
-        x.set(nx);
-        y.set(ny);
-        set_style(&ball, "left", &format!("{}px", nx));
-        set_style(&ball, "top", &format!("{}px", ny));
+        let step = bueler_showcase_anim::bouncing_ball_step(
+            x.get(), y.get(), dx.get(), dy.get(), w, h,
+        );
+        if step.stage_unmeasured {
+            request_animation_frame(move || tick(x, y, dx, dy, running, ball, stage));
+            return;
+        }
+        x.set(step.x);
+        y.set(step.y);
+        dx.set(step.dx);
+        dy.set(step.dy);
+        set_style(&ball, "left", &format!("{}px", step.x));
+        set_style(&ball, "top", &format!("{}px", step.y));
         request_animation_frame(move || tick(x, y, dx, dy, running, ball, stage));
     }
 

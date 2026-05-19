@@ -1,0 +1,9 @@
+[package]
+name = "bueler-showcase-anim"
+description = "Pure-Rust animation primitives used by the showcase demos (kept host-testable)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"

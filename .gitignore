@@ -3,3 +3,4 @@
 **/pkg/
 Cargo.lock
 *.wasm
+.playwright-cli/
