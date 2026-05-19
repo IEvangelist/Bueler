@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "runs": [
+    {
+      "timestamp": "2026-05-19T03:47:33Z",
+      "commit": "d1b8fb863259b863ba6b3708b68ad2fd70ec7483",
+      "commit_short": "d1b8fb8",
+      "results": {
+        "batch/coalesce": {
+          "median_ns": 634.705,
+          "lower_ns": 630.148,
+          "upper_ns": 639.262
+        },
+        "effect/run": {
+          "median_ns": 123.529,
+          "lower_ns": 121.238,
+          "upper_ns": 125.819
+        },
+        "memo/recompute": {
+          "median_ns": 131.979,
+          "lower_ns": 131.432,
+          "upper_ns": 132.525
+        },
+        "signal/create": {
+          "median_ns": 40.128,
+          "lower_ns": 39.822,
+          "upper_ns": 40.434
+        },
+        "signal/read": {
+          "median_ns": 4.617,
+          "lower_ns": 4.56,
+          "upper_ns": 4.675
+        },
+        "signal/write": {
+          "median_ns": 29.795,
+          "lower_ns": 29.578,
+          "upper_ns": 30.012
+        },
+        "watch/trigger": {
+          "median_ns": 160.035,
+          "lower_ns": 158.987,
+          "upper_ns": 161.083
+        }
+      }
+    }
+  ]
+}

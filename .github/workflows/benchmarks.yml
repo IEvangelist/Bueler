@@ -1,0 +1,69 @@
+name: Benchmarks (weekly)
+
+# Runs the bueler-core micro-benchmarks once a week and appends a new
+# entry to examples/showcase/benchmarks.json. The deploy workflow picks up
+# the updated JSON on its next push and renders it on the docs site.
+
+on:
+  schedule:
+    # Every Monday at 06:00 UTC.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: benchmarks
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          # Use the default GITHUB_TOKEN to push back to main.
+          persist-credentials: true
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-bench-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-bench-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run criterion benchmarks
+        run: cargo bench -p bueler-core --bench reactive
+
+      - name: Collect results into benchmarks.json
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: python3 scripts/collect_benchmarks.py
+
+      - name: Commit and push updated benchmarks
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- examples/showcase/benchmarks.json; then
+            echo "No bench changes — skipping commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add examples/showcase/benchmarks.json
+          git commit -m "bench: weekly results ($(date -u +%Y-%m-%d))
+
+          Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+          git push origin HEAD:main
