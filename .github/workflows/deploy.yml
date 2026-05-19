@@ -38,8 +38,16 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Run tests
-        run: cargo test -p bueler-core
+      - name: Run workspace tests (host target)
+        run: cargo test --workspace --exclude bueler-docs-api-test
+
+      - name: Run full CLI integration tests
+        env:
+          BUELER_FULL_CLI_TESTS: "1"
+        run: cargo test -p bueler-cli --test cli
+
+      - name: Check workspace builds for wasm32
+        run: cargo check --workspace --exclude bueler-cli --target wasm32-unknown-unknown
 
       - name: Build showcase
         run: cd examples/showcase && wasm-pack build --target web --release
@@ -49,6 +57,7 @@ jobs:
           mkdir -p _site
           cp examples/showcase/*.html _site/
           cp examples/showcase/*.svg _site/
+          if ls examples/showcase/*.json >/dev/null 2>&1; then cp examples/showcase/*.json _site/; fi
           cp -r examples/showcase/pkg _site/pkg
 
       - name: Upload Pages artifact

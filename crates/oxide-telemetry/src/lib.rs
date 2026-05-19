@@ -10,7 +10,7 @@
 //! // All signal/effect activity is now traced automatically.
 //! ```
 
-use bueler_core::{set_hook, HookEvent};
+use bueler_core::HookEvent;
 use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -47,7 +47,21 @@ pub fn init(config: Config) {
         tel.endpoint = config.endpoint;
         tel.trace_reads = config.trace_reads;
     });
-    set_hook(telemetry_hook);
+    bueler_core::set_hook(telemetry_hook);
+}
+
+/// Install a custom runtime hook to observe reactive events. Replaces the
+/// default telemetry hook installed by [`init`]. Documented in §14 of the
+/// site docs as `telemetry::set_hook` — re-exported here for namespace
+/// consistency with the rest of the telemetry surface.
+pub fn set_hook(hook: fn(HookEvent)) {
+    bueler_core::set_hook(hook);
+}
+
+/// Remove any installed runtime hook (including the one installed by
+/// [`init`]). Documented in §14 as `telemetry::clear_hook`.
+pub fn clear_hook() {
+    bueler_core::clear_hook();
 }
 
 /// Get the current collected spans (for display/debugging).

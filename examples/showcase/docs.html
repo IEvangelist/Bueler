@@ -209,6 +209,7 @@
                 <a href="#resiliency"><span class="toc-num">15.</span> Resiliency</a>
                 <a href="#components"><span class="toc-num">16.</span> Component System</a>
                 <a href="#debugging"><span class="toc-num">17.</span> Debugging</a>
+                <a href="#benchmarks"><span class="toc-num">18.</span> Benchmarks</a>
             </nav>
         </div>
     </section>
@@ -245,7 +246,7 @@
             <h3>Build for production</h3>
             <div class="code-block">
 <pre><span class="prompt">$</span> bueler build
-<span class="cmt"># → Optimized WASM output in dist/</span></pre>
+<span class="cmt"># → Optimized WASM output in pkg/</span></pre>
             </div>
         </div>
     </section>
@@ -259,10 +260,10 @@
                 <table class="cli-table">
                     <thead><tr><th>Command</th><th>Description</th><th>Key Flags</th></tr></thead>
                     <tbody>
-                        <tr><td><code>bueler new &lt;name&gt;</code></td><td>Scaffold a new project with template, Cargo.toml, and wasm32 target.</td><td><code>--template</code></td></tr>
-                        <tr><td><code>bueler dev</code></td><td>Dev server with live reload, WASM compilation, and DWARF debug info.</td><td><code>--port</code></td></tr>
-                        <tr><td><code>bueler build</code></td><td>Release build with wasm-opt, tree-shaking, and gzip-ready output.</td><td><code>--release</code></td></tr>
-                        <tr><td><code>bueler serve</code></td><td>Serve the <code>dist/</code> directory on a local HTTP server.</td><td><code>--port</code></td></tr>
+                        <tr><td><code>bueler new &lt;name&gt;</code></td><td>Scaffold a new project with template, Cargo.toml, and wasm32 target.</td><td>—</td></tr>
+                        <tr><td><code>bueler dev</code></td><td>Dev server with live reload, WASM compilation, and DWARF debug info.</td><td><code>--port</code>, <code>--release</code></td></tr>
+                        <tr><td><code>bueler build</code></td><td>Release build via wasm-pack, optimized output in <code>pkg/</code>.</td><td>—</td></tr>
+                        <tr><td><code>bueler serve</code></td><td>Serve the current directory (with <code>pkg/</code> and <code>index.html</code>) on a local HTTP server.</td><td><code>--port</code></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -402,9 +403,9 @@ count.<span class="fn">update</span>(|n| *n += <span class="num">1</span>); <spa
             <div class="code-block">
 <pre><span class="fn">view!</span> {
     {<span class="kw">if</span> logged_in.<span class="fn">get</span>() {
-        <span class="fn">view!</span> { &lt;<span class="tag-name">p</span>&gt;<span class="str">"Welcome back!"</span>&lt;/<span class="tag-name">p</span>&gt; }
+        &lt;<span class="tag-name">p</span>&gt;<span class="str">"Welcome back!"</span>&lt;/<span class="tag-name">p</span>&gt;
     } <span class="kw">else</span> {
-        <span class="fn">view!</span> { &lt;<span class="tag-name">p</span>&gt;<span class="str">"Please log in."</span>&lt;/<span class="tag-name">p</span>&gt; }
+        &lt;<span class="tag-name">p</span>&gt;<span class="str">"Please log in."</span>&lt;/<span class="tag-name">p</span>&gt;
     }}
 }</pre>
             </div>
@@ -414,7 +415,7 @@ count.<span class="fn">update</span>(|n| *n += <span class="num">1</span>); <spa
 <pre><span class="fn">view!</span> {
     &lt;<span class="tag-name">ul</span>&gt;
         {<span class="kw">for</span> item <span class="kw">in</span> items.<span class="fn">get</span>() {
-            <span class="fn">view!</span> { &lt;<span class="tag-name">li</span>&gt;{item}&lt;/<span class="tag-name">li</span>&gt; }
+            &lt;<span class="tag-name">li</span>&gt;{item}&lt;/<span class="tag-name">li</span>&gt;
         }}
     &lt;/<span class="tag-name">ul</span>&gt;
 }</pre>
@@ -880,7 +881,7 @@ breaker.<span class="fn">reset</span>(); <span class="cmt">// force back to Clos
 }
 
 <span class="kw">impl</span> <span class="type">Component</span> <span class="kw">for</span> <span class="type">Counter</span> {
-    <span class="kw">fn</span> <span class="fn">view</span>(&amp;<span class="kw">self</span>) -&gt; <span class="type">View</span> {
+    <span class="kw">fn</span> <span class="fn">render</span>(<span class="kw">self</span>) -&gt; <span class="type">web_sys</span>::<span class="type">Element</span> {
         <span class="kw">let</span> count = <span class="fn">signal</span>(<span class="kw">self</span>.initial);
         <span class="fn">view!</span> {
             &lt;<span class="tag-name">button</span> <span class="attr">on:click</span>={<span class="kw">move</span> |_| count.<span class="fn">update</span>(|n| *n += <span class="num">1</span>)}&gt;
@@ -926,6 +927,125 @@ breaker.<span class="fn">reset</span>(); <span class="cmt">// force back to Clos
             </div>
         </div>
     </section>
+
+    <!-- ═══════ 18 · BENCHMARKS ═══════ -->
+    <section id="benchmarks" class="doc-section">
+        <div class="container">
+            <h2 class="fade-in">18. Benchmarks</h2>
+            <p>Micro-benchmarks for the reactive primitives, refreshed weekly
+            by <a href="https://github.com/IEvangelist/Bueler/actions/workflows/benchmarks.yml" target="_blank" rel="noopener">GitHub Actions</a>.
+            Numbers are median wall-clock time per operation on the CI runner.
+            Lower is better. The sparkline shows the trend over the most
+            recent runs.</p>
+
+            <div id="bench-meta" style="color: var(--fg2); font-size: 0.9rem; margin: 1rem 0 0.5rem;">Loading benchmark data…</div>
+            <div id="bench-table-wrap" style="overflow-x: auto; margin-top: 0.5rem;">
+                <table id="bench-table" style="width: 100%; border-collapse: collapse; font-size: 0.95rem; min-width: 480px;">
+                    <thead>
+                        <tr style="text-align: left; border-bottom: 1px solid rgba(255,255,255,0.12);">
+                            <th style="padding: 0.6rem 0.8rem;">Benchmark</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: right;">Median (ns)</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: right;">95% CI</th>
+                            <th style="padding: 0.6rem 0.8rem;">Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bench-table-body"></tbody>
+                </table>
+            </div>
+            <noscript>
+                <p style="color: var(--fg2);">Enable JavaScript to view benchmark data, or read the raw history at
+                <a href="./benchmarks.json"><code>benchmarks.json</code></a>.</p>
+            </noscript>
+        </div>
+    </section>
+
+    <script>
+    (async function renderBenchmarks() {
+        const meta = document.getElementById('bench-meta');
+        const body = document.getElementById('bench-table-body');
+        if (!meta || !body) return;
+        try {
+            const resp = await fetch('./benchmarks.json', { cache: 'no-store' });
+            if (!resp.ok) throw new Error('benchmarks.json: ' + resp.status);
+            const data = await resp.json();
+            const runs = Array.isArray(data.runs) ? data.runs : [];
+            if (!runs.length) {
+                meta.textContent = 'No benchmark runs yet. The weekly workflow will populate this on its first run.';
+                return;
+            }
+            const latest = runs[runs.length - 1];
+            const benchNames = Object.keys(latest.results).sort();
+
+            const sha = (latest.commit_short || (latest.commit || '').slice(0, 7)) || 'unknown';
+            meta.innerHTML = 'Latest run: <code>' + escapeHtml(sha) + '</code> at <code>' +
+                escapeHtml(latest.timestamp || '') + '</code> · ' +
+                runs.length + ' run' + (runs.length === 1 ? '' : 's') + ' on record.';
+
+            body.innerHTML = '';
+            for (const name of benchNames) {
+                const r = latest.results[name];
+                const history = runs
+                    .map(run => run.results && run.results[name] && run.results[name].median_ns)
+                    .filter(v => typeof v === 'number');
+
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                tr.innerHTML =
+                    '<td style="padding: 0.5rem 0.8rem; font-family: var(--font-mono, monospace);">' + escapeHtml(name) + '</td>' +
+                    '<td style="padding: 0.5rem 0.8rem; text-align: right; font-variant-numeric: tabular-nums;">' + format(r.median_ns) + '</td>' +
+                    '<td style="padding: 0.5rem 0.8rem; text-align: right; color: var(--fg2); font-variant-numeric: tabular-nums; white-space: nowrap;">' +
+                        format(r.lower_ns) + ' – ' + format(r.upper_ns) + '</td>' +
+                    '<td style="padding: 0.5rem 0.8rem;">' + sparkline(history) + '</td>';
+                body.appendChild(tr);
+            }
+        } catch (err) {
+            console.error(err);
+            meta.textContent = 'Benchmark data unavailable: ' + err.message;
+        }
+
+        function format(n) {
+            if (typeof n !== 'number' || !isFinite(n)) return '—';
+            if (n >= 1000) return n.toFixed(0);
+            if (n >= 100)  return n.toFixed(1);
+            if (n >= 10)   return n.toFixed(2);
+            return n.toFixed(3);
+        }
+
+        function sparkline(values) {
+            if (!values.length) {
+                return '<span style="color: var(--fg2);">—</span>';
+            }
+            if (values.length === 1) {
+                // Single data point: draw a flat dot so the column still reads.
+                return '<svg width="80" height="20" viewBox="0 0 80 20" aria-label="single sample">' +
+                    '<circle cx="40" cy="10" r="2" fill="var(--accent, #f97316)"/></svg>';
+            }
+            const w = 80, h = 20, pad = 2;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = (max - min) || 1;
+            const step = (w - 2 * pad) / (values.length - 1);
+            const pts = values.map((v, i) => {
+                const x = pad + i * step;
+                const y = h - pad - ((v - min) / range) * (h - 2 * pad);
+                return x.toFixed(1) + ',' + y.toFixed(1);
+            }).join(' ');
+            const lastX = (pad + (values.length - 1) * step).toFixed(1);
+            const lastY = (h - pad - ((values[values.length - 1] - min) / range) * (h - 2 * pad)).toFixed(1);
+            return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h +
+                '" aria-label="trend across ' + values.length + ' runs">' +
+                '<polyline points="' + pts + '" fill="none" stroke="var(--accent, #f97316)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+                '<circle cx="' + lastX + '" cy="' + lastY + '" r="1.8" fill="var(--accent, #f97316)"/>' +
+                '</svg>';
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+    })();
+    </script>
 
     <!-- ═══════ FOOTER ═══════ -->
     <footer class="site-footer">

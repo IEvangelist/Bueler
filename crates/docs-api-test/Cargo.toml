@@ -1,0 +1,19 @@
+[package]
+name = "bueler-docs-api-test"
+description = "Compile-time validation that every symbol documented in README.md and docs.html exists in the public API. Build it to catch doc drift."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+bueler = { path = "../oxide" }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+
+[dependencies.web-sys]
+version = "0.3"
+features = ["Element", "Event"]
