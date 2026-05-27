@@ -226,6 +226,18 @@ fn text_el(tag: &str, text: &str) -> web_sys::Element {
     e
 }
 
+fn event_target_is_editable(event: &Event) -> bool {
+    let Some(target) = event.target() else {
+        return false;
+    };
+    let Some(el) = target.dyn_ref::<web_sys::Element>() else {
+        return false;
+    };
+
+    matches!(el.tag_name().as_str(), "INPUT" | "TEXTAREA" | "SELECT")
+        || el.get_attribute("contenteditable").as_deref() == Some("true")
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Page: Landing — marketing home page
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3536,6 +3548,10 @@ fn demo_keyboard() -> web_sys::Element {
     };
 
     on_document_event("keydown", move |e| {
+        if event_target_is_editable(&e) {
+            return;
+        }
+
         let ke: web_sys::KeyboardEvent = e.dyn_into().unwrap();
         key.set(ke.key());
         code.set(ke.code());

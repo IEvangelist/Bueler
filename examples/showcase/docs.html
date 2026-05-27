@@ -126,6 +126,124 @@
         .footer-links a:hover { color: var(--accent); text-decoration: none; }
         .footer-tagline { color: var(--fg3); font-size: 0.8rem; font-style: italic; }
 
+        /* Shadcn-inspired docs refresh */
+        :root {
+            --bg: #09090b;
+            --bg2: #0f0f12;
+            --bg3: #18181b;
+            --card: #0f0f12;
+            --fg: #fafafa;
+            --fg2: #a1a1aa;
+            --fg3: #52525b;
+            --border: #27272a;
+            --ring: #a1a1aa;
+            --accent: #fafafa;
+            --accent2: #a1a1aa;
+            --brand: #f97316;
+            --radius: 12px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+            --shadow-md: 0 16px 48px rgba(0,0,0,.28);
+        }
+        body {
+            background:
+                radial-gradient(circle at 20% 0%, rgba(249,115,22,.1), transparent 26rem),
+                radial-gradient(circle at 85% 10%, rgba(161,161,170,.12), transparent 24rem),
+                var(--bg);
+        }
+        a { color: var(--fg); }
+        a:hover { color: var(--fg); }
+        .gradient-text {
+            background: linear-gradient(135deg, #fff, #d4d4d8 45%, var(--brand));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .section-label { color: var(--brand); }
+        .site-header {
+            background: rgba(9,9,11,.78);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 1px 0 rgba(255,255,255,.03);
+        }
+        .header-nav a { color: var(--fg2); }
+        .header-nav a:hover, .header-nav a.active { color: var(--fg); }
+        .gh-btn {
+            background: rgba(24,24,27,.72);
+            border-color: var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            color: var(--fg) !important;
+        }
+        .gh-btn:hover {
+            background: var(--bg3);
+            border-color: var(--ring);
+            color: var(--fg) !important;
+        }
+        .page-hero h1 {
+            letter-spacing: -0.04em;
+        }
+        .toc {
+            max-width: 760px;
+            padding: 1rem;
+            background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01)), var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+        }
+        .toc a { color: var(--fg2); }
+        .toc a:hover { color: var(--fg); }
+        .toc-num { color: var(--fg3); }
+        .doc-section {
+            border-bottom-color: var(--border);
+        }
+        .doc-section h2,
+        .doc-section h3 {
+            letter-spacing: -0.02em;
+            color: var(--fg);
+        }
+        .doc-section p,
+        .doc-section ul,
+        .doc-section ol {
+            color: var(--fg2);
+        }
+        .code-block {
+            background: #09090b;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+        }
+        .step {
+            padding: 1rem;
+            background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01)), var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+        }
+        .step-num {
+            background: var(--fg);
+            color: var(--bg);
+            border-radius: 10px;
+        }
+        .cli-table {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--card);
+        }
+        .cli-table th {
+            background: var(--bg3);
+            border-bottom-color: var(--border);
+            color: var(--fg2);
+        }
+        .cli-table td {
+            border-bottom-color: rgba(255,255,255,.05);
+        }
+        .cli-table tr:hover td { background: var(--bg3); }
+        .cli-table code {
+            background: var(--bg3);
+            color: var(--fg);
+            border: 1px solid var(--border);
+        }
+
         /* ═══════ RESPONSIVE ═══════ */
         @media (max-width: 768px) {
             .container { padding: 0 1rem; }
@@ -1059,10 +1177,5 @@ breaker.<span class="fn">reset</span>(); <span class="cmt">// force back to Clos
             <div class="footer-tagline">Rust + WebAssembly = The Future of the Web</div>
         </div>
     </footer>
-    <script type="module">
-        import init from './pkg/bueler_showcase.js';
-        init();
-    </script>
 </body>
 </html>
-
