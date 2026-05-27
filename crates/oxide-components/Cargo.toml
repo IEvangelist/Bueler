@@ -25,6 +25,8 @@ features = [
     "DomTokenList",
     "Event",
     "EventTarget",
+    "DragEvent",
+    "DataTransfer",
     "FileReader",
     "FileList",
     "File",

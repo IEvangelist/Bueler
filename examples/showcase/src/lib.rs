@@ -890,7 +890,12 @@ fn page_catalog() -> web_sys::Element {
 
         let grid = el("div", "catalog-grid", &[]);
         for &(icon, name, desc_text, path) in items {
-            let card = el("div", "catalog-card", &[]);
+            let card_class = if path.is_empty() {
+                "catalog-card catalog-card-muted"
+            } else {
+                "catalog-card catalog-card-clickable"
+            };
+            let card = el("div", card_class, &[]);
             let ic = el("div", "cc-icon", &[]);
             append_text(&ic, icon);
             append_node(&card, &ic);
@@ -904,6 +909,8 @@ fn page_catalog() -> web_sys::Element {
                 let p = path.to_string();
                 add_event_listener(&card, "click", move |_| { navigate(&p); });
                 set_attribute(&card, "style", "cursor:pointer");
+            } else {
+                card.set_attribute("aria-disabled", "true").ok();
             }
             append_node(&grid, &card);
         }

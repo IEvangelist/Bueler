@@ -1044,18 +1044,21 @@ pub fn tooltip(target: web_sys::Element, text: &str) -> web_sys::Element {
     inject_css("tooltip", TOOLTIP_CSS);
     let wrap = create_element("span");
     set_attribute(&wrap, "class", "bu-tooltip-wrap");
-    wrap.set_attribute("data-tooltip", text).ok();
     append_node(&wrap, &target);
+    let tooltip = create_element("span");
+    set_attribute(&tooltip, "class", "bu-tooltip");
+    append_text(&tooltip, text);
+    append_node(&wrap, &tooltip);
     wrap
 }
 
 const TOOLTIP_CSS: &str = "\
 .bu-tooltip-wrap{position:relative;display:inline-block}\
-.bu-tooltip-wrap::after{content:attr(data-tooltip);position:absolute;bottom:100%;left:50%;\
+.bu-tooltip{position:absolute;bottom:100%;left:50%;\
 transform:translateX(-50%);background:#1e1e1e;color:#e0e0e0;padding:0.3rem 0.6rem;border-radius:6px;\
 font-size:0.75rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;\
 border:1px solid #444;margin-bottom:6px;z-index:100}\
-.bu-tooltip-wrap:hover::after{opacity:1}";
+.bu-tooltip-wrap:hover .bu-tooltip{opacity:1}";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 28. Timeline — vertical timeline
@@ -1212,6 +1215,7 @@ pub fn pagination(total_pages: Signal<u32>, current: Signal<u32>) -> web_sys::El
 
         let prev = create_element("button");
         set_attribute(&prev, "class", "bu-page-btn");
+        prev.set_attribute("aria-label", "Previous").ok();
         append_text(&prev, "\u{2039}"); // ‹
         if cur <= 1 { set_attribute(&prev, "disabled", ""); }
         let c = current;
@@ -1222,6 +1226,7 @@ pub fn pagination(total_pages: Signal<u32>, current: Signal<u32>) -> web_sys::El
             let btn = create_element("button");
             let cls = if p == cur { "bu-page-btn bu-page-active" } else { "bu-page-btn" };
             set_attribute(&btn, "class", cls);
+            if p == cur { btn.set_attribute("aria-current", "page").ok(); }
             append_text(&btn, &p.to_string());
             let c = current;
             add_event_listener(&btn, "click", move |_| { c.set(p); });
@@ -1230,6 +1235,7 @@ pub fn pagination(total_pages: Signal<u32>, current: Signal<u32>) -> web_sys::El
 
         let next = create_element("button");
         set_attribute(&next, "class", "bu-page-btn");
+        next.set_attribute("aria-label", "Next").ok();
         append_text(&next, "\u{203a}"); // ›
         if cur >= total { set_attribute(&next, "disabled", ""); }
         let c = current;
@@ -1908,27 +1914,17 @@ pub fn file_upload(on_file: impl FnMut(String, String) + 'static) -> web_sys::El
         }
     });
 
-    let cb = std::rc::Rc::new(std::cell::RefCell::new(on_file));
+    let cb = std::rc::Rc::new(std::cell::RefCell::new(
+        Box::new(on_file) as Box<dyn FnMut(String, String)>
+    ));
+    let input_cb = cb.clone();
     add_event_listener(&input, "change", move |e| {
-        let cb = cb.clone();
+        let cb = input_cb.clone();
         if let Some(target) = e.target() {
             if let Some(inp) = target.dyn_ref::<web_sys::HtmlInputElement>() {
                 if let Some(files) = inp.files() {
                     if let Some(file) = files.get(0) {
-                        let name = file.name();
-                        if let Ok(reader) = web_sys::FileReader::new() {
-                            let r2 = reader.clone();
-                            let closure = Closure::wrap(Box::new(move || {
-                                if let Ok(result) = r2.result() {
-                                    if let Some(text) = result.as_string() {
-                                        (cb.borrow_mut())(name.clone(), text);
-                                    }
-                                }
-                            }) as Box<dyn FnMut()>);
-                            reader.set_onloadend(Some(closure.as_ref().unchecked_ref()));
-                            closure.forget();
-                            reader.read_as_text(&file).ok();
-                        }
+                        read_file_upload(file, cb);
                     }
                 }
             }
@@ -1946,13 +1942,43 @@ pub fn file_upload(on_file: impl FnMut(String, String) + 'static) -> web_sys::El
         toggle_class(&wrap_ref, "bu-file-dragover", false);
     });
     let wrap_ref = wrap.clone();
+    let cb = cb.clone();
     add_event_listener(&wrap, "drop", move |e| {
         e.prevent_default();
         toggle_class(&wrap_ref, "bu-file-dragover", false);
+        if let Some(drag_event) = e.dyn_ref::<web_sys::DragEvent>() {
+            if let Some(data_transfer) = drag_event.data_transfer() {
+                if let Some(files) = data_transfer.files() {
+                    if let Some(file) = files.get(0) {
+                        read_file_upload(file, cb.clone());
+                    }
+                }
+            }
+        }
     });
 
     append_node(&wrap, &input);
     wrap
+}
+
+fn read_file_upload(
+    file: web_sys::File,
+    cb: std::rc::Rc<std::cell::RefCell<Box<dyn FnMut(String, String)>>>,
+) {
+    let name = file.name();
+    if let Ok(reader) = web_sys::FileReader::new() {
+        let r2 = reader.clone();
+        let closure = Closure::wrap(Box::new(move || {
+            if let Ok(result) = r2.result() {
+                if let Some(text) = result.as_string() {
+                    (cb.borrow_mut())(name.clone(), text);
+                }
+            }
+        }) as Box<dyn FnMut()>);
+        reader.set_onloadend(Some(closure.as_ref().unchecked_ref()));
+        closure.forget();
+        reader.read_as_text(&file).ok();
+    }
 }
 
 const FILE_UPLOAD_CSS: &str = "\
