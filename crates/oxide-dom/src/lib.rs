@@ -52,6 +52,22 @@ pub fn set_property(el: &web_sys::Element, name: &str, value: &JsValue) {
     js_sys::Reflect::set(el, &JsValue::from_str(name), value).ok();
 }
 
+/// Read a JavaScript string property from an element.
+pub fn property_string(el: &web_sys::Element, name: &str) -> String {
+    js_sys::Reflect::get(el, &JsValue::from_str(name))
+        .ok()
+        .and_then(|value| value.as_string())
+        .unwrap_or_default()
+}
+
+/// Check whether this element is currently focused.
+pub fn is_active_element(el: &web_sys::Element) -> bool {
+    document()
+        .active_element()
+        .map(|active| active.is_same_node(Some(el)))
+        .unwrap_or(false)
+}
+
 /// Set a CSS style property on an element.
 pub fn set_style(el: &web_sys::Element, property: &str, value: &str) {
     if let Some(html_el) = el.dyn_ref::<web_sys::HtmlElement>() {

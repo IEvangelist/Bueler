@@ -415,8 +415,12 @@ fn gen_attr(attr: &Attr, el: &proc_macro2::Ident, c: &mut usize) -> TokenStream2
                 quote! {{
                     let #b = #el.clone();
                     ::bueler::create_effect(move || {
-                        ::bueler::dom::set_property(&#b, #prop,
-                            &::wasm_bindgen::JsValue::from_str(&::std::format!("{}", #signal)));
+                        let __next = ::std::format!("{}", #signal);
+                        let __current = ::bueler::dom::property_string(&#b, #prop);
+                        if !::bueler::dom::is_active_element(&#b) && __current != __next {
+                            ::bueler::dom::set_property(&#b, #prop,
+                                &::wasm_bindgen::JsValue::from_str(&__next));
+                        }
                     });
                     ::bueler::dom::add_event_listener(&#el, "input",
                         move |__e: ::bueler::dom::Event| {

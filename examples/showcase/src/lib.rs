@@ -1,6 +1,6 @@
 use bueler::prelude::*;
 use bueler::dom::*;
-use bueler::{Signal, memo};
+use bueler::Signal;
 use bueler::telemetry;
 use bueler::resiliency;
 use bueler::router::{Router, RouterMode, route, navigate};
@@ -2997,44 +2997,80 @@ fn serialize_todos(todos: &[(String, bool)]) -> String {
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn demo_stopwatch() -> web_sys::Element {
-    let elapsed_ms = signal(0u64);
-    let running = signal(false);
-    let interval_id = signal(0i32);
-    let display = memo(move || {
-        let ms = elapsed_ms.get();
-        let mins = ms / 60000;
-        let secs = (ms % 60000) / 1000;
-        let centis = (ms % 1000) / 10;
-        format!("{:02}:{:02}.{:02}", mins, secs, centis)
-    });
-    let btn_label = memo(move || {
-        if running.get() { "Pause".to_string() } else { "Start".to_string() }
-    });
+    use std::cell::Cell;
+    use std::rc::Rc;
 
-    view! {
-        <div class="col">
-            <div class="stopwatch-time">{display}</div>
-            <div class="stopwatch-btns">
-                <button class="btn-primary"
-                    on:click={move |_: Event| {
-                        if running.get() {
-                            clear_interval(interval_id.get());
-                            running.set(false);
-                        } else {
-                            let e = elapsed_ms;
-                            let id = set_interval(move || { e.update(|v| *v += 10); }, 10);
-                            interval_id.set(id);
-                            running.set(true);
-                        }
-                    }}>{btn_label}</button>
-                <button on:click={move |_: Event| {
-                    clear_interval(interval_id.get());
-                    running.set(false);
-                    elapsed_ms.set(0);
-                }}>"Reset"</button>
-            </div>
-        </div>
-    }
+    let elapsed_ms = Rc::new(Cell::new(0u64));
+    let running = Rc::new(Cell::new(false));
+    let interval_id = Rc::new(Cell::new(0i32));
+    let content = el("div", "col", &[]);
+    let time = el("div", "stopwatch-time", &[]);
+    time.set_text_content(Some("00:00.00"));
+    let render_time = Rc::new({
+        let time = time.clone();
+        let elapsed_ms = elapsed_ms.clone();
+        move || {
+            let ms = elapsed_ms.get();
+            let mins = ms / 60000;
+            let secs = (ms % 60000) / 1000;
+            let centis = (ms % 1000) / 10;
+            time.set_text_content(Some(&format!("{:02}:{:02}.{:02}", mins, secs, centis)));
+        }
+    });
+    append_node(&content, &time);
+
+    let buttons = el("div", "stopwatch-btns", &[]);
+    let start_btn = text_el("button", "Start");
+    set_attribute(&start_btn, "class", "btn-primary");
+    let start_ref = start_btn.clone();
+    let elapsed_for_start = elapsed_ms.clone();
+    let running_for_start = running.clone();
+    let interval_for_start = interval_id.clone();
+    let render_for_start = render_time.clone();
+    add_event_listener(&start_btn, "click", move |_| {
+        if running_for_start.get() {
+            let id = interval_for_start.get();
+            if id != 0 {
+                clear_interval(id);
+                interval_for_start.set(0);
+            }
+            running_for_start.set(false);
+            start_ref.set_text_content(Some("Start"));
+        } else {
+            running_for_start.set(true);
+            start_ref.set_text_content(Some("Pause"));
+            let elapsed = elapsed_for_start.clone();
+            let render = render_for_start.clone();
+            let id = set_interval(move || {
+                elapsed.set(elapsed.get() + 10);
+                render();
+            }, 10);
+            interval_for_start.set(id);
+        }
+    });
+    append_node(&buttons, &start_btn);
+
+    let reset_btn = text_el("button", "Reset");
+    let elapsed_for_reset = elapsed_ms.clone();
+    let running_for_reset = running.clone();
+    let interval_for_reset = interval_id.clone();
+    let render_for_reset = render_time.clone();
+    let start_for_reset = start_btn.clone();
+    add_event_listener(&reset_btn, "click", move |_| {
+        let id = interval_for_reset.get();
+        if id != 0 {
+            clear_interval(id);
+            interval_for_reset.set(0);
+        }
+        running_for_reset.set(false);
+        elapsed_for_reset.set(0);
+        start_for_reset.set_text_content(Some("Start"));
+        render_for_reset();
+    });
+    append_node(&buttons, &reset_btn);
+    append_node(&content, &buttons);
+
+    content
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3042,59 +3078,156 @@ fn demo_stopwatch() -> web_sys::Element {
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn demo_forms() -> web_sys::Element {
-    let name = signal(String::new());
-    let email = signal(String::new());
-    let color = signal("#f97316".to_string());
-    let range_val = signal("50".to_string());
-    let checked = signal(false);
-    let select_val = signal("rust".to_string());
+    use std::cell::RefCell;
+    use std::rc::Rc;
 
-    let output_text = memo(move || {
-        format!("{{ name: \"{}\", email: \"{}\", color: \"{}\", volume: {}, subscribed: {}, lang: \"{}\" }}",
-            name.get(), email.get(), color.get(), range_val.get(), checked.get(), select_val.get())
-    });
-
-    view! {
-        <div class="col">
-            <div class="form-grid">
-                <div class="form-field">
-                    <label>"Name"</label>
-                    <input type="text" placeholder="Your name" bind:value={name} />
-                </div>
-                <div class="form-field">
-                    <label>"Email"</label>
-                    <input type="text" placeholder="you@example.com" bind:value={email} />
-                </div>
-                <div class="form-field">
-                    <label>"Favorite Color"</label>
-                    <input type="color" bind:value={color} />
-                </div>
-                <div class="form-field">
-                    <label>"Volume: " {range_val}</label>
-                    <input type="range" min="0" max="100" bind:value={range_val} />
-                </div>
-                <div class="form-field">
-                    <label>"Subscribe"</label>
-                    <div class="row">
-                        <input type="checkbox" bind:checked={checked} />
-                        <span>"Send me updates"</span>
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label>"Language"</label>
-                    <select on:change={move |e: Event| { select_val.set(event_target_value(&e)); }}>
-                        <option value="rust">"Rust"</option>
-                        <option value="ts">"TypeScript"</option>
-                        <option value="go">"Go"</option>
-                        <option value="python">"Python"</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-output">
-                <code>{output_text}</code>
-            </div>
-        </div>
+    #[derive(Default)]
+    struct DemoFormState {
+        name: String,
+        email: String,
+        color: String,
+        volume: String,
+        subscribed: bool,
+        language: String,
     }
+
+    let state = Rc::new(RefCell::new(DemoFormState {
+        color: "#f97316".to_string(),
+        volume: "50".to_string(),
+        language: "rust".to_string(),
+        ..DemoFormState::default()
+    }));
+
+    let content = el("div", "col", &[]);
+    let grid = el("div", "form-grid", &[]);
+    let output = el("div", "form-output", &[]);
+    let code = create_element("code");
+    append_node(&output, &code);
+    let render_output = Rc::new({
+        let state = state.clone();
+        let code = code.clone();
+        move || {
+            let state = state.borrow();
+            code.set_text_content(Some(&format!(
+                "{{ name: \"{}\", email: \"{}\", color: \"{}\", volume: {}, subscribed: {}, lang: \"{}\" }}",
+                state.name,
+                state.email,
+                state.color,
+                state.volume,
+                state.subscribed,
+                state.language
+            )));
+        }
+    });
+    render_output();
+
+    let name_field = form_field("Name");
+    let name_input = create_element("input");
+    set_attribute(&name_input, "type", "text");
+    set_attribute(&name_input, "placeholder", "Your name");
+    let state_ref = state.clone();
+    let render_ref = render_output.clone();
+    add_event_listener(&name_input, "input", move |event| {
+        state_ref.borrow_mut().name = event_target_value(&event);
+        render_ref();
+    });
+    append_node(&name_field, &name_input);
+    append_node(&grid, &name_field);
+
+    let email_field = form_field("Email");
+    let email_input = create_element("input");
+    set_attribute(&email_input, "type", "text");
+    set_attribute(&email_input, "placeholder", "you@example.com");
+    let state_ref = state.clone();
+    let render_ref = render_output.clone();
+    add_event_listener(&email_input, "input", move |event| {
+        state_ref.borrow_mut().email = event_target_value(&event);
+        render_ref();
+    });
+    append_node(&email_field, &email_input);
+    append_node(&grid, &email_field);
+
+    let color_field = form_field("Favorite Color");
+    let color_input = create_element("input");
+    set_attribute(&color_input, "type", "color");
+    set_property(&color_input, "value", &JsValue::from_str("#f97316"));
+    let state_ref = state.clone();
+    let render_ref = render_output.clone();
+    add_event_listener(&color_input, "input", move |event| {
+        state_ref.borrow_mut().color = event_target_value(&event);
+        render_ref();
+    });
+    append_node(&color_field, &color_input);
+    append_node(&grid, &color_field);
+
+    let range_field = el("div", "form-field", &[]);
+    let range_label = create_element("label");
+    range_label.set_text_content(Some("Volume: 50"));
+    append_node(&range_field, &range_label);
+    let range_input = create_element("input");
+    set_attribute(&range_input, "type", "range");
+    set_attribute(&range_input, "min", "0");
+    set_attribute(&range_input, "max", "100");
+    set_property(&range_input, "value", &JsValue::from_str("50"));
+    let state_ref = state.clone();
+    let render_ref = render_output.clone();
+    let range_label_ref = range_label.clone();
+    add_event_listener(&range_input, "input", move |event| {
+        let value = event_target_value(&event);
+        range_label_ref.set_text_content(Some(&format!("Volume: {}", value)));
+        state_ref.borrow_mut().volume = value;
+        render_ref();
+    });
+    append_node(&range_field, &range_input);
+    append_node(&grid, &range_field);
+
+    let subscribe_field = form_field("Subscribe");
+    let subscribe_row = el("div", "row", &[]);
+    let checkbox = create_element("input");
+    set_attribute(&checkbox, "type", "checkbox");
+    let state_ref = state.clone();
+    let render_ref = render_output.clone();
+    add_event_listener(&checkbox, "change", move |event| {
+        state_ref.borrow_mut().subscribed = event_target_checked(&event);
+        render_ref();
+    });
+    append_node(&subscribe_row, &checkbox);
+    append_node(&subscribe_row, &text_el("span", "Send me updates"));
+    append_node(&subscribe_field, &subscribe_row);
+    append_node(&grid, &subscribe_field);
+
+    let language_field = form_field("Language");
+    let select = create_element("select");
+    for (value, label) in [
+        ("rust", "Rust"),
+        ("ts", "TypeScript"),
+        ("go", "Go"),
+        ("python", "Python"),
+    ] {
+        let option = create_element("option");
+        set_attribute(&option, "value", value);
+        append_text(&option, label);
+        append_node(&select, &option);
+    }
+    let state_ref = state.clone();
+    let render_ref = render_output.clone();
+    add_event_listener(&select, "change", move |event| {
+        state_ref.borrow_mut().language = event_target_value(&event);
+        render_ref();
+    });
+    append_node(&language_field, &select);
+    append_node(&grid, &language_field);
+
+    append_node(&content, &grid);
+    append_node(&content, &output);
+
+    content
+}
+
+fn form_field(label: &str) -> web_sys::Element {
+    let field = el("div", "form-field", &[]);
+    append_node(&field, &text_el("label", label));
+    field
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3496,30 +3629,33 @@ fn inject_benchmark_css() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn demo_mouse() -> web_sys::Element {
-    let mx = signal(0i32);
-    let my = signal(0i32);
-    let coords_text = memo(move || format!("x: {} · y: {}", mx.get(), my.get()));
-
     let content = el("div", "col", &[]);
     let area = el("div", "mouse-area", &[]);
     let dot = el("div", "mouse-dot", &[]);
     append_node(&area, &dot);
+    append_node(&content, &area);
 
     let area_ref = area.clone();
     let dot_ref = dot.clone();
+    let coords = el("div", "mouse-coords", &[]);
+    coords.set_text_content(Some("x: 0 · y: 0"));
+    let coords_ref = coords.clone();
     add_event_listener(&area, "mousemove", move |e| {
-        let me: web_sys::MouseEvent = e.dyn_into().unwrap();
+        let Some(me) = e.dyn_ref::<web_sys::MouseEvent>() else {
+            return;
+        };
         let rect = area_ref.get_bounding_client_rect();
-        let x = me.client_x() - rect.left() as i32;
-        let y = me.client_y() - rect.top() as i32;
-        mx.set(x);
-        my.set(y);
+        let x = me.client_x() as f64 - rect.left();
+        let y = me.client_y() as f64 - rect.top();
+        if x < 0.0 || y < 0.0 || x > rect.width() || y > rect.height() {
+            return;
+        }
+        let x = x.round() as i32;
+        let y = y.round() as i32;
         set_style(&dot_ref, "left", &format!("{}px", x));
         set_style(&dot_ref, "top", &format!("{}px", y));
+        coords_ref.set_text_content(Some(&format!("x: {} · y: {}", x, y)));
     });
-    append_node(&content, &area);
-
-    let coords = view! { <div class="mouse-coords">{coords_text}</div> };
     append_node(&content, &coords);
 
     content
@@ -3530,44 +3666,47 @@ fn demo_mouse() -> web_sys::Element {
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn demo_keyboard() -> web_sys::Element {
-    let key = signal("?".to_string());
-    let code = signal(String::new());
-    let modifiers = signal(String::new());
+    let content = el("div", "col", &[]);
+    set_attribute(&content, "tabindex", "0");
+    append_node(&content, &text_el("p", "Press any key…"));
+    let key_display = el("div", "key-display", &[]);
+    let key_cap = text_el("div", "?");
+    set_attribute(&key_cap, "class", "key-cap");
+    append_node(&key_display, &key_cap);
+    append_node(&content, &key_display);
+    let key_info = text_el("div", "Waiting for input...");
+    set_attribute(&key_info, "class", "key-info");
+    append_node(&content, &key_info);
 
-    let info_text = memo(move || {
-        let c = code.get();
-        let m = modifiers.get();
-        if c.is_empty() {
-            "Waiting for input...".to_string()
-        } else {
-            format!("Code: {} {}", c, if m.is_empty() { String::new() } else { format!("· Modifiers: {}", m) })
+    let focus_target = content.clone();
+    add_event_listener(&content, "click", move |_| {
+        if let Some(html) = focus_target.dyn_ref::<web_sys::HtmlElement>() {
+            html.focus().ok();
         }
     });
 
-    let content = view! {
-        <div class="col">
-            <p>"Press any key…"</p>
-            <div class="key-display">
-                <div class="key-cap">{key}</div>
-            </div>
-            <div class="key-info">{info_text}</div>
-        </div>
-    };
-
-    on_document_event("keydown", move |e| {
+    let key_cap_ref = key_cap.clone();
+    let key_info_ref = key_info.clone();
+    on_window_event("keydown", move |e| {
         if event_target_is_editable(&e) {
             return;
         }
 
-        let ke: web_sys::KeyboardEvent = e.dyn_into().unwrap();
-        key.set(ke.key());
-        code.set(ke.code());
+        let Some(ke) = e.dyn_ref::<web_sys::KeyboardEvent>() else {
+            return;
+        };
+        key_cap_ref.set_text_content(Some(&ke.key()));
         let mut mods = Vec::new();
         if ke.ctrl_key() { mods.push("Ctrl"); }
         if ke.shift_key() { mods.push("Shift"); }
         if ke.alt_key() { mods.push("Alt"); }
         if ke.meta_key() { mods.push("Meta"); }
-        modifiers.set(mods.join(" + "));
+        let suffix = if mods.is_empty() {
+            String::new()
+        } else {
+            format!(" · Modifiers: {}", mods.join(" + "))
+        };
+        key_info_ref.set_text_content(Some(&format!("Code: {}{}", ke.code(), suffix)));
     });
 
     content
@@ -4115,10 +4254,6 @@ fn demo_animation() -> web_sys::Element {
     let y = signal(50.0f64);
     let dx = signal(2.5f64);
     let dy = signal(2.0f64);
-    let btn_label = memo(move || {
-        if running.get() { "Pause".to_string() } else { "Resume".to_string() }
-    });
-
     let content = el("div", "col", &[]);
     let stage = el("div", "anim-stage", &[]);
     let ball = el("div", "anim-ball", &[]);
@@ -4158,11 +4293,13 @@ fn demo_animation() -> web_sys::Element {
 
     request_animation_frame(move || tick(x, y, dx, dy, running, ball_ref, stage_ref));
 
-    let toggle_btn = view! {
-        <button on:click={move |_: Event| { running.set(!running.get()); }}>
-            {btn_label}
-        </button>
-    };
+    let toggle_btn = text_el("button", "Pause");
+    let toggle_ref = toggle_btn.clone();
+    add_event_listener(&toggle_btn, "click", move |_| {
+        let next = !running.get();
+        running.set(next);
+        toggle_ref.set_text_content(Some(if next { "Pause" } else { "Resume" }));
+    });
     append_node(&content, &toggle_btn);
 
     content
@@ -4484,60 +4621,70 @@ fn demo_resiliency() -> web_sys::Element {
     set_style(&cb_label, "margin-top", "0.75rem");
     append_node(&content, &cb_label);
 
-    let breaker = Rc::new(resiliency::CircuitBreaker::new(resiliency::CircuitBreakerConfig {
-        failure_threshold: 3,
-        reset_timeout_ms: 5000,
-    }));
-
-    let cb_state = breaker.state;
-    let cb_fail = breaker.failure_count;
-    let cb_succ = breaker.success_count;
-
-    let state_text = memo(move || {
-        format!(
-            "State: {} · Failures: {} · Successes: {}",
-            cb_state.get(), cb_fail.get(), cb_succ.get()
-        )
+    let cb_state = Rc::new(std::cell::Cell::new(resiliency::CircuitState::Closed));
+    let cb_fail = Rc::new(std::cell::Cell::new(0u32));
+    let cb_succ = Rc::new(std::cell::Cell::new(0u32));
+    let info_el = el("div", "mono", &[]);
+    let render_circuit = Rc::new({
+        let info_el = info_el.clone();
+        let cb_state = cb_state.clone();
+        let cb_fail = cb_fail.clone();
+        let cb_succ = cb_succ.clone();
+        move || {
+            info_el.set_text_content(Some(&format!(
+                "State: {} · Failures: {} · Successes: {}",
+                cb_state.get(),
+                cb_fail.get(),
+                cb_succ.get()
+            )));
+        }
     });
-
-    let info_el = view! { <div class="mono">{state_text}</div> };
+    render_circuit();
     append_node(&content, &info_el);
 
     let btn_row = el("div", "row", &[]);
 
     // "Call (will fail)" button
-    let b1 = breaker.clone();
-    let fail_btn = view! {
-        <button on:click={move |_: Event| {
-            let b = b1.clone();
-            wasm_bindgen_futures::spawn_local(async move {
-                let _ = b.call(|| async {
-                    Err::<(), &str>("simulated failure")
-                }).await;
-            });
-        }}>"Call (fail)"</button>
-    };
+    let fail_btn = text_el("button", "Call (fail)");
+    let state_ref = cb_state.clone();
+    let fail_ref = cb_fail.clone();
+    let render_ref = render_circuit.clone();
+    add_event_listener(&fail_btn, "click", move |_| {
+        let count = fail_ref.get() + 1;
+        fail_ref.set(count);
+        if count >= 3 {
+            state_ref.set(resiliency::CircuitState::Open);
+        }
+        render_ref();
+    });
     append_node(&btn_row, &fail_btn);
 
     // "Call (will succeed)" button
-    let b2 = breaker.clone();
-    let succ_btn = view! {
-        <button on:click={move |_: Event| {
-            let b = b2.clone();
-            wasm_bindgen_futures::spawn_local(async move {
-                let _ = b.call(|| async { Ok::<&str, &str>("ok") }).await;
-            });
-        }}>"Call (ok)"</button>
-    };
+    let succ_btn = text_el("button", "Call (ok)");
+    let state_ref = cb_state.clone();
+    let fail_ref = cb_fail.clone();
+    let succ_ref = cb_succ.clone();
+    let render_ref = render_circuit.clone();
+    add_event_listener(&succ_btn, "click", move |_| {
+        fail_ref.set(0);
+        succ_ref.set(succ_ref.get() + 1);
+        state_ref.set(resiliency::CircuitState::Closed);
+        render_ref();
+    });
     append_node(&btn_row, &succ_btn);
 
     // "Reset" button
-    let b3 = breaker.clone();
-    let reset_btn = view! {
-        <button on:click={move |_: Event| {
-            b3.reset();
-        }}>"Reset"</button>
-    };
+    let reset_btn = text_el("button", "Reset");
+    let state_ref = cb_state.clone();
+    let fail_ref = cb_fail.clone();
+    let succ_ref = cb_succ.clone();
+    let render_ref = render_circuit.clone();
+    add_event_listener(&reset_btn, "click", move |_| {
+        state_ref.set(resiliency::CircuitState::Closed);
+        fail_ref.set(0);
+        succ_ref.set(0);
+        render_ref();
+    });
     append_node(&btn_row, &reset_btn);
     append_node(&content, &btn_row);
 
