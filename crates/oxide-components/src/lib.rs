@@ -2335,6 +2335,12 @@ const COMPONENT_THEME_CSS: &str = r#"
   --bu-shadow-md: 0 10px 30px rgba(0, 0, 0, 0.22);
   --bu-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --bu-mono: "Cascadia Code", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
+  --bu-motion-fast: 120ms;
+  --bu-motion: 180ms;
+  --bu-motion-slow: 420ms;
+  --bu-ease-out: cubic-bezier(.16, 1, .3, 1);
+  --bu-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --bu-highlight: rgba(250, 250, 250, .08);
 }
 
 .bu-btn,
@@ -3085,5 +3091,178 @@ textarea.bu-input {
 
 .bu-star-filled {
   color: var(--bu-primary);
+}
+
+.bu-btn,
+.bu-dropdown-trigger,
+.bu-page-btn,
+.bu-copy-btn,
+.bu-num-btn,
+.bu-input,
+.bu-search-wrap,
+.bu-file-upload,
+.bu-tab-btn,
+.bu-accordion-header,
+.bu-dropdown-item,
+.bu-table tr,
+.bu-alert-close,
+.bu-modal-close,
+.bu-drawer-close,
+.bu-pass-toggle,
+.bu-search-clear,
+.bu-confirm-cancel,
+.bu-confirm-ok,
+.bu-star {
+  transition-timing-function: var(--bu-ease-out);
+}
+
+.bu-btn:hover:not(:disabled),
+.bu-dropdown-trigger:hover,
+.bu-page-btn:hover:not(:disabled),
+.bu-copy-btn:hover,
+.bu-num-btn:hover,
+.bu-confirm-cancel:hover,
+.bu-confirm-ok:hover {
+  box-shadow: var(--bu-shadow-md);
+  transform: translateY(-1px);
+}
+
+.bu-btn:active:not(:disabled),
+.bu-dropdown-trigger:active,
+.bu-page-btn:active:not(:disabled),
+.bu-copy-btn:active,
+.bu-num-btn:active,
+.bu-confirm-cancel:active,
+.bu-confirm-ok:active {
+  box-shadow: var(--bu-shadow-sm);
+  transform: translateY(0);
+}
+
+.bu-input:hover:not(:focus),
+.bu-search-wrap:hover:not(:focus-within),
+.bu-num-input:hover:not(:focus) {
+  border-color: #3f3f46;
+}
+
+.bu-input:focus,
+.bu-search-wrap:focus-within,
+.bu-num-input:focus {
+  background: var(--bu-card);
+}
+
+.bu-card,
+.bu-stat,
+.bu-file-upload,
+.bu-empty-state,
+.bu-confirm-dialog,
+.bu-modal,
+.bu-drawer,
+.bu-toast,
+.bu-code-block,
+.bu-table-wrap,
+.bu-accordion,
+.bu-dropdown-menu {
+  transition: border-color var(--bu-motion) var(--bu-ease-out),
+    box-shadow var(--bu-motion) var(--bu-ease-out),
+    transform var(--bu-motion) var(--bu-ease-out),
+    background-color var(--bu-motion) var(--bu-ease-out);
+}
+
+.bu-card:hover,
+.bu-card:focus-within,
+.bu-stat:hover,
+.bu-file-upload:hover,
+.bu-empty-state:hover,
+.bu-code-block:hover,
+.bu-table-wrap:hover,
+.bu-accordion:hover {
+  border-color: #3f3f46;
+  box-shadow: var(--bu-shadow-md);
+}
+
+.bu-table tr,
+.bu-dropdown-item,
+.bu-tab-btn,
+.bu-accordion-header,
+.bu-alert-close,
+.bu-modal-close,
+.bu-drawer-close,
+.bu-pass-toggle,
+.bu-search-clear,
+.bu-confirm-cancel,
+.bu-confirm-ok {
+  transition: background-color var(--bu-motion-fast) var(--bu-ease-out),
+    color var(--bu-motion-fast) var(--bu-ease-out),
+    border-color var(--bu-motion-fast) var(--bu-ease-out),
+    transform var(--bu-motion-fast) var(--bu-ease-out);
+}
+
+.bu-table tr:hover,
+.bu-dropdown-item:hover,
+.bu-tab-btn:hover,
+.bu-accordion-header:hover {
+  background-image: linear-gradient(90deg, var(--bu-highlight), transparent);
+}
+
+.bu-toggle-thumb,
+.bu-accordion-arrow,
+.bu-progress-bar,
+.bu-skeleton,
+.bu-tooltip {
+  transition-timing-function: var(--bu-ease-out);
+}
+
+.bu-star:hover {
+  transform: translateY(-1px) scale(1.08);
+}
+
+@keyframes bu-surface-in {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes bu-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bu-modal,
+  .bu-confirm-dialog,
+  .bu-dropdown-menu,
+  .bu-toast {
+    animation: bu-surface-in var(--bu-motion-slow) var(--bu-ease-out) both;
+  }
+
+  .bu-modal-overlay,
+  .bu-drawer-overlay,
+  .bu-confirm-overlay,
+  .bu-loading-overlay {
+    animation: bu-overlay-in var(--bu-motion) var(--bu-ease-out) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class^="bu-"],
+  [class*=" bu-"],
+  [class^="bu-"]::before,
+  [class^="bu-"]::after,
+  [class*=" bu-"]::before,
+  [class*=" bu-"]::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .bu-btn:hover:not(:disabled),
+  .bu-dropdown-trigger:hover,
+  .bu-page-btn:hover:not(:disabled),
+  .bu-copy-btn:hover,
+  .bu-num-btn:hover,
+  .bu-confirm-cancel:hover,
+  .bu-confirm-ok:hover,
+  .bu-star:hover {
+    transform: none;
+  }
 }
 "#;

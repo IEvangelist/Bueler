@@ -350,6 +350,12 @@
             --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
             --shadow-md: 0 16px 48px rgba(0,0,0,.28);
             --glow: rgba(255,255,255,.08);
+            --motion-fast: 120ms;
+            --motion: 180ms;
+            --motion-slow: 520ms;
+            --ease-out: cubic-bezier(.16,1,.3,1);
+            --ease-spring: cubic-bezier(.34,1.56,.64,1);
+            --highlight: rgba(250,250,250,.08);
         }
 
         body {
@@ -372,14 +378,51 @@
         .section-label, .catalog-category { color: var(--brand); }
         .section-title, .pg-page h2, .home-hero h1 { letter-spacing: -0.035em; }
         .section-sub, .pg-desc, .hero-text p { color: var(--fg2); }
+        ::selection { background: rgba(249,115,22,.32); color: #fff; }
+
+        @keyframes surfaceIn {
+            from { opacity: 0; transform: translateY(10px) scale(.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes sheen {
+            from { transform: translateX(-120%) skewX(-14deg); }
+            to { transform: translateX(220%) skewX(-14deg); }
+        }
 
         .app-header {
             background: rgba(9,9,11,.78);
             border-bottom: 1px solid var(--border);
             box-shadow: 0 1px 0 rgba(255,255,255,.03);
         }
-        .app-nav a { color: var(--fg2); }
+        .logo a, .app-nav a, .gh-btn, .see-all, .hero-btn-primary, .hero-btn-outline {
+            transition: color var(--motion) var(--ease-out),
+                background-color var(--motion) var(--ease-out),
+                border-color var(--motion) var(--ease-out),
+                box-shadow var(--motion) var(--ease-out),
+                transform var(--motion) var(--ease-out);
+        }
+        .logo a:hover { transform: translateY(-1px); }
+        .app-nav a {
+            position: relative;
+            color: var(--fg2);
+            min-height: 2rem;
+            display: inline-flex;
+            align-items: center;
+        }
+        .app-nav a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: .25rem;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--fg), transparent);
+            opacity: 0;
+            transform: scaleX(.4);
+            transition: opacity var(--motion) var(--ease-out), transform var(--motion) var(--ease-out);
+        }
         .app-nav a:hover, .app-nav a.active { color: var(--fg); }
+        .app-nav a:hover::after, .app-nav a.active::after { opacity: 1; transform: scaleX(1); }
         .gh-btn, .see-all, .hero-btn-outline {
             border-color: var(--border);
             border-radius: var(--radius-sm);
@@ -430,10 +473,45 @@
             box-shadow: var(--shadow-sm);
         }
 
+        .feature-card, .cli-card, .demo-card, .home-card, .catalog-card, .demo-section,
+        .pg-preview, .pg-controls, .tutorial-step, .example-preview, .table-wrap {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            transition: border-color var(--motion) var(--ease-out),
+                box-shadow var(--motion) var(--ease-out),
+                transform var(--motion) var(--ease-out),
+                background-color var(--motion) var(--ease-out);
+        }
+
+        .feature-card::before, .cli-card::before, .demo-card::before, .home-card::before,
+        .catalog-card::before, .demo-section::before, .pg-preview::before, .pg-controls::before,
+        .tutorial-step::before, .example-preview::before, .table-wrap::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 20% 0%, var(--highlight), transparent 42%);
+            opacity: 0;
+            transition: opacity var(--motion-slow) var(--ease-out);
+            z-index: -1;
+        }
+
         .feature-card:hover, .cli-card:hover, .demo-card:hover, .home-card:hover, .catalog-card:hover {
             border-color: #3f3f46;
             box-shadow: var(--shadow-md);
             transform: translateY(-2px);
+        }
+        .demo-section:hover, .pg-preview:hover, .pg-controls:hover, .tutorial-step:hover,
+        .example-preview:hover, .table-wrap:hover {
+            border-color: #3f3f46;
+            box-shadow: var(--shadow-md);
+        }
+        .feature-card:hover::before, .cli-card:hover::before, .demo-card:hover::before,
+        .home-card:hover::before, .catalog-card:hover::before, .demo-section:hover::before,
+        .pg-preview:hover::before, .pg-controls:hover::before, .tutorial-step:hover::before,
+        .example-preview:hover::before, .table-wrap:hover::before {
+            opacity: 1;
         }
 
         .features-grid, .cli-grid, .catalog-grid { gap: 1rem; }
@@ -463,12 +541,20 @@
             color: var(--fg);
             font-weight: 500;
             box-shadow: var(--shadow-sm);
+            transition: background-color var(--motion-fast) var(--ease-out),
+                border-color var(--motion-fast) var(--ease-out),
+                color var(--motion-fast) var(--ease-out),
+                box-shadow var(--motion-fast) var(--ease-out),
+                transform var(--motion-fast) var(--ease-out);
         }
         button:hover, .btn:hover {
             background: #27272a;
             border-color: #3f3f46;
             color: var(--fg);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
         }
+        button:active, .btn:active { box-shadow: var(--shadow-sm); transform: translateY(0) scale(.98); }
         button:focus-visible, .btn:focus-visible,
         input:focus-visible, textarea:focus-visible, select:focus-visible {
             outline: none;
@@ -505,7 +591,16 @@
             border-radius: var(--radius-sm);
             color: var(--fg);
             box-shadow: var(--shadow-sm);
+            transition: background-color var(--motion-fast) var(--ease-out),
+                border-color var(--motion-fast) var(--ease-out),
+                box-shadow var(--motion-fast) var(--ease-out);
         }
+        input[type="text"]:hover:not(:focus), input[type="number"]:hover:not(:focus),
+        input[type="url"]:hover:not(:focus), input[type="email"]:hover:not(:focus),
+        input[type="password"]:hover:not(:focus), textarea:hover:not(:focus), select:hover:not(:focus) {
+            border-color: #3f3f46;
+        }
+        input:focus, textarea:focus, select:focus { background: var(--card); }
         input::placeholder, textarea::placeholder { color: var(--fg3); }
         input[type="checkbox"] { accent-color: var(--fg); }
         input[type="range"] { accent-color: var(--fg); }
@@ -614,6 +709,57 @@
         .tutorial-step-num {
             background: var(--fg);
             color: var(--bg);
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .fade-in { animation-timing-function: var(--ease-out); }
+            .hero-code, .feature-card, .cli-card, .demo-card, .home-card, .catalog-card,
+            .demo-section, .pg-preview, .pg-controls, .tutorial-step, .example-preview {
+                animation: surfaceIn var(--motion-slow) var(--ease-out) both;
+            }
+            .hero-btn-primary {
+                position: relative;
+                overflow: hidden;
+            }
+            .hero-btn-primary::after {
+                content: "";
+                position: absolute;
+                inset: -50% auto -50% 0;
+                width: 40%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,.42), transparent);
+                opacity: 0;
+                transform: translateX(-120%) skewX(-14deg);
+            }
+            .hero-btn-primary:hover::after {
+                opacity: 1;
+                animation: sheen 800ms var(--ease-out);
+            }
+            .mouse-dot {
+                transition: left 80ms linear, top 80ms linear, box-shadow var(--motion-fast) var(--ease-out);
+            }
+            .chart-bar, .bar-fill, .clip-toast, .theme-preview {
+                transition-timing-function: var(--ease-out);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+            .fade-in {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            .orb, .live-dot, .spinner {
+                animation: none !important;
+            }
+            .hero-btn-primary:hover, .hero-btn-outline:hover, .gh-btn:hover, .see-all:hover,
+            button:hover, .btn:hover, .feature-card:hover, .cli-card:hover, .demo-card:hover,
+            .home-card:hover, .catalog-card:hover, .logo a:hover {
+                transform: none !important;
+            }
         }
 
         /* ═══════ RESPONSIVE ═══════ */

@@ -143,12 +143,22 @@
             --radius: 12px;
             --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
             --shadow-md: 0 16px 48px rgba(0,0,0,.28);
+            --motion-fast: 120ms;
+            --motion: 180ms;
+            --motion-slow: 520ms;
+            --ease-out: cubic-bezier(.16,1,.3,1);
+            --highlight: rgba(250,250,250,.08);
         }
         body {
             background:
                 radial-gradient(circle at 20% 0%, rgba(249,115,22,.1), transparent 26rem),
                 radial-gradient(circle at 85% 10%, rgba(161,161,170,.12), transparent 24rem),
                 var(--bg);
+        }
+        ::selection { background: rgba(249,115,22,.32); color: #fff; }
+        @keyframes surfaceIn {
+            from { opacity: 0; transform: translateY(10px) scale(.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
         a { color: var(--fg); }
         a:hover { color: var(--fg); }
@@ -164,8 +174,35 @@
             border-bottom: 1px solid var(--border);
             box-shadow: 0 1px 0 rgba(255,255,255,.03);
         }
-        .header-nav a { color: var(--fg2); }
+        .logo a, .header-nav a, .gh-btn, .toc a, .code-block, .step {
+            transition: color var(--motion) var(--ease-out),
+                background-color var(--motion) var(--ease-out),
+                border-color var(--motion) var(--ease-out),
+                box-shadow var(--motion) var(--ease-out),
+                transform var(--motion) var(--ease-out);
+        }
+        .logo a:hover { transform: translateY(-1px); }
+        .header-nav a {
+            position: relative;
+            color: var(--fg2);
+            min-height: 2rem;
+            display: inline-flex;
+            align-items: center;
+        }
+        .header-nav a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: .25rem;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--fg), transparent);
+            opacity: 0;
+            transform: scaleX(.4);
+            transition: opacity var(--motion) var(--ease-out), transform var(--motion) var(--ease-out);
+        }
         .header-nav a:hover, .header-nav a.active { color: var(--fg); }
+        .header-nav a:hover::after, .header-nav a.active::after { opacity: 1; transform: scaleX(1); }
         .gh-btn {
             background: rgba(24,24,27,.72);
             border-color: var(--border);
@@ -212,12 +249,31 @@
             box-shadow: var(--shadow-sm);
         }
         .step {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
             padding: 1rem;
             background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01)), var(--card);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             box-shadow: var(--shadow-sm);
         }
+        .step::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 20% 0%, var(--highlight), transparent 42%);
+            opacity: 0;
+            transition: opacity var(--motion-slow) var(--ease-out);
+            z-index: -1;
+        }
+        .step:hover, .code-block:hover, .toc:hover {
+            border-color: #3f3f46;
+            box-shadow: var(--shadow-md);
+        }
+        .step:hover { transform: translateY(-1px); }
+        .step:hover::before { opacity: 1; }
         .step-num {
             background: var(--fg);
             color: var(--bg);
@@ -242,6 +298,28 @@
             background: var(--bg3);
             color: var(--fg);
             border: 1px solid var(--border);
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .fade-in { animation-timing-function: var(--ease-out); }
+            .page-hero .toc, .doc-section, .step, .code-block {
+                animation: surfaceIn var(--motion-slow) var(--ease-out) both;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+            .fade-in {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            .logo a:hover, .step:hover {
+                transform: none !important;
+            }
         }
 
         /* ═══════ RESPONSIVE ═══════ */
