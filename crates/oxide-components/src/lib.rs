@@ -148,7 +148,7 @@ impl InputBuilder {
     pub fn build(self) -> web_sys::Element {
         inject_css("input", INPUT_CSS);
         let wrap = create_element("div");
-        set_attribute(&wrap, "class", "bu-field");
+        set_attribute(&wrap, "class", if self.label.is_empty() { "bu-field" } else { "bu-field bu-field-floating" });
         if !self.label.is_empty() {
             let lbl = create_element("label");
             set_attribute(&lbl, "class", "bu-label");
@@ -160,7 +160,11 @@ impl InputBuilder {
         let cls = if self.error_msg.is_some() { "bu-input bu-input-error" } else { "bu-input" };
         set_attribute(&input, "class", cls);
         set_attribute(&input, "type", &self.input_type);
-        if !self.placeholder.is_empty() { set_attribute(&input, "placeholder", &self.placeholder); }
+        if self.label.is_empty() {
+            if !self.placeholder.is_empty() { set_attribute(&input, "placeholder", &self.placeholder); }
+        } else {
+            set_attribute(&input, "placeholder", if self.placeholder.is_empty() { " " } else { &self.placeholder });
+        }
         if self.required { set_attribute(&input, "required", ""); input.set_attribute("aria-required", "true").ok(); }
         if let Some(s) = self.signal {
             let inp = input.clone();
@@ -186,7 +190,7 @@ impl InputBuilder {
 pub fn textarea(label: &str, value: Signal<String>) -> web_sys::Element {
     inject_css("input", INPUT_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "bu-field");
+    set_attribute(&wrap, "class", if label.is_empty() { "bu-field" } else { "bu-field bu-field-floating" });
     if !label.is_empty() {
         let lbl = create_element("label");
         set_attribute(&lbl, "class", "bu-label");
@@ -196,6 +200,7 @@ pub fn textarea(label: &str, value: Signal<String>) -> web_sys::Element {
     let ta = create_element("textarea");
     set_attribute(&ta, "class", "bu-input");
     set_attribute(&ta, "rows", "4");
+    if !label.is_empty() { set_attribute(&ta, "placeholder", " "); }
     let ta_ref = ta.clone();
     create_effect(move || { set_property(&ta_ref, "value", &JsValue::from_str(&value.get())); });
     let v = value;
@@ -211,15 +216,17 @@ pub fn textarea(label: &str, value: Signal<String>) -> web_sys::Element {
 pub fn select(label: &str, options: &[(&str, &str)], value: Signal<String>) -> web_sys::Element {
     inject_css("input", INPUT_CSS);
     let wrap = create_element("div");
-    set_attribute(&wrap, "class", "bu-field");
+    set_attribute(&wrap, "class", "bu-field bu-field-select");
     if !label.is_empty() {
         let lbl = create_element("label");
         set_attribute(&lbl, "class", "bu-label");
         append_text(&lbl, label);
         append_node(&wrap, &lbl);
     }
+    let select_wrap = create_element("div");
+    set_attribute(&select_wrap, "class", "bu-select-wrap");
     let sel = create_element("select");
-    set_attribute(&sel, "class", "bu-input");
+    set_attribute(&sel, "class", "bu-input bu-select");
     for &(val, text) in options {
         let opt = create_element("option");
         set_attribute(&opt, "value", val);
@@ -230,7 +237,8 @@ pub fn select(label: &str, options: &[(&str, &str)], value: Signal<String>) -> w
     create_effect(move || { set_property(&sel_ref, "value", &JsValue::from_str(&value.get())); });
     let v = value;
     add_event_listener(&sel, "change", move |e| { v.set(event_target_value(&e)); });
-    append_node(&wrap, &sel);
+    append_node(&select_wrap, &sel);
+    append_node(&wrap, &select_wrap);
     wrap
 }
 
@@ -2270,11 +2278,14 @@ pub fn copy_button(text: &str) -> web_sys::Element {
     let btn = create_element("button");
     set_attribute(&btn, "class", "bu-copy-btn");
     btn.set_attribute("aria-label", "Copy to clipboard").ok();
-    set_inner_html(&btn, "&#128203; Copy"); // 📋
+    set_copy_button_state(&btn, false);
 
     let text = text.to_string();
     let btn_ref = btn.clone();
+    let click_generation = std::rc::Rc::new(std::cell::Cell::new(0u32));
     add_event_listener(&btn, "click", move |_| {
+        click_generation.set(click_generation.get().wrapping_add(1));
+        let generation = click_generation.get();
         // Use Clipboard API via js_sys::Reflect
         let window = web_sys::window().unwrap();
         if let Ok(nav) = js_sys::Reflect::get(&window, &JsValue::from_str("navigator")) {
@@ -2288,20 +2299,30 @@ pub fn copy_button(text: &str) -> web_sys::Element {
         }
         // Visual feedback
         let btn_r = btn_ref.clone();
-        set_inner_html(&btn_r, "&#10003; Copied!");
+        set_copy_button_state(&btn_r, true);
         let btn_r2 = btn_r.clone();
+        let click_generation = click_generation.clone();
         set_timeout(move || {
-            set_inner_html(&btn_r2, "&#128203; Copy");
+            if click_generation.get() == generation {
+                set_copy_button_state(&btn_r2, false);
+            }
         }, 2000);
     });
     btn
 }
 
+fn set_copy_button_state(btn: &web_sys::Element, copied: bool) {
+    if copied {
+        btn.class_list().add_1("bu-copy-copied").ok();
+        set_inner_html(btn, "<span class=\"bu-copy-icon\" aria-hidden=\"true\">&#10003;</span><span class=\"bu-copy-label\">Copied</span><span class=\"bu-copy-spark\" aria-hidden=\"true\"></span>");
+    } else {
+        btn.class_list().remove_1("bu-copy-copied").ok();
+        set_inner_html(btn, "<span class=\"bu-copy-icon\" aria-hidden=\"true\">&#128203;</span><span class=\"bu-copy-label\">Copy</span><span class=\"bu-copy-spark\" aria-hidden=\"true\"></span>");
+    }
+}
+
 const COPY_BTN_CSS: &str = "\
-.bu-copy-btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.9rem;background:#1e1e1e;\
-border:1px solid #444;border-radius:8px;color:#ccc;font-size:0.8rem;cursor:pointer;font-family:inherit;\
-transition:all .15s}\
-.bu-copy-btn:hover{border-color:#f97316;color:#f97316}";
+.bu-copy-btn{display:inline-flex;align-items:center;gap:0.45rem}";
 
 const COMPONENT_THEME_CSS: &str = r#"
 :root {
@@ -2341,6 +2362,7 @@ const COMPONENT_THEME_CSS: &str = r#"
   --bu-ease-out: cubic-bezier(.16, 1, .3, 1);
   --bu-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
   --bu-highlight: rgba(250, 250, 250, .08);
+  --bu-interactive-cursor: pointer;
 }
 
 .bu-btn,
@@ -2348,6 +2370,7 @@ const COMPONENT_THEME_CSS: &str = r#"
 .bu-card,
 .bu-alert,
 .bu-modal,
+.bu-select-wrap,
 .bu-dropdown-trigger,
 .bu-dropdown-menu,
 .bu-page-btn,
@@ -2393,7 +2416,7 @@ const COMPONENT_THEME_CSS: &str = r#"
   font-weight: 500;
   line-height: 1;
   text-decoration: none;
-  cursor: pointer;
+  cursor: var(--bu-interactive-cursor);
   transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s, transform .15s;
   box-shadow: var(--bu-shadow-sm);
 }
@@ -2435,6 +2458,53 @@ const COMPONENT_THEME_CSS: &str = r#"
   opacity: .5;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.bu-copy-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.bu-copy-btn::before {
+  content: "";
+  position: absolute;
+  inset: -45% auto -45% -65%;
+  width: 45%;
+  z-index: -1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  transform: skewX(-18deg);
+}
+
+.bu-copy-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.bu-copy-label {
+  min-width: 2.75rem;
+  text-align: left;
+}
+
+.bu-copy-spark {
+  position: absolute;
+  right: .55rem;
+  top: .45rem;
+  width: .35rem;
+  height: .35rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0;
+  box-shadow: -1.15rem .45rem 0 currentColor, -.55rem 1.05rem 0 currentColor;
+}
+
+.bu-copy-btn.bu-copy-copied {
+  border-color: rgba(34,197,94,.55);
+  background: rgba(34,197,94,.12);
+  color: #bbf7d0;
+  box-shadow: 0 0 0 1px rgba(34,197,94,.18), 0 12px 30px rgba(34,197,94,.12);
 }
 
 .bu-btn-primary {
@@ -2502,11 +2572,41 @@ const COMPONENT_THEME_CSS: &str = r#"
   gap: .5rem;
 }
 
+.bu-field-floating {
+  position: relative;
+  gap: 0;
+}
+
 .bu-label {
   color: var(--bu-foreground);
   font-size: .875rem;
   font-weight: 500;
   line-height: 1;
+}
+
+.bu-field-floating .bu-label {
+  position: absolute;
+  left: .75rem;
+  top: .95rem;
+  z-index: 1;
+  max-width: calc(100% - 1.5rem);
+  padding: 0 .25rem;
+  border-radius: 999px;
+  background: var(--bu-background);
+  color: var(--bu-muted-foreground);
+  pointer-events: none;
+  transform-origin: left center;
+  transition: color var(--bu-motion-fast) var(--bu-ease-out),
+    transform var(--bu-motion-fast) var(--bu-ease-out),
+    top var(--bu-motion-fast) var(--bu-ease-out),
+    background-color var(--bu-motion-fast) var(--bu-ease-out);
+}
+
+.bu-field-floating:focus-within .bu-label,
+.bu-field-floating:has(.bu-input:not(:placeholder-shown)) .bu-label {
+  top: -.45rem;
+  color: var(--bu-ring);
+  transform: scale(.82);
 }
 
 .bu-required,
@@ -2538,6 +2638,21 @@ const COMPONENT_THEME_CSS: &str = r#"
   color: var(--bu-muted-foreground);
 }
 
+.bu-field-floating .bu-input {
+  min-height: 3rem;
+  padding-top: 1.05rem;
+  padding-bottom: .45rem;
+}
+
+.bu-field-floating .bu-input::placeholder {
+  color: transparent;
+  transition: color var(--bu-motion-fast) var(--bu-ease-out);
+}
+
+.bu-field-floating:focus-within .bu-input::placeholder {
+  color: var(--bu-muted-foreground);
+}
+
 .bu-input:focus,
 .bu-search-wrap:focus-within {
   border-color: var(--bu-ring);
@@ -2550,6 +2665,40 @@ const COMPONENT_THEME_CSS: &str = r#"
 
 textarea.bu-input {
   min-height: 5rem;
+}
+
+.bu-field-floating textarea.bu-input {
+  padding-top: 1.25rem;
+}
+
+.bu-select-wrap {
+  position: relative;
+}
+
+.bu-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: .95rem;
+  top: 50%;
+  width: .45rem;
+  height: .45rem;
+  border-right: 1.5px solid var(--bu-muted-foreground);
+  border-bottom: 1.5px solid var(--bu-muted-foreground);
+  pointer-events: none;
+  transform: translateY(-65%) rotate(45deg);
+  transition: border-color var(--bu-motion-fast) var(--bu-ease-out),
+    transform var(--bu-motion-fast) var(--bu-ease-out);
+}
+
+.bu-select-wrap:focus-within::after {
+  border-color: var(--bu-ring);
+  transform: translateY(-45%) rotate(45deg);
+}
+
+.bu-select {
+  appearance: none;
+  cursor: var(--bu-interactive-cursor);
+  padding-right: 2.5rem;
 }
 
 .bu-checkbox,
@@ -2967,7 +3116,7 @@ textarea.bu-input {
   font-family: var(--bu-font);
   font-size: .875rem;
   font-weight: 500;
-  cursor: pointer;
+  cursor: var(--bu-interactive-cursor);
 }
 
 .bu-confirm-cancel {
@@ -3226,6 +3375,24 @@ textarea.bu-input {
   to { opacity: 1; }
 }
 
+@keyframes bu-copy-sheen {
+  from { transform: translateX(0) skewX(-18deg); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: translateX(380%) skewX(-18deg); opacity: 0; }
+}
+
+@keyframes bu-copy-pop {
+  0% { transform: scale(.82) rotate(-8deg); }
+  60% { transform: scale(1.16) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes bu-copy-spark {
+  0% { opacity: 0; transform: translateY(4px) scale(.4); }
+  35% { opacity: .85; }
+  100% { opacity: 0; transform: translateY(-9px) scale(1.1); }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .bu-modal,
   .bu-confirm-dialog,
@@ -3239,6 +3406,18 @@ textarea.bu-input {
   .bu-confirm-overlay,
   .bu-loading-overlay {
     animation: bu-overlay-in var(--bu-motion) var(--bu-ease-out) both;
+  }
+
+  .bu-copy-btn.bu-copy-copied::before {
+    animation: bu-copy-sheen 760ms var(--bu-ease-out);
+  }
+
+  .bu-copy-btn.bu-copy-copied .bu-copy-icon {
+    animation: bu-copy-pop 420ms var(--bu-ease-spring);
+  }
+
+  .bu-copy-btn.bu-copy-copied .bu-copy-spark {
+    animation: bu-copy-spark 720ms var(--bu-ease-out);
   }
 }
 

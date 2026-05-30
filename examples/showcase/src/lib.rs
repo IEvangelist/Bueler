@@ -3122,9 +3122,10 @@ fn demo_forms() -> web_sys::Element {
     render_output();
 
     let name_field = form_field("Name");
+    set_attribute(&name_field, "class", "form-field floating-field");
     let name_input = create_element("input");
     set_attribute(&name_input, "type", "text");
-    set_attribute(&name_input, "placeholder", "Your name");
+    set_attribute(&name_input, "placeholder", " ");
     let state_ref = state.clone();
     let render_ref = render_output.clone();
     add_event_listener(&name_input, "input", move |event| {
@@ -3135,9 +3136,10 @@ fn demo_forms() -> web_sys::Element {
     append_node(&grid, &name_field);
 
     let email_field = form_field("Email");
+    set_attribute(&email_field, "class", "form-field floating-field");
     let email_input = create_element("input");
     set_attribute(&email_input, "type", "text");
-    set_attribute(&email_input, "placeholder", "you@example.com");
+    set_attribute(&email_input, "placeholder", " ");
     let state_ref = state.clone();
     let render_ref = render_output.clone();
     add_event_listener(&email_input, "input", move |event| {
@@ -3197,6 +3199,8 @@ fn demo_forms() -> web_sys::Element {
     append_node(&grid, &subscribe_field);
 
     let language_field = form_field("Language");
+    set_attribute(&language_field, "class", "form-field select-field");
+    let select_shell = el("div", "select-shell", &[]);
     let select = create_element("select");
     for (value, label) in [
         ("rust", "Rust"),
@@ -3215,7 +3219,8 @@ fn demo_forms() -> web_sys::Element {
         state_ref.borrow_mut().language = event_target_value(&event);
         render_ref();
     });
-    append_node(&language_field, &select);
+    append_node(&select_shell, &select);
+    append_node(&language_field, &select_shell);
     append_node(&grid, &language_field);
 
     append_node(&content, &grid);
@@ -3629,32 +3634,59 @@ fn inject_benchmark_css() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 fn demo_mouse() -> web_sys::Element {
+    use std::cell::Cell;
+    use std::rc::Rc;
+
     let content = el("div", "col", &[]);
     let area = el("div", "mouse-area", &[]);
     let dot = el("div", "mouse-dot", &[]);
     append_node(&area, &dot);
     append_node(&content, &area);
 
-    let area_ref = area.clone();
     let dot_ref = dot.clone();
     let coords = el("div", "mouse-coords", &[]);
-    coords.set_text_content(Some("x: 0 · y: 0"));
+    coords.set_text_content(Some("X: 0 · Y: 0"));
     let coords_ref = coords.clone();
+    let pending_x = Rc::new(Cell::new(0i32));
+    let pending_y = Rc::new(Cell::new(0i32));
+    let frame_pending = Rc::new(Cell::new(false));
+
+    let area_for_enter = area.clone();
+    add_event_listener(&area, "mouseenter", move |_| {
+        area_for_enter.class_list().add_1("is-tracking").ok();
+    });
+
+    let area_for_leave = area.clone();
+    add_event_listener(&area, "mouseleave", move |_| {
+        area_for_leave.class_list().remove_1("is-tracking").ok();
+    });
+
     add_event_listener(&area, "mousemove", move |e| {
         let Some(me) = e.dyn_ref::<web_sys::MouseEvent>() else {
             return;
         };
-        let rect = area_ref.get_bounding_client_rect();
-        let x = me.client_x() as f64 - rect.left();
-        let y = me.client_y() as f64 - rect.top();
-        if x < 0.0 || y < 0.0 || x > rect.width() || y > rect.height() {
+
+        pending_x.set(me.offset_x());
+        pending_y.set(me.offset_y());
+
+        if frame_pending.get() {
             return;
         }
-        let x = x.round() as i32;
-        let y = y.round() as i32;
-        set_style(&dot_ref, "left", &format!("{}px", x));
-        set_style(&dot_ref, "top", &format!("{}px", y));
-        coords_ref.set_text_content(Some(&format!("x: {} · y: {}", x, y)));
+
+        frame_pending.set(true);
+        let dot = dot_ref.clone();
+        let coords = coords_ref.clone();
+        let px = pending_x.clone();
+        let py = pending_y.clone();
+        let pending = frame_pending.clone();
+        request_animation_frame(move || {
+            pending.set(false);
+            let x = px.get();
+            let y = py.get();
+            set_style(&dot, "--mouse-x", &format!("{}px", x));
+            set_style(&dot, "--mouse-y", &format!("{}px", y));
+            coords.set_text_content(Some(&format!("X: {} · Y: {}", x, y)));
+        });
     });
     append_node(&content, &coords);
 
@@ -4309,12 +4341,35 @@ fn demo_animation() -> web_sys::Element {
 // 13. SVG Bar Chart
 // ═══════════════════════════════════════════════════════════════════════════
 
+fn prefers_reduced_motion() -> bool {
+    web_sys::window()
+        .and_then(|window| window.match_media("(prefers-reduced-motion: reduce)").ok().flatten())
+        .map(|query| query.matches())
+        .unwrap_or(false)
+}
+
+fn append_svg_animate(target: &web_sys::Element, attribute: &str, from: f64, to: f64, delay_ms: u32) {
+    if prefers_reduced_motion() { return; }
+    let animation = create_svg_element("animate");
+    set_attribute(&animation, "attributeName", attribute);
+    set_attribute(&animation, "from", &format!("{from:.2}"));
+    set_attribute(&animation, "to", &format!("{to:.2}"));
+    set_attribute(&animation, "dur", ".58s");
+    set_attribute(&animation, "begin", &format!("{:.3}s", delay_ms as f64 / 1000.0));
+    set_attribute(&animation, "fill", "freeze");
+    set_attribute(&animation, "calcMode", "spline");
+    set_attribute(&animation, "keyTimes", "0;1");
+    set_attribute(&animation, "keySplines", ".16 1 .3 1");
+    append_node(target, &animation);
+}
+
 fn demo_chart() -> web_sys::Element {
     let data = signal(vec![65u32, 40, 80, 55, 90, 35, 70]);
     let labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    let previous_data = std::rc::Rc::new(std::cell::RefCell::new(vec![0u32; labels.len()]));
 
     let content = el("div", "col", &[]);
-    let chart_wrap = el("div", "chart-wrap", &[]);
+    let chart_wrap = el("div", "chart-wrap chart-wrap-animated", &[]);
     // SVG requires createElementNS — imperative is the right approach here
     let svg = create_svg_element("svg");
     set_attribute(&svg, "viewBox", "0 0 700 220");
@@ -4322,27 +4377,40 @@ fn demo_chart() -> web_sys::Element {
 
     let svg_ref = svg.clone();
     let d = data;
+    let previous_ref = previous_data.clone();
     create_effect(move || {
         clear_children(&svg_ref);
         let vals = d.get();
+        let prev_vals = previous_ref.borrow().clone();
         let bar_w = 60.0f64;
         let gap = 40.0f64;
         let max_h = 180.0f64;
         let max_val = *vals.iter().max().unwrap_or(&100) as f64;
+        let prev_max_val = *prev_vals.iter().max().unwrap_or(&100) as f64;
+        let reduce_motion = prefers_reduced_motion();
 
         for (i, &val) in vals.iter().enumerate() {
             let x = 20.0 + i as f64 * (bar_w + gap);
             let h = (val as f64 / max_val) * max_h;
             let y = 190.0 - h;
+            let prev_val = prev_vals.get(i).copied().unwrap_or_default();
+            let prev_h = if prev_max_val <= 0.0 { 0.0 } else { (prev_val as f64 / prev_max_val) * max_h };
+            let prev_y = 190.0 - prev_h;
+            let delay = (i as u32) * 45;
+            let initial_y = if reduce_motion { y } else { prev_y };
+            let initial_h = if reduce_motion { h } else { prev_h };
 
             let rect = create_svg_element("rect");
             set_attribute(&rect, "x", &format!("{}", x));
-            set_attribute(&rect, "y", &format!("{}", y));
+            set_attribute(&rect, "y", &format!("{}", initial_y));
             set_attribute(&rect, "width", &format!("{}", bar_w));
-            set_attribute(&rect, "height", &format!("{}", h));
-            set_attribute(&rect, "rx", "4");
+            set_attribute(&rect, "height", &format!("{}", initial_h));
+            set_attribute(&rect, "rx", "10");
             set_attribute(&rect, "fill", &format!("hsl({}, 80%, 55%)", 20 + i * 40));
             set_attribute(&rect, "class", "chart-bar");
+            set_attribute(&rect, "style", &format!("--bar-index: {i}; --bar-hue: {}", 20 + i * 40));
+            append_svg_animate(&rect, "y", prev_y, y, delay);
+            append_svg_animate(&rect, "height", prev_h, h, delay);
             append_node(&svg_ref, &rect);
 
             let label = create_svg_element("text");
@@ -4355,12 +4423,15 @@ fn demo_chart() -> web_sys::Element {
 
             let value = create_svg_element("text");
             set_attribute(&value, "x", &format!("{}", x + bar_w / 2.0));
-            set_attribute(&value, "y", &format!("{}", y - 5.0));
+            set_attribute(&value, "y", &format!("{}", if reduce_motion { y - 8.0 } else { prev_y - 8.0 }));
             set_attribute(&value, "text-anchor", "middle");
             set_attribute(&value, "class", "chart-value");
             append_text(&value, &format!("{}", val));
+            append_svg_animate(&value, "y", prev_y - 8.0, y - 8.0, delay + 60);
             append_node(&svg_ref, &value);
         }
+
+        *previous_ref.borrow_mut() = vals;
     });
 
     append_node(&chart_wrap, &svg);
@@ -4394,20 +4465,26 @@ fn demo_modal() -> web_sys::Element {
 
     view! {
         <div class="col">
-            <button class="btn-primary"
+            <button class="btn-primary modal-trigger"
                 on:click={move |_: Event| { open.set(true); }}>
-                "Open Modal"
+                <span>"Open Modal"</span>
+                <span class="modal-trigger-icon">"↗"</span>
             </button>
-            <div class="overlay" class:hidden={!open.get()}
+            <div class="overlay modal-overlay" class:open={open.get()}
                 on:click={move |e: Event| {
                     let target = e.target().unwrap();
                     let el: web_sys::Element = target.dyn_into().unwrap();
-                    if el.class_list().contains("overlay") { open.set(false); }
+                    if el.class_list().contains("modal-overlay") { open.set(false); }
                 }}>
-                <div class="modal">
-                    <h3>"🔥 Bueler Modal"</h3>
-                    <p>"This modal is rendered and controlled entirely by Rust signals compiled to WASM. No JavaScript!"</p>
-                    <button on:click={move |_: Event| { open.set(false); }}>"Close"</button>
+                <div class="modal modal-card" role="dialog">
+                    <button class="modal-close" on:click={move |_: Event| { open.set(false); }}>"×"</button>
+                    <div class="modal-kicker">"Signal controlled"</div>
+                    <h3 id="demo-modal-title">"A modal with presence"</h3>
+                    <p>"Backdrops blur in, the card rises with a spring, and the close affordance stays crisp across themes."</p>
+                    <div class="modal-actions">
+                        <button class="btn-secondary" on:click={move |_: Event| { open.set(false); }}>"Not now"</button>
+                        <button class="btn-primary" on:click={move |_: Event| { open.set(false); }}>"Looks good"</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -4482,23 +4559,34 @@ fn demo_dnd() -> web_sys::Element {
 
 fn demo_clipboard() -> web_sys::Element {
     let copied = signal(false);
+    let copy_generation = signal(0u32);
 
     view! {
         <div class="col">
-            <div class="row">
+            <div class="row clip-row">
                 <div class="clip-text">"🔥 Bueler — Rust frontend framework compiling to WASM"</div>
-                <button on:click={move |_: Event| {
+                <button class="copy-delight" class:copied={copied.get()} on:click={move |_: Event| {
                     let window = web_sys::window().unwrap();
                     let nav = window.navigator();
                     let clipboard = nav.clipboard();
                     let promise = clipboard.write_text("🔥 Bueler — Rust frontend framework compiling to WASM");
+                    let next_generation = copy_generation.get().wrapping_add(1);
+                    copy_generation.set(next_generation);
                     wasm_bindgen_futures::spawn_local(async move {
                         let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
                         copied.set(true);
-                        set_timeout(move || { copied.set(false); }, 2000);
+                        set_timeout(move || {
+                            if copy_generation.get() == next_generation {
+                                copied.set(false);
+                            }
+                        }, 1800);
                     });
-                }}>"📋 Copy"</button>
-                <span class="clip-toast" class:show={copied.get()}>"Copied!"</span>
+                }}>
+                    <span class="copy-icon">{if copied.get() { "✓" } else { "📋" }}</span>
+                    <span>{if copied.get() { "Copied" } else { "Copy" }}</span>
+                    <span class="copy-spark"></span>
+                </button>
+                <span class="clip-toast" class:show={copied.get()}>"Copied to clipboard"</span>
             </div>
         </div>
     }
@@ -4602,19 +4690,35 @@ fn demo_resiliency() -> web_sys::Element {
     let eb_label = text_el("strong", "Error Boundary");
     append_node(&content, &eb_label);
 
-    let error_area = el("div", "", &[]);
-    let error_area_ref = error_area.clone();
-    let trigger_btn = view! {
-        <button on:click={move |_: Event| {
-            clear_children(&error_area_ref);
-            let card = resiliency::default_error_boundary(|| {
-                panic!("Simulated component crash!")
-            });
-            error_area_ref.append_child(&card).ok();
-        }}>"Trigger Error"</button>
+    let boundary_failed = signal(false);
+    let error_demo = view! {
+        <div class="error-boundary-demo">
+            <div class="row">
+                <button class="btn-primary" on:click={move |_: Event| { boundary_failed.set(true); }}>
+                    "Trigger Error Boundary"
+                </button>
+                <button class="btn-secondary" on:click={move |_: Event| { boundary_failed.set(false); }}>
+                    "Reset"
+                </button>
+            </div>
+            <div class="error-boundary-card" class:failed={boundary_failed.get()}>
+                {if boundary_failed.get() {
+                    <div>
+                        <div class="error-boundary-kicker">"Recovered fallback"</div>
+                        <h4>"The child render failed, so the boundary took over."</h4>
+                        <p>"In a real app, the boundary wraps a child view and catches render panics. This demo simulates that fallback state so the deployed page stays interactive instead of crashing the WASM event handler."</p>
+                    </div>
+                } else {
+                    <div>
+                        <div class="error-boundary-kicker">"Healthy child view"</div>
+                        <h4>"Everything is rendering normally."</h4>
+                        <p>"Trigger the boundary to swap this panel for the fallback UI, then reset it to recover."</p>
+                    </div>
+                }}
+            </div>
+        </div>
     };
-    append_node(&content, &trigger_btn);
-    append_node(&content, &error_area);
+    append_node(&content, &error_demo);
 
     // ── Circuit Breaker section ──
     let cb_label = text_el("strong", "Circuit Breaker");
