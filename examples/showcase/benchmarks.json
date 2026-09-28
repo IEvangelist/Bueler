@@ -798,6 +798,48 @@
           "upper_ns": 120.089
         }
       }
+    },
+    {
+      "timestamp": "2026-09-28T13:24:43Z",
+      "commit": "3b17d809d474af61239206a36023bbf46b3dfb93",
+      "commit_short": "3b17d80",
+      "results": {
+        "signal/create": {
+          "median_ns": 37.118,
+          "lower_ns": 37.068,
+          "upper_ns": 37.152
+        },
+        "signal/write": {
+          "median_ns": 19.628,
+          "lower_ns": 19.619,
+          "upper_ns": 19.64
+        },
+        "signal/read": {
+          "median_ns": 6.86,
+          "lower_ns": 6.858,
+          "upper_ns": 6.872
+        },
+        "batch/coalesce": {
+          "median_ns": 408.296,
+          "lower_ns": 408.16,
+          "upper_ns": 408.577
+        },
+        "memo/recompute": {
+          "median_ns": 105.309,
+          "lower_ns": 105.256,
+          "upper_ns": 105.337
+        },
+        "effect/run": {
+          "median_ns": 85.749,
+          "lower_ns": 85.703,
+          "upper_ns": 85.861
+        },
+        "watch/trigger": {
+          "median_ns": 114.64,
+          "lower_ns": 114.563,
+          "upper_ns": 114.728
+        }
+      }
     }
   ]
 }
